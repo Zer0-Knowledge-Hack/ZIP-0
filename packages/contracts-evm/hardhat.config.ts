@@ -31,9 +31,16 @@ const config: HardhatUserConfig = {
     localhost: {
       url: "http://127.0.0.1:8545",
     },
+    // HashKey Chain publishes its RPCs under hsk.xyz. The former *.alt.technology
+    // endpoints are decommissioned and return no response — see docs/hsk-chain-integration.md.
     hskTestnet: {
-      url: process.env.HSK_RPC_URL || "https://hashkeychain-testnet.alt.technology",
+      url: process.env.HSK_RPC_URL || "https://testnet.hsk.xyz",
       chainId: 133,
+      accounts: [PRIVATE_KEY],
+    },
+    hskMainnet: {
+      url: process.env.HSK_MAINNET_RPC_URL || "https://mainnet.hsk.xyz",
+      chainId: 177,
       accounts: [PRIVATE_KEY],
     },
     avaxFuji: {
@@ -45,7 +52,28 @@ const config: HardhatUserConfig = {
   etherscan: {
     apiKey: {
       avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || "snowtrace",
+      // Blockscout does not require a real key; any non-empty value is accepted.
+      hskMainnet: process.env.HSK_EXPLORER_API_KEY || "blockscout",
+      hskTestnet: process.env.HSK_EXPLORER_API_KEY || "blockscout",
     },
+    customChains: [
+      {
+        network: "hskMainnet",
+        chainId: 177,
+        urls: {
+          apiURL: "https://hashkey.blockscout.com/api",
+          browserURL: "https://hashkey.blockscout.com",
+        },
+      },
+      {
+        network: "hskTestnet",
+        chainId: 133,
+        urls: {
+          apiURL: "https://testnet-explorer.hsk.xyz/api",
+          browserURL: "https://testnet-explorer.hsk.xyz",
+        },
+      },
+    ],
   },
 };
 
