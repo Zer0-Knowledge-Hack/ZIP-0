@@ -83,6 +83,13 @@ cp packages/cctp-bridge/.env.example packages/cctp-bridge/.env
 **Never commit a `.env` file or a private key.** `.gitignore` covers `.env`, `.env.*`, `*.pem`, and
 `wallets`, but the ultimate safeguard is you. Use a throwaway deployer key for testnets.
 
+**No literal-key fallbacks.** Never write `process.env.KEY || "0xabc..."`. A committed fallback in
+a public repository is a published key, and it gets used silently the moment someone forgets to
+set the variable. Make the program fail loudly instead — see `requireSecret()` in
+`packages/cctp-bridge/scripts/test-payment-cli.ts` for the pattern.
+
+Full rules in [SECURITY.md](SECURITY.md).
+
 ---
 
 ## Testing expectations

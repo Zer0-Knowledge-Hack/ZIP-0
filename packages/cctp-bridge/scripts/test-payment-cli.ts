@@ -32,6 +32,26 @@ if (fs.existsSync(walletsPath)) {
   }
 }
 
+/**
+ * Resolves a secret from the first environment variable that is set.
+ *
+ * Never falls back to a literal. A committed fallback key is a published key: this script
+ * previously shipped working private keys, and the repository is public. Failing loudly is
+ * the only safe behaviour.
+ */
+function requireSecret(label: string, envVars: string[], fromWallets?: string): `0x${string}` {
+  const value = envVars.map((name) => process.env[name]).find(Boolean) ?? fromWallets;
+
+  if (!value) {
+    throw new Error(
+      `Missing ${label}. Set one of: ${envVars.join(", ")} in packages/cctp-bridge/.env ` +
+        `(or provide wallets/test-wallets.json). Never hardcode a key — this repository is public.`
+    );
+  }
+
+  return value.trim() as `0x${string}`;
+}
+
 async function main() {
   console.log("\n" + "=".repeat(70));
   console.log("   🚀 ZIP-0 PAYMENT BRIDGE — BIDIRECTIONAL CROSS-CHAIN RUNNER");
@@ -44,17 +64,20 @@ async function main() {
   const evmRpcUrl = process.env.EVM_RPC_URL || "https://api.avax-test.network/ext/bc/C/rpc";
   const vaultAddress = (process.env.EVM_VAULT_ADDRESS || "0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa").trim();
   const usdcAddress = (process.env.EVM_USDC_ADDRESS || "0x5425890298aed601595a70ab815c96711a31bc65").trim();
-  const relayerKey = (
-    process.env.RELAYER_PRIVATE_KEY ||
-    process.env.PRIVATE_KEY ||
-    "0x09e09eabe397b3a28c4cdc56a61bb80dc93802e19962bd89c03d40cbfabef4b3"
-  ).trim();
+  const relayerKey = requireSecret("relayer private key", [
+    "RELAYER_PRIVATE_KEY",
+    "PRIVATE_KEY",
+  ]);
 
   const relayerAccount = privateKeyToAccount(relayerKey as `0x${string}`);
 
   // Test accounts
   const aliceAddress = (testWallets?.evm?.users?.alice?.address || "0x8dF4b3F59DF5B67E7372B1e74Ad952cB2da7d246") as `0x${string}`;
-  const aliceKey = (testWallets?.evm?.users?.alice?.privateKey || "0x5ca9d06a2dda4394805e990d94d3373f9b810a4cc3d584b7c40f62c511846232") as `0x${string}`;
+  const aliceKey = requireSecret(
+    "test payer (alice) private key",
+    ["ALICE_PRIVATE_KEY"],
+    testWallets?.evm?.users?.alice?.privateKey
+  );
   const bobAddress = (testWallets?.evm?.users?.bob?.address || "0x503a41a175e599F62353790D1B958d1c296C38ef") as `0x${string}`;
   const charlieStellar = (testWallets?.stellar?.users?.charlie?.publicKey || "GDS232ENS4F7DZHDN6OYNECGX2ZXZ4JAWMXFPQDUH5P4DR6NRBR4J2VS");
 
