@@ -1,141 +1,184 @@
-# ZIP-0 — Arquitectura del Payment Bridge Multi-EVM & Stellar (Circle USDC + Pollar)
+# ZIP-0 — Arquitectura de Infraestructura de Pagos Institucionales Cross-Border (Circle USDC + Pollar)
 
-## 1. Visión General: Abstracción EVM-First & Stellar Pollar
+## 1. Visión General: Rieles de Liquidación Institucional (Reemplazo SWIFT)
 
-El proyecto **ZIP-0** es una infraestructura de interoperabilidad y pagos cross-chain en **USDC** diseñada para conectar el ecosistema **Stellar (Pollar SDK)** con redes **Multi-EVM (Avalanche Fuji, HSK, Arbitrum)** bajo una experiencia sin fricciones de gas:
+El proyecto **ZIP-0** es una infraestructura de ingeniería de pagos cross-border y liquidación en **Circle USDC** diseñada para instituciones financieras, gobiernos, ONGs y fintechs globales (e.g. transferencias directas hacia centros financieros como Singapur, Europa o Latinoamérica sin intermediarios bancarios tradicionales ni SWIFT).
 
-> **Principio de Diseño:**
->
-> - **Comercios y dApps en EVM**: Operan de forma nativa con sus wallets estándar (MetaMask, Core, Rabby). Reciben y liquidan pagos en **Circle USDC nativo** sin lidiar con claves de Stellar, endpoints de Horizon ni enrutamientos manuales de CCTP.
-> - **Usuarios y Pagadores en Stellar**: Pagan a través de **Pollar SDK** (red Stellar) disfrutando de transacciones **sin gas de XLM**, donde las comisiones de red y reservas base son absorbidas por el modelo de patrocinio de Pollar.
-> - **Relayer Orchestrator ZIP-0**: Escucha los eventos on-chain bidireccionalmente, coordina las firmas autorizadas y liquida los fondos instantáneamente en la red de destino.
+### Principios de Ingeniería de Software (Clean Architecture / Ports & Adapters)
+
+1. **Núcleo Agnóstico del Proveedor (Decoupled Core)**: El motor de pagos (`PaymentRoutingEngine`) opera bajo el patrón de **Ports & Adapters (Hexagonal Architecture)**. No depende de wallets específicas ni de si la red subyacente implementa CCTP nativo o requiere un pool de liquidez.
+2. **Abstracción Total de Gas (Zero Native Gas Friction)**: Ninguna institución maneja tokens volátiles de red (POL, AVAX, ETH). Todo el fondeo y autorización se realiza directamente en **Circle USDC** mediante **ERC-3009 (`transferWithAuthorization`)**, EIP-712 o patrocinio de gas vía Paymasters.
+3. **Consumo Simplificado (API Gateway + SDK)**: Las entidades se integran mediante un **REST API Gateway** y el paquete **`@zip-0/sdk`**, delegando toda la complejidad de orquestación, verificación on-chain y liquidación a la infraestructura de ZIP-0.
 
 ---
 
-## 2. Redes Soportadas y Despliegue Oficial en Testnet
+## 2. Matriz de Rieles de Liquidación (Dual-Rail Strategy)
 
-| Red | Chain ID | Rol en ZIP-0 | Estado |
-| :--- | :--- | :--- | :--- |
-| **Avalanche Fuji Testnet** | `43113` | Destino y Origen EVM Principal (Cochabamba Bounty) | **Activo & Desplegado** |
-| **Stellar Testnet** | — | Origen y Destino Stellar (Pollar SDK / Horizon) | **Activo & Conectado** |
-| **HashKey Chain (HSK) Testnet** | `133` | Despliegue EVM Simétrico | Listo para desplegar |
-| **Hardhat Local** | `31337` | Pruebas locales y CI/CD offline | Soportado (`pnpm node:local`) |
+El motor evalúa automáticamente la ruta de pago y selecciona el riel óptimo mediante el patrón **Strategy**:
 
-### Direcciones de Protocolo en Avalanche Fuji (`43113`)
+```text
+                               ┌─────────────────────────────┐
+                               │    PaymentRoutingEngine     │
+                               │   (Intención de Pago USDC)   │
+                               └──────────────┬──────────────┘
+                                              │
+                      ┌───────────────────────┴───────────────────────┐
+                      ▼                                               ▼
+      ┌───────────────────────────────┐               ┌───────────────────────────────┐
+      │      CctpSettlementRail       │               │      VaultSettlementRail      │
+      │    (Burn & Mint 1:1 Nativo)   │               │   (Liquidity Vault + Float)   │
+      └───────────────┬───────────────┘               └───────────────┬───────────────┘
+                      │                                               │
+             [ Redes con CCTP ]                              [ Redes sin CCTP ]
+       Polygon PoS, Avalanche Fuji,                      HashKey Chain (HSK),
+       Arbitrum, Base, Ethereum                          Testbeds Locales
+      (Tickets: $1M - $50M+ / Sin Pools)              (Tickets Minoristas / Pools Propios)
+```
 
-| Recurso / Rol | Dirección en Avalanche Fuji | Enlace SnowTrace |
+### Comparativa de Rieles
+
+| Característica | CCTP Settlement Rail (Circle Oficial) | Vault Settlement Rail (ZIP0PaymentVault) |
 | :--- | :--- | :--- |
-| **`ZIP0PaymentVault`** | `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa` | [Ver Contrato](https://testnet.snowtrace.io/address/0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa) |
-| **Circle USDC (Fuji)** | `0x5425890298aed601595a70ab815c96711a31bc65` | [Ver Token](https://testnet.snowtrace.io/address/0x5425890298aed601595a70ab815c96711a31bc65) |
-| **Relayer Authorized Signer** | `0xAB659E7197bB3c399E9a295261F1D4557D4A714B` | [Ver Wallet](https://testnet.snowtrace.io/address/0xAB659E7197bB3c399E9a295261F1D4557D4A714B) |
-
-### Parámetros de Stellar Testnet (Pollar)
-
-- **Horizon URL**: `https://horizon-testnet.stellar.org`
-- **Circle USDC Issuer (Stellar Testnet)**: `GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5`
-- **Pollar App ID**: `cmty35mez000v0iobxbgcitxt`
+| **Mecanismo On-Chain** | Quema en origen y acuñación en destino 1:1 (*Iris Attestation*) | Bloqueo en Vault origen y liberación en Vault destino vía Relayer |
+| **Capacidad de Liquidez** | **Infinita (Sin Pools)**. Apta para pagos institucionales ($1M - $50M+) | **Limitada al Float disponible** en el contrato `ZIP0PaymentVault` |
+| **Slippage y Riesgo** | 0% Slippage. Cero riesgo de contraparte de pools privados | Requiere rebalanceo y monitorización de liquidez del Vault |
+| **Redes Soportadas** | **Polygon PoS**, **Avalanche**, **Arbitrum**, **Base**, **Ethereum** | **HashKey Chain (HSK Testnet `133`)**, Hardhat Local (`31337`) |
 
 ---
 
-## 3. Dinámica de Fondos y Abstracción de Gas
+## 3. Estrategia de Cuentas y Abstracción de Red (Pollar & Stellar)
 
-### Modelo de Patrocinio en Stellar (Pollar)
+### A. Pollar sobre Cuentas EVM (Polygon)
 
-Pollar implementa **Fee-Bump Transactions** y **Sponsored Reserves**:
+- **Implementación Actual**: Para evitar fricciones de custodia y proveer una experiencia institucional inmediata, se utiliza **Pollar conectado a cuentas de Polygon (EVM)**.
+- **Ventaja**: Permite acceso directo e inmediato a la infraestructura nativa de CCTP en Polygon sin salir del ecosistema EVM.
 
-1. **Gas Sponsorship**: Pollar patrocina el fee de red de Stellar en cada transacción. El usuario final **no gasta XLM**.
-2. **Reserve Sponsorship**: Pollar patrocina la reserva mínima de cuenta (1 XLM) y la creación de trustlines (0.5 XLM por activo).
+### B. Estado de Stellar y Hoja de Ruta CCTP
 
-### Dinámica de Saldo USDC
-
-- **Para Enviar Pagos (Stellar ➔ EVM)**: El pagador debe poseer saldo en USDC en Stellar y la trustline activa del emisor de Circle. El patrocinio cubre el gas de red, pero no el principal del pago.
-- **Para Recibir Pagos (EVM ➔ Stellar)**: El receptor en Stellar no requiere saldo previo. La cuenta se aprovisiona con la trustline de USDC patrocinada automáticamente (`sponsor_trustlines: true`).
+- **Situación Técnica**: En la red Stellar, Circle emite USDC nativo mediante trustlines clásicas, pero **Circle CCTP no está desplegado on-chain** (no existen contratos `TokenMessenger` en Soroban/Stellar actualmente).
+- **Decisión de Arquitectura**:
+  - El soporte de pagos entre Stellar y EVM mediante el Relayer y Vault actual se mantiene documentado como corredor puente especializado.
+  - Se registra formalmente el **Issue / Milestone en el Roadmap**: `feat: stellar-native-cctp-adapter` para incorporar Stellar al `CctpSettlementRail` apenas Circle publique CCTP en Soroban.
 
 ---
 
-## 4. Arquitectura de Flujos Bidireccionales
+## 4. Abstracción de Gas y Autorizaciones Institucionales
 
-### Flujo 1: Stellar (Pollar SDK) ➔ Red EVM (Comercio / Recipient)
+Las instituciones financieras no adquieren tokens nativos de red para comisiones. ZIP-0 implementa dos mecanismos de abstracción:
 
 ```text
-[ Pagador (Stellar / Pollar) ]     [ Stellar Horizon ]          [ Relayer Orchestrator ]       [ ZIP0PaymentVault (EVM) ]      [ Comercio en EVM ]
-             │                             │                               │                                │                              │
-             │── 1. Pago USDC vía Pollar ─>│                               │                                │                              │
-             │   (Transacción sin gas XLM) │── 2. Confirmación Ledger ────>│                                │                              │
-             │                             │                               │── 3. releasePayment(...) ─────>│                              │
-             │                             │                               │      (Relayer paga gas EVM)    │── 4. Transferencia USDC ────>│
-             │                             │                               │                                │      (Circle USDC nativo)    │
+[ Institución / CFO ] ─── 1. Firma EIP-712 (transferWithAuthorization) ───> [ API Gateway ZIP-0 ]
+      (Sin Gas)                                                                     │
+                                                                                    │── 2. Envía Tx y paga Gas
+                                                                                    ▼
+                                                                        [ Circle USDC Contract ]
 ```
 
-1. **Invocación del Pago**: El pagador autoriza el monto en USDC desde su cuenta de Pollar.
-2. **Detección**: El Relayer detecta el pago confirmado en el ledger de Stellar con el identificador único del pago.
-3. **Liberación con Gas Abstracted**: El Relayer invoca `releasePayment(paymentId, recipient, amount)` en el contrato `ZIP0PaymentVault` en la red EVM de destino.
-4. **Liquidación**: El contrato transfiere Circle USDC nativo al comercio de forma instantánea.
+1. **Circle ERC-3009 (`transferWithAuthorization`)**:
+   - La institución firma una autorización criptográfica off-chain con validez temporal (`validBefore`, `validAfter`) y nonce anti-replay.
+   - El Relayer/Paymaster de ZIP-0 presenta la autorización y asume el gas nativo en la red correspondiente.
+2. **Fee Sponsorship de Pollar**:
+   - Para flujos basados en cuentas Pollar, el patrocinio de comisiones absorbe los costos de transacción de red.
 
 ---
 
-### Flujo 2: Red EVM (Pagador) ➔ Stellar (Receptor / Pollar)
+## 5. Arquitectura de Interfaces (Core Domain)
 
-```text
-[ Pagador en EVM ]              [ ZIP0PaymentVault (EVM) ]      [ Relayer Orchestrator ]         [ Stellar Horizon ]          [ Receptor en Stellar ]
-        │                                │                               │                                │                              │
-        │── 1. depositPayment(USDC) ────>│                               │                                │                              │
-        │   (Destino: G-Address Stellar) │── 2. Emite PaymentInitiated ─>│                                │                              │
-        │                                │                               │── 3. Settlement on-chain ─────>│                              │
-        │                                │                               │      (Vía Pollar client)       │── 4. USDC acreditado ───────>│
+El código del paquete central define abstracciones desacopladas:
+
+```typescript
+// packages/cctp-bridge/src/core/interfaces.ts
+
+export type SettlementRailType = 'CCTP_BURN_MINT' | 'LIQUIDITY_VAULT';
+
+export interface PaymentIntent {
+  readonly id: `0x${string}`;
+  readonly sourceChainId: number;
+  readonly destinationChainId: number;
+  readonly sender: `0x${string}`;
+  readonly recipient: `0x${string}`;
+  readonly amount: bigint; // 6 decimales USDC
+  readonly railType: SettlementRailType;
+  readonly status: 'PENDING' | 'ROUTING' | 'SETTLING' | 'CONFIRMED' | 'FAILED';
+  readonly createdAt: number;
+}
+
+export interface ISettlementRail {
+  readonly railType: SettlementRailType;
+  supportsRoute(sourceChainId: number, destinationChainId: number): boolean;
+  estimateFee(sourceChainId: number, destinationChainId: number, amount: bigint): Promise<bigint>;
+  executeSettlement(intent: PaymentIntent, authorizationSignature?: `0x${string}`): Promise<`0x${string}`>;
+}
+
+export interface IPaymentRouter {
+  routePayment(intent: Omit<PaymentIntent, 'status' | 'createdAt' | 'railType'>): Promise<PaymentIntent>;
+  getPaymentStatus(paymentId: `0x${string}`): Promise<PaymentIntent>;
+}
 ```
 
-1. **Depósito en Vault**: El usuario en EVM deposita USDC en el Vault indicando la dirección de Stellar (`bytes32 destinationRecipient`).
-2. **Evento On-Chain**: El contrato bloquea el USDC y emite el evento `PaymentInitiated`.
-3. **Liquidación en Stellar**: El Relayer detecta el evento y ejecuta el crédito on-chain en Stellar vía Pollar hacia la dirección de destino.
+---
+
+## 6. Superficie de Consumo: API Gateway y SDK (`@zip-0/sdk`)
+
+Las instituciones interactúan con ZIP-0 a través de interfaces de alto nivel:
+
+### A. Endpoints REST API
+
+| Método | Endpoint | Descripción |
+| :--- | :--- | :--- |
+| `POST` | `/v1/payments/quote` | Obtiene cotización de ruta, tiempo estimado y selección de riel (CCTP vs. Vault) |
+| `POST` | `/v1/payments/transfer` | Inicia una orden de pago institucional adjuntando firma ERC-3009 o débito |
+| `GET` | `/v1/payments/:id` | Consulta el estado de liquidación y hashes on-chain |
+| `POST` | `/v1/webhooks` | Suscripción de webhooks para eventos `payment.settled`, `payment.failed` |
+
+### B. Consumo Programático vía `@zip-0/sdk`
+
+```typescript
+import { Zip0Client } from '@zip-0/sdk';
+
+const zip0 = new Zip0Client({ apiKey: process.env.ZIP0_API_KEY });
+
+// Transferencia interbancaria instantánea Polygon -> Avalanche vía CCTP
+const payment = await zip0.payments.create({
+  amount: '5000000.00', // 5,000,000 USDC
+  sourceChain: 'polygon',
+  destinationChain: 'avalanche',
+  recipient: '0xSingaporeBankSettlement...',
+  reference: 'INV-2026-SG-001',
+});
+
+console.log(`Payment status: ${payment.status}, Rail: ${payment.railType}`);
+```
 
 ---
 
-## 5. Pruebas de Ejecución On-Chain (Testnet en Vivo)
+## 7. Redes Desplegadas y Parámetros Operativos
 
-La arquitectura fue validada de extremo a extremo en redes públicas de prueba:
+| Red | Chain ID | Rol en ZIP-0 | Riel Principal | Estado |
+| :--- | :--- | :--- | :--- | :--- |
+| **Polygon PoS** | `137` / `80002` | Hub Institucional & Pollar EVM | **CCTP Rail** | Configurado |
+| **Avalanche Fuji** | `43113` | Hub EVM Principal (Cochabamba Bounty) | **CCTP Rail / Vault** | **Desplegado y Activo** |
+| **HashKey Chain (HSK)** | `133` | Riel EVM Simétrico | **Vault Rail** | Listo para desplegar |
+| **Stellar Testnet** | — | Corredor Pollar clásico | **Bridge Adapter** | Activo (Issue abierto para CCTP) |
+| **Hardhat Local** | `31337` | CI/CD y Pruebas Unitarias | **Vault Rail** | Soportado (`pnpm node:local`) |
 
-- **Liquidación Stellar ➔ Avalanche Fuji**:
-  - Transacción Stellar: [`1377e7b1c2b16fc7b37a4a9efca10228ef702240c527d02afc837e57b9617ad2`](https://stellar.expert/explorer/testnet/tx/1377e7b1c2b16fc7b37a4a9efca10228ef702240c527d02afc837e57b9617ad2)
-  - Transacción Avalanche Fuji: [`0x70da84e4b58078e49c715b839b4fb862fb3f8ebf07087f8f55cc56bb97aaa671`](https://testnet.snowtrace.io/tx/0x70da84e4b58078e49c715b839b4fb862fb3f8ebf07087f8f55cc56bb97aaa671)
+### Direcciones de Referencia en Avalanche Fuji (`43113`)
 
-- **Liquidación Avalanche Fuji ➔ Stellar**:
-  - Depósito Avalanche Fuji: [`0x21bccb9857fa83b4353d10a6e4e9e4c21da4ee269a20137b683b2576cb582be0`](https://testnet.snowtrace.io/tx/0x21bccb9857fa83b4353d10a6e4e9e4c21da4ee269a20137b683b2576cb582be0)
-  - Liquidación Stellar: [`399300addb872228ae3464171a7138745fc253dd14b4013cfce5fbf5657b11c3`](https://stellar.expert/explorer/testnet/tx/399300addb872228ae3464171a7138745fc253dd14b4013cfce5fbf5657b11c3)
-
----
-
-## 6. Comandos de Desarrollo y Operación
-
-Todos los comandos del monorepo se ejecutan mediante **`pnpm`**:
-
-| Comando | Función |
-| :--- | :--- |
-| `pnpm test:payment` | Ejecuta el runner de prueba cruzada entre Stellar Testnet y Avalanche Fuji |
-| `pnpm -r test` | Ejecuta todos los tests unitarios con Vitest y Hardhat |
-| `pnpm lint` | Chequea la sintaxis y estilo de código con ESLint |
-| `pnpm node:local` | Levanta un nodo local de Hardhat con `MockUSDC` |
-| `pnpm deploy:local` | Despliega los contratos en el entorno local |
+- **`ZIP0PaymentVault`**: `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa`
+- **Circle USDC (Fuji)**: `0x5425890298aed601595a70ab815c96711a31bc65`
+- **Relayer Signer**: `0xAB659E7197bB3c399E9a295261F1D4557D4A714B`
 
 ---
 
-## 7. Próximos Pasos de Implementación
+## 8. Hoja de Ruta de Implementación (Roadmap)
 
-1. **Integración Frontend de Cuentas Pollar**:
-   - Integrar login social (Google, Email OTP o Passkeys de WebAuthn) mediante `@pollar/react` en la aplicación cliente.
-   - Conectar la sesión autenticada de Pollar con el formulario de checkout donde el destinatario sea cualquier dirección EVM (Avalanche Fuji / HSK).
-2. **Agente de Pago Autónomo / Cron Job Relayer**:
-   - Desarrollar un servicio daemon persistente (Node.js/TypeScript) o Cron Job que monitoree continuamente los eventos `PaymentInitiated` en EVM y las transacciones de Pollar en Stellar Horizon.
-   - Implementar reintentos con backoff exponencial y registro estructurado para garantizar que ninguna transacción quede sin liquidar si hay congestión de red.
-
----
-
-## 8. Mejoras de Arquitectura y Componentes Faltantes
-
-1. **Pipeline de Rebalanceo Automático vía Circle CCTP V2 (Iris Attestation)**:
-   - El contrato `ZIP0PaymentVault.sol` implementa la función `rebalanceVault(...)`.
-   - Conectar el cliente Iris de CCTP (`packages/cctp-bridge/src/adapters/cctp/`) para que, cuando el saldo de liquidez del Vault descienda de un umbral operativo mínimo, se dispare un bridge automático de Circle quemando y minteando USDC nativo desde otras redes EVM (Arbitrum, Base o Ethereum).
-2. **Persistencia e Indexación en Base de Datos**:
-   - Implementar una base de datos ligera (SQLite/PostgreSQL) para registrar el histórico y ciclo de vida de los pagos (`PENDING`, `RELAYED`, `CONFIRMED`, `FAILED`), acelerando las consultas de estado desde la interfaz de usuario sin saturar los RPCs de blockchain.
-3. **SDK de Checkout para Desarrolladores Externos (`@zip-0/sdk`)**:
-   - Empaquetar el cliente en una librería modular lista para ser consumida por dApps externas con un componente de pago embebido.
+1. **Fase 1: Abstracción de Interfaces del Core**:
+   - Refactorizar `packages/cctp-bridge/src/core/` con `ISettlementRail` y `PaymentRoutingEngine`.
+2. **Fase 2: Implementación de Riel CCTP (Polygon & Avalanche)**:
+   - Integrar contratos de Circle `TokenMessenger` y verificación Iris en `CctpSettlementRail`.
+3. **Fase 3: Módulo de Abstracción de Gas ERC-3009**:
+   - Implementar el generador y validador de firmas `transferWithAuthorization` para flujos gasless.
+4. **Fase 4: Empaquetado de `@zip-0/sdk` y API Gateway**:
+   - Desarrollar la capa de endpoints REST y exportar el cliente institucional tipado.
+5. **Fase 5: Issue de Soporte Nativo CCTP en Stellar**:
+   - Monitorear e integrar el estándar CCTP cuando Circle publique el emisor en Soroban.
