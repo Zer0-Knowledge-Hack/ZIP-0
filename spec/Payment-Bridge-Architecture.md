@@ -214,7 +214,7 @@ console.log(`Payment status: ${payment.status}, Rail: ${payment.railType}`);
 
 - **`ZIP0PaymentVault`**: `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa`
 - **Circle USDC (Fuji)**: `0x5425890298aed601595a70ab815c96711a31bc65`
-- **Relayer Signer**: `0xAB659E7197bB3c399E9a295261F1D4557D4A714B`
+- **Relayer Signer**: `0xAB659E7197bB3c399E9a295261F1D4557D4A714B` *(Compromised — pending rotation, see SECURITY.md)*
 
 ---
 
