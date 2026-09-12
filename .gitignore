@@ -19,3 +19,6 @@ coverage/
 .env.*
 *.pem
 wallets
+
+# Local agent tooling
+.atl/

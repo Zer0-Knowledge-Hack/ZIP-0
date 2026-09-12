@@ -32,7 +32,7 @@
 1. **Multi-EVM Symmetry (Avalanche Fuji Priority & HSK Supported)**:
    - Any EVM contract (`ZIP0PaymentVault.sol`), adapter, or workflow must run on any EVM chain.
    - **Avalanche Fuji (Chain ID: 43113)** is the active deployment target for the Buildathon Cochabamba 2026 Bounty.
-   - **HashKey Chain (HSK)** is fully supported symmetrically (ready to deploy via Chain ID 133 when testnet restores).
+   - **HashKey Chain (HSK)** is fully supported symmetrically. Both networks are live: Testnet (Chain ID `133`, `https://testnet.hsk.xyz`) and Mainnet (Chain ID `177`, `https://mainnet.hsk.xyz`). The legacy `*.alt.technology` RPC endpoints are decommissioned — see [`docs/hsk-chain-integration.md`](./docs/hsk-chain-integration.md).
 2. **Circle USDC & Pollar Harmony**:
    - Native Circle USDC contract addresses are harmonized across Stellar and Avalanche networks.
    - Isolated `.env` configuration per package (`packages/contracts-evm/.env` and `packages/cctp-bridge/.env`).
@@ -44,4 +44,7 @@
 5. **OpenSpec & Gentle-AI**:
    - Planning, delta specs, and task tracking follow OpenSpec workflow (`openspec/changes/feat-hsk-cctp-payment-bridge`).
 6. **Architecture Documentation**:
-   - Canonical architecture reference in [`spec/Payment-Bridge-Architecture.md`](./spec/Payment-Bridge-Architecture.md).
+   - Canonical architecture reference in [`spec/Payment-Bridge-Architecture.md`](./spec/Payment-Bridge-Architecture.md) — describes the **target** design, including components not yet implemented.
+   - [`README.md`](./README.md) — project entry point.
+   - [`docs/project-status.md`](./docs/project-status.md) — authoritative breakdown of what is built versus designed. Consult this before claiming any capability exists.
+   - [`docs/hsk-chain-integration.md`](./docs/hsk-chain-integration.md) — verified HSK network parameters, measured gas costs, and ecosystem services.
