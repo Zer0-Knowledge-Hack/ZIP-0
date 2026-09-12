@@ -19,7 +19,7 @@ payment between chains.
 
 ```bash
 pnpm install                                  # install workspace (3 packages)
-pnpm --filter @zip-0/contracts-evm test       # 8 contract tests
+pnpm --filter @zip-0/contracts-evm test       # 19 contract tests
 pnpm --filter @zip-0/cctp-bridge test         # 5 relayer tests
 ```
 
@@ -101,15 +101,19 @@ Built on OpenZeppelin `AccessControl`, `ReentrancyGuard`, and `SafeERC20`.
 | `depositPayment` | public | Lock USDC and emit `PaymentInitiated` |
 | `depositWithPermit` | public | Same, using an EIP-2612 signature (no prior approve) |
 | `releasePayment` | `RELAYER_ROLE` | Release USDC to a recipient on this chain |
-| `refundPayment` | `RELAYER_ROLE` | Return an initiated payment to its payer |
+| `refundPayment` | `RELAYER_ROLE` | Return an initiated or acknowledged payment to its payer |
+| `acknowledgePayment` | `RELAYER_ROLE` | Mark a deposit as picked up before settling it, which blocks `claimRefund` |
+| `claimRefund` | payer | Recover a deposit the relayer never acknowledged, after `REFUND_TIMEOUT` (24 h) |
 | `rebalanceVault` | `TREASURY_ROLE` | Move float out of the vault for rebalancing |
 
 Roles: `DEFAULT_ADMIN_ROLE`, `TREASURY_ROLE` (granted to admin at construction), `RELAYER_ROLE`.
 
 Amounts use 6 decimals, matching USDC on every supported network.
 
-**Known limitations.** `refundPayment` is relayer-only — a payer cannot self-refund after a
-timeout. Relayer payment state lives in an in-memory `Map` and does not survive a process restart.
+**Known limitations.** Once the relayer acknowledges a deposit, only the relayer can refund it.
+The relayer does not call `acknowledgePayment` yet, and the vault deployed on Avalanche Fuji
+predates `acknowledgePayment` and `claimRefund`. Relayer payment state lives in an in-memory `Map`
+and does not survive a process restart.
 
 ---
 
