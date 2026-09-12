@@ -95,41 +95,70 @@ Las instituciones financieras no adquieren tokens nativos de red para comisiones
 
 ## 5. Arquitectura de Interfaces (Core Domain)
 
-> ⚠️ **Estado: DISEÑO PROPUESTO, no implementado.** Las interfaces de abajo (`ISettlementRail`,
-> `IPaymentRouter`, `PaymentIntent.railType`) todavía no existen en el código. El archivo real
-> `packages/cctp-bridge/src/core/interfaces.ts` define hoy `IEvmAdapter`, `IStellarAdapter` e
-> `IRelayerOrchestrator`, y `PaymentIntent` no tiene campo `railType`. Esta sección es el destino
-> del refactor descrito en la Fase 1 de la hoja de ruta.
+> ✅ **Estado: IMPLEMENTADO** (Fase 1, issue #13). El motor de ruteo y la abstracción de rieles
+> existen en `packages/cctp-bridge/src/`. Las firmas de abajo son las reales, no una propuesta.
+>
+> **Desviación deliberada respecto del diseño original:** el ruteo usa `CrossChainDomain` en vez
+> de `chainId`. `PaymentIntent` ya transportaba dominios, y cambiarlo a `chainId` habría obligado
+> a reescribir los adapters y romper los tests existentes sin ganancia funcional. El patrón
+> (Strategy + registro de rieles) es idéntico; sólo cambia la clave de ruteo.
+
+El núcleo define tres piezas:
+
+| Archivo | Contenido |
+| :--- | :--- |
+| `src/core/interfaces.ts` | `ISettlementRail`, `IPaymentRouter` |
+| `src/routing/payment-routing-engine.ts` | `PaymentRoutingEngine` — selecciona riel por ruta |
+| `src/rails/vault-settlement-rail.ts` | `VaultSettlementRail` — lock/release sobre vault |
 
 ```typescript
-// packages/cctp-bridge/src/core/interfaces.ts — OBJETIVO (aún no implementado)
+// packages/cctp-bridge/src/core/types.ts
 
 export type SettlementRailType = 'CCTP_BURN_MINT' | 'LIQUIDITY_VAULT';
 
-export interface PaymentIntent {
-  readonly id: `0x${string}`;
-  readonly sourceChainId: number;
-  readonly destinationChainId: number;
-  readonly sender: `0x${string}`;
-  readonly recipient: `0x${string}`;
-  readonly amount: bigint; // 6 decimales USDC
-  readonly railType: SettlementRailType;
-  readonly status: 'PENDING' | 'ROUTING' | 'SETTLING' | 'CONFIRMED' | 'FAILED';
-  readonly createdAt: number;
-}
+/** PaymentIntent con el riel ya decidido — lo que devuelve el router. */
+export type RoutedPaymentIntent = PaymentIntent & { railType: SettlementRailType };
+
+/** Lo que provee el llamador; estado, timestamp y riel los decide el router. */
+export type PaymentRequest = Omit<
+  PaymentIntent,
+  'status' | 'createdAt' | 'railType' | 'sourceTxHash' | 'destinationTxHash'
+>;
+```
+
+```typescript
+// packages/cctp-bridge/src/core/interfaces.ts
 
 export interface ISettlementRail {
   readonly railType: SettlementRailType;
-  supportsRoute(sourceChainId: number, destinationChainId: number): boolean;
-  estimateFee(sourceChainId: number, destinationChainId: number, amount: bigint): Promise<bigint>;
-  executeSettlement(intent: PaymentIntent, authorizationSignature?: `0x${string}`): Promise<`0x${string}`>;
+  supportsRoute(source: CrossChainDomain, destination: CrossChainDomain): boolean;
+  estimateFee(source: CrossChainDomain, destination: CrossChainDomain, amount: bigint): Promise<bigint>;
+  executeSettlement(intent: PaymentIntent, authorizationSignature?: `0x${string}`): Promise<string>;
 }
 
 export interface IPaymentRouter {
-  routePayment(intent: Omit<PaymentIntent, 'status' | 'createdAt' | 'railType'>): Promise<PaymentIntent>;
-  getPaymentStatus(paymentId: `0x${string}`): Promise<PaymentIntent>;
+  registerRail(rail: ISettlementRail): void;
+  routePayment(request: PaymentRequest): Promise<RoutedPaymentIntent>;
+  estimateFee(source: CrossChainDomain, destination: CrossChainDomain, amount: bigint): Promise<bigint>;
+  getPaymentStatus(paymentId: `0x${string}`): Promise<PaymentIntent | null>;
 }
 ```
+
+### Por qué el motor no conoce los rieles
+
+`PaymentRoutingEngine` mantiene un registro de `ISettlementRail` y le pregunta a cada uno si
+sirve la ruta. **Nunca inspecciona `railType` para decidir comportamiento.** Eso es lo que hace
+que agregar el riel CCTP (Fase 2) sea aditivo — una clase nueva más un `registerRail()` — en vez
+de invasivo.
+
+Hay un test que protege esa propiedad: registra un riel que el motor nunca vio y verifica que
+funciona sin tocar el engine. Si ese test alguna vez requiere modificar el motor para pasar, la
+abstracción dejó de ser real.
+
+### Compatibilidad
+
+`RelayerOrchestrator` sigue existiendo como fachada sobre el router, con su API original intacta.
+Código nuevo debería depender de `IPaymentRouter`.
 
 ---
 

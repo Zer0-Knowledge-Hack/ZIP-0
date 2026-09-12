@@ -17,6 +17,7 @@ the design document.
 | EIP-2612 gasless deposit | ✅ Built and tested |
 | Relayer orchestration (EVM ↔ Stellar) | ⚠️ Built, tested against mocks only |
 | Pollar / Stellar adapter | ⚠️ Built, no live-network test |
+| Ports & Adapters core (ISettlementRail / PaymentRoutingEngine) | ✅ Built and tested |
 | CCTP settlement rail | ❌ Not started |
 | ERC-3009 `transferWithAuthorization` | ❌ Not started |
 | `@zip-0/sdk` package | ❌ Not started |
@@ -40,6 +41,24 @@ Deployment evidence: the vault at `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa` o
 returns contract bytecode from `eth_getCode` and holds a non-zero USDC balance.
 
 Bytecode size: 5,966 bytes init / 5,228 bytes deployed — comfortably under the EIP-170 24 KB limit.
+
+
+### Settlement rail abstraction
+
+`ISettlementRail` and `IPaymentRouter` are defined in `src/core/interfaces.ts`.
+`PaymentRoutingEngine` (`src/routing/`) holds a registry of rails and selects one by route;
+`VaultSettlementRail` (`src/rails/`) carries the lock/release behaviour that previously lived
+inside `RelayerOrchestrator`.
+
+Test evidence: 18 new tests covering rail selection, rail extensibility, failure handling, fee
+delegation, route support, and both settlement directions.
+
+The engine never branches on `railType`. A dedicated test registers a rail the engine has never
+seen and asserts it works without modifying the engine — if that test ever needs an engine change
+to pass, the abstraction has become decorative.
+
+`RelayerOrchestrator` remains as a facade over the router with its original API unchanged, so the
+five pre-existing tests pass untouched.
 
 ### Gasless deposits
 
@@ -84,8 +103,6 @@ A repository-wide search for each term returns zero matches outside the design d
 
 | Described | Reality |
 | :--- | :--- |
-| `ISettlementRail`, `IPaymentRouter`, `PaymentRoutingEngine` | `core/interfaces.ts` actually defines `IEvmAdapter`, `IStellarAdapter`, `IRelayerOrchestrator` |
-| `PaymentIntent.railType`, `SettlementRailType` | `PaymentIntent` has no `railType` field |
 | `CctpSettlementRail`, Circle `TokenMessenger`, Iris attestation | No CCTP code exists anywhere in the repository |
 | `@zip-0/sdk` | Package does not exist |
 | REST API gateway (`/v1/payments/*`) | No `apps/` directory exists |

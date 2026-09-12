@@ -5,6 +5,8 @@ export * from "./adapters/evm/client.js";
 export * from "./adapters/hsk/client.js";
 export * from "./adapters/pollar/client.js";
 export * from "./relayer/orchestrator.js";
+export * from "./routing/payment-routing-engine.js";
+export * from "./rails/vault-settlement-rail.js";
 
 import { EvmAdapter } from "./adapters/evm/client.js";
 import { PollarStellarAdapter } from "./adapters/pollar/client.js";
