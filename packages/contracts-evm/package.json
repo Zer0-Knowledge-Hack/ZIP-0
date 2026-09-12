@@ -1,0 +1,21 @@
+{
+  "name": "@zip-0/contracts-evm",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "clean": "hardhat clean",
+    "deploy:hsk-testnet": "hardhat run scripts/deploy.ts --network hskTestnet",
+    "deploy:avax-fuji": "hardhat run scripts/deploy.ts --network avaxFuji",
+    "fund:test-users": "hardhat run scripts/fund-test-users.ts --network avaxFuji"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

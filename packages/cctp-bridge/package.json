@@ -1,0 +1,25 @@
+{
+  "name": "@zip-0/cctp-bridge",
+  "version": "0.1.0",
+  "description": "Cross-chain payment bridging engine prioritizing HashKey Chain (HSK) and Stellar (Pollar)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "test:payment": "tsx scripts/test-payment-cli.ts",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@pollar/core": "^0.11.3",
+    "@stellar/stellar-sdk": "^12.3.0",
+    "dotenv": "^16.4.5",
+    "viem": "^2.19.8"
+  },
+  "devDependencies": {
+    "rimraf": "^5.0.7",
+    "tsx": "^4.23.13",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
+  }
+}

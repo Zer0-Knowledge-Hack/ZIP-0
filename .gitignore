@@ -1,0 +1,21 @@
+# Ide
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build artifacts
+dist/
+build/
+cache/
+artifacts/
+out/
+coverage/
+
+# Environment & Secrets
+.env
+.env.*
+*.pem
+wallets
