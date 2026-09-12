@@ -159,6 +159,14 @@ Contracts are tested with Hardhat; TypeScript is tested with Vitest.
 
 ---
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for workspace setup, testing expectations, commit
+conventions, and the pull request process.
+
+Short version: pnpm only, tests before code, branch off `main`, conventional commits, and never
+document a capability that does not exist.
+
 ## License
 
-MIT.
+[MIT](LICENSE) © 2026 Zer0-Knowledge-Hack
