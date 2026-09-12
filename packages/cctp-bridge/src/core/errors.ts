@@ -1,6 +1,27 @@
+export enum ErrorCode {
+  INVALID_SIGNATURE = "INVALID_SIGNATURE",
+  INVALID_AMOUNT = "INVALID_AMOUNT",
+  UNSUPPORTED_DOMAIN = "UNSUPPORTED_DOMAIN",
+  INSUFFICIENT_VAULT_BALANCE = "INSUFFICIENT_VAULT_BALANCE",
+  PAYMENT_RELEASE_FAILED = "PAYMENT_RELEASE_FAILED",
+  PAYMENT_NOT_FOUND = "PAYMENT_NOT_FOUND",
+  RELAYER_EXECUTION_ERROR = "RELAYER_EXECUTION_ERROR",
+}
+
 export class BridgeError extends Error {
-  constructor(message: string, public readonly code: string, public readonly details?: unknown) {
-    super(message);
+  public readonly code: string;
+  public readonly details?: unknown;
+
+  constructor(codeOrMessage: string, messageOrCode?: string, details?: unknown) {
+    if (Object.values(ErrorCode).includes(codeOrMessage as ErrorCode)) {
+      super(messageOrCode ?? codeOrMessage);
+      this.code = codeOrMessage;
+      this.details = details;
+    } else {
+      super(codeOrMessage);
+      this.code = messageOrCode ?? "BRIDGE_ERROR";
+      this.details = details;
+    }
     this.name = "BridgeError";
   }
 }

@@ -8,9 +8,13 @@
     "build": "tsc",
     "test": "vitest run",
     "test:payment": "tsx scripts/test-payment-cli.ts",
+    "check:balances": "tsx scripts/check-balances.ts",
+    "test:cctp": "tsx scripts/bridge-cctp-e2e.ts",
     "clean": "rimraf dist"
   },
   "dependencies": {
+    "@circle-fin/adapter-viem-v2": "^1.17.1",
+    "@circle-fin/bridge-kit": "^1.14.1",
     "@pollar/core": "^0.11.3",
     "@stellar/stellar-sdk": "^12.3.0",
     "dotenv": "^16.4.5",

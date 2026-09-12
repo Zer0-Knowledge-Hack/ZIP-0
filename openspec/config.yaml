@@ -2,33 +2,41 @@ schema: spec-driven
 githubCopilot:
   cloudAgent: true
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+# Project context from AGENTS.md
+context: |
+  # AGENTS.md — ZIP-0 Workspace Instructions
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  ## Strict Tooling & Development Directives
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+  ### 1. Package Manager Directive
+  NEVER use npm or yarn. ALWAYS use pnpm.
+  - Install dependencies: pnpm add <package> or pnpm --filter <workspace> add <package>
+  - Run scripts: pnpm <script> or pnpm --filter <workspace> <script>
+  - Workspace builds: pnpm -r build
+
+  ### 2. Testing Framework Directive
+  ALWAYS use vitest as the primary test runner for TypeScript, integration, and SDK tests.
+  - Run tests: pnpm --filter <workspace> test or pnpm -r test
+  - Contract tests run via Hardhat or Vitest runner with EDR/local node.
+  - Write clear unit and end-to-end tests following TDD principles.
+
+  ### 3. Code Quality & Linter Directive
+  ALWAYS use eslint for code linting across all packages and applications.
+  - Lint check: pnpm lint or pnpm --filter <workspace> lint
+  - Fix linting issues before committing or validating specs.
+
+  ## Project Scope & Architectural Priorities
+  1. Multi-EVM Symmetry (Avalanche Fuji Priority & HSK Supported):
+     - Any EVM contract (ZIP0PaymentVault.sol), adapter, or workflow must run on any EVM chain.
+     - Avalanche Fuji (Chain ID: 43113) is the active deployment target for the Buildathon Cochabamba 2026 Bounty.
+     - HashKey Chain (HSK) is fully supported symmetrically (ready to deploy via Chain ID 133 when testnet restores).
+  2. Circle USDC & Pollar Harmony:
+     - Native Circle USDC contract addresses are harmonized across Stellar and Avalanche networks.
+     - Isolated .env configuration per package (packages/contracts-evm/.env and packages/cctp-bridge/.env).
+  3. Testing & Deployment Flow:
+     - Local First: All smart contract and relayer integration flows MUST be tested locally first using a local Hardhat node (pnpm hardhat node / in-memory local network) with MockUSDC.
+     - Testnet Second: Deploy and test on Avalanche Fuji Testnet (Chain ID: 43113) or HSK Testnet.
+  4. Pollar SDK:
+     - Pollar on Polygon (EVM account) for seamless zero-gas account abstraction; Stellar tracked for future native CCTP.
+  5. Architecture Documentation:
+     - Canonical architecture reference in spec/Payment-Bridge-Architecture.md.
