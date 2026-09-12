@@ -8,6 +8,7 @@
     "test": "hardhat test",
     "clean": "hardhat clean",
     "deploy:hsk-testnet": "hardhat run scripts/deploy.ts --network hskTestnet",
+    "deploy:hsk-mainnet": "hardhat run scripts/deploy.ts --network hskMainnet",
     "deploy:avax-fuji": "hardhat run scripts/deploy.ts --network avaxFuji",
     "fund:test-users": "hardhat run scripts/fund-test-users.ts --network avaxFuji"
   },
