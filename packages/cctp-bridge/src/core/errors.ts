@@ -23,6 +23,17 @@ export class PaymentNotFoundError extends BridgeError {
   }
 }
 
+export class UnsupportedRouteError extends BridgeError {
+  constructor(source: number, destination: number) {
+    super(
+      `No settlement rail supports route ${source} -> ${destination}`,
+      "UNSUPPORTED_ROUTE",
+      { source, destination }
+    );
+    this.name = "UnsupportedRouteError";
+  }
+}
+
 export class RelayerExecutionError extends BridgeError {
   constructor(message: string, details?: unknown) {
     super(`Relayer transaction failed: ${message}`, "RELAYER_EXECUTION_ERROR", details);
