@@ -183,6 +183,196 @@ describe("ZIP0PaymentVault", function () {
     });
   });
 
+  describe("depositWithAuthorization (ERC-3009)", function () {
+    const TYPES = {
+      TransferWithAuthorization: [
+        { name: "from", type: "address" },
+        { name: "to", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "validAfter", type: "uint256" },
+        { name: "validBefore", type: "uint256" },
+        { name: "nonce", type: "bytes32" },
+      ],
+    };
+
+    async function signAuthorization(
+      signer: HardhatEthersSigner,
+      value: bigint,
+      validAfter: number,
+      validBefore: number,
+      nonce: string
+    ) {
+      const network = await ethers.provider.getNetwork();
+      const signature = await signer.signTypedData(
+        {
+          name: "USD Coin",
+          version: "2",
+          chainId: network.chainId,
+          verifyingContract: await usdc.getAddress(),
+        },
+        TYPES,
+        {
+          from: signer.address,
+          to: await vault.getAddress(),
+          value,
+          validAfter,
+          validBefore,
+          nonce,
+        }
+      );
+      return ethers.Signature.from(signature);
+    }
+
+    it("accepts a valid authorization and needs no prior approval", async function () {
+      const amount = ethers.parseUnits("25", 6);
+      const paymentId = ethers.keccak256(ethers.toUtf8Bytes("auth-payment-001"));
+      const nonce = ethers.hexlify(ethers.randomBytes(32));
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const validAfter = now - 1;
+      const validBefore = now + 3600;
+
+      const sig = await signAuthorization(user, amount, validAfter, validBefore, nonce);
+      const vaultAddress = await vault.getAddress();
+
+      expect(await usdc.allowance(user.address, vaultAddress)).to.equal(0n);
+
+      await expect(
+        vault
+          .connect(user)
+          .depositWithAuthorization(
+            paymentId,
+            amount,
+            STELLAR_DOMAIN,
+            MOCK_RECIPIENT_BYTES,
+            "0x",
+            validAfter,
+            validBefore,
+            nonce,
+            sig.v,
+            sig.r,
+            sig.s
+          )
+      )
+        .to.emit(vault, "PaymentInitiated")
+        .withArgs(
+          paymentId,
+          user.address,
+          amount,
+          STELLAR_DOMAIN,
+          MOCK_RECIPIENT_BYTES,
+          "0x"
+        );
+
+      expect(await usdc.balanceOf(vaultAddress)).to.equal(amount);
+      expect(await usdc.authorizationState(user.address, nonce)).to.equal(true);
+
+      const payment = await vault.payments(paymentId);
+      expect(payment.status).to.equal(1); // INITIATED
+    });
+
+    it("rejects an expired authorization", async function () {
+      const amount = ethers.parseUnits("25", 6);
+      const paymentId = ethers.keccak256(ethers.toUtf8Bytes("auth-expired"));
+      const nonce = ethers.hexlify(ethers.randomBytes(32));
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const validAfter = now - 7200;
+      const validBefore = now - 1;
+
+      const sig = await signAuthorization(user, amount, validAfter, validBefore, nonce);
+
+      await expect(
+        vault
+          .connect(user)
+          .depositWithAuthorization(
+            paymentId,
+            amount,
+            STELLAR_DOMAIN,
+            MOCK_RECIPIENT_BYTES,
+            "0x",
+            validAfter,
+            validBefore,
+            nonce,
+            sig.v,
+            sig.r,
+            sig.s
+          )
+      ).to.be.revertedWith("Authorization expired");
+    });
+
+    it("rejects an authorization that is not yet valid", async function () {
+      const amount = ethers.parseUnits("25", 6);
+      const paymentId = ethers.keccak256(ethers.toUtf8Bytes("auth-future"));
+      const nonce = ethers.hexlify(ethers.randomBytes(32));
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const validAfter = now + 3600;
+      const validBefore = now + 7200;
+
+      const sig = await signAuthorization(user, amount, validAfter, validBefore, nonce);
+
+      await expect(
+        vault
+          .connect(user)
+          .depositWithAuthorization(
+            paymentId,
+            amount,
+            STELLAR_DOMAIN,
+            MOCK_RECIPIENT_BYTES,
+            "0x",
+            validAfter,
+            validBefore,
+            nonce,
+            sig.v,
+            sig.r,
+            sig.s
+          )
+      ).to.be.revertedWith("Authorization not yet valid");
+    });
+
+    it("rejects a replayed nonce", async function () {
+      const amount = ethers.parseUnits("25", 6);
+      const nonce = ethers.hexlify(ethers.randomBytes(32));
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const validAfter = now - 1;
+      const validBefore = now + 3600;
+
+      const sig = await signAuthorization(user, amount, validAfter, validBefore, nonce);
+
+      await vault
+        .connect(user)
+        .depositWithAuthorization(
+          ethers.keccak256(ethers.toUtf8Bytes("auth-replay-1")),
+          amount,
+          STELLAR_DOMAIN,
+          MOCK_RECIPIENT_BYTES,
+          "0x",
+          validAfter,
+          validBefore,
+          nonce,
+          sig.v,
+          sig.r,
+          sig.s
+        );
+
+      await expect(
+        vault
+          .connect(user)
+          .depositWithAuthorization(
+            ethers.keccak256(ethers.toUtf8Bytes("auth-replay-2")),
+            amount,
+            STELLAR_DOMAIN,
+            MOCK_RECIPIENT_BYTES,
+            "0x",
+            validAfter,
+            validBefore,
+            nonce,
+            sig.v,
+            sig.r,
+            sig.s
+          )
+      ).to.be.revertedWith("Authorization already used");
+    });
+  });
+
   describe("releasePayment", function () {
     beforeEach(async function () {
       // Seed vault with initial 500 USDC

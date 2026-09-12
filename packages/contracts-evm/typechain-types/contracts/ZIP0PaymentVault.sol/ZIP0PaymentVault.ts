@@ -21,7 +21,7 @@ import type {
   TypedLogDescription,
   TypedListener,
   TypedContractMethod,
-} from "../common";
+} from "../../common";
 
 export interface ZIP0PaymentVaultInterface extends Interface {
   getFunction(
@@ -30,6 +30,7 @@ export interface ZIP0PaymentVaultInterface extends Interface {
       | "RELAYER_ROLE"
       | "TREASURY_ROLE"
       | "depositPayment"
+      | "depositWithAuthorization"
       | "depositWithPermit"
       | "getRoleAdmin"
       | "grantRole"
@@ -70,6 +71,22 @@ export interface ZIP0PaymentVaultInterface extends Interface {
   encodeFunctionData(
     functionFragment: "depositPayment",
     values: [BytesLike, BigNumberish, BigNumberish, BytesLike, BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "depositWithAuthorization",
+    values: [
+      BytesLike,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BytesLike,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BigNumberish,
+      BytesLike,
+      BytesLike
+    ]
   ): string;
   encodeFunctionData(
     functionFragment: "depositWithPermit",
@@ -138,6 +155,10 @@ export interface ZIP0PaymentVaultInterface extends Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "depositPayment",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "depositWithAuthorization",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -390,6 +411,24 @@ export interface ZIP0PaymentVault extends BaseContract {
     "nonpayable"
   >;
 
+  depositWithAuthorization: TypedContractMethod<
+    [
+      paymentId: BytesLike,
+      amount: BigNumberish,
+      destinationDomain: BigNumberish,
+      destinationRecipient: BytesLike,
+      metadata: BytesLike,
+      validAfter: BigNumberish,
+      validBefore: BigNumberish,
+      nonce: BytesLike,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
   depositWithPermit: TypedContractMethod<
     [
       paymentId: BytesLike,
@@ -497,6 +536,25 @@ export interface ZIP0PaymentVault extends BaseContract {
       destinationDomain: BigNumberish,
       destinationRecipient: BytesLike,
       metadata: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "depositWithAuthorization"
+  ): TypedContractMethod<
+    [
+      paymentId: BytesLike,
+      amount: BigNumberish,
+      destinationDomain: BigNumberish,
+      destinationRecipient: BytesLike,
+      metadata: BytesLike,
+      validAfter: BigNumberish,
+      validBefore: BigNumberish,
+      nonce: BytesLike,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
     ],
     [void],
     "nonpayable"

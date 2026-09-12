@@ -3,6 +3,7 @@ export * from "./core/interfaces.js";
 export * from "./core/errors.js";
 export * from "./core/router.js";
 export * from "./core/erc3009.js";
+export * from "./core/erc3009Signer.js";
 export * from "./adapters/evm/client.js";
 export * from "./adapters/hsk/client.js";
 export * from "./adapters/pollar/client.js";
