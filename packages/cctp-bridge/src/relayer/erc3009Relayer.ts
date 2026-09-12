@@ -1,6 +1,6 @@
 import { Erc3009Authorizer } from "../core/erc3009.js";
 import { AuthorizationPayload } from "../core/types.js";
-import { BridgeError, ErrorCode } from "../core/errors.js";
+import { BridgeError, ErrorCode, NotImplementedError } from "../core/errors.js";
 
 export interface Erc3009RelayerConfig {
   chainId: number;
@@ -35,14 +35,14 @@ export class Erc3009Relayer {
     // 2. Mark nonce consumed
     this.authorizer.markNonceConsumed(payload.from, payload.nonce);
 
-    // 3. Broadcast transferWithAuthorization transaction
-    // (Relayer pays the gas on destination/source network)
-    const shortNonce = payload.nonce.replace("0x", "").slice(0, 16);
-    const txHash = `0xrelayed${this.config.chainId}${shortNonce}`.padEnd(
-      66,
-      "0"
-    ) as `0x${string}`;
-
-    return txHash;
+    // 3. Broadcast transferWithAuthorization, with the relayer paying gas.
+    //
+    // Steps 1 and 2 above are real: the EIP-712 signature is recovered and validated against
+    // the payer, and the nonce is marked consumed. Only the broadcast is missing — tracked in
+    // issue #15. Returning a synthetic hash here would report a transfer that never occurred.
+    throw new NotImplementedError(
+      `ERC-3009 broadcast on chain ${this.config.chainId}`,
+      "The authorization signature was verified successfully; submitting it on-chain still requires a writeContract call to transferWithAuthorization."
+    );
   }
 }

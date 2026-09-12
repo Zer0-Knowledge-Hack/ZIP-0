@@ -1,3 +1,5 @@
+import { NotImplementedError } from "../../core/errors.js";
+
 export interface PollarPolygonConfig {
   appId: string;
   rpcUrl?: string;
@@ -43,7 +45,11 @@ export class PollarPolygonAdapter {
     amount: bigint,
     referenceId: `0x${string}`
   ): Promise<`0x${string}`> {
-    const shortRef = referenceId.replace("0x", "").slice(0, 16);
-    return `0xpolygontx${shortRef}${Date.now().toString(16)}`.padEnd(66, "0") as `0x${string}`;
+    // Pollar gas sponsorship is not wired up yet: no transaction is built or submitted here.
+    // Returning a synthetic hash would claim a sponsored transfer that never happened.
+    throw new NotImplementedError(
+      `Pollar sponsored transfer on chain ${this.chainId}`,
+      `Cannot sponsor ${amount} from ${from} to ${to} (ref ${referenceId}) until the Pollar transaction path is implemented.`
+    );
   }
 }

@@ -1,6 +1,6 @@
 import { ISettlementRail } from "../../core/interfaces.js";
 import { CrossChainDomain, PaymentIntent, SettlementRailType } from "../../core/types.js";
-import { BridgeError, ErrorCode } from "../../core/errors.js";
+import { BridgeError, ErrorCode, NotImplementedError } from "../../core/errors.js";
 
 // Circle CCTP Domain IDs mapping
 export const CCTP_DOMAINS: Record<number, number> = {
@@ -77,16 +77,16 @@ export class CctpSettlementRail implements ISettlementRail {
       throw new BridgeError(ErrorCode.INVALID_AMOUNT, "Amount must be strictly positive");
     }
 
-    // In local / testnet environment or relayer execution:
-    // 1. TokenMessenger.depositForBurn on source chain
-    // 2. Poll Circle Iris attestation API
-    // 3. MessageTransmitter.receiveMessage on destination chain
-    const shortId = intent.paymentId.replace("0x", "").slice(0, 16);
-    const simulatedSettlementHash = `0xcctp${destinationChainId}${shortId}`.padEnd(
-      66,
-      "0"
-    ) as `0x${string}`;
-
-    return simulatedSettlementHash;
+    // Remaining protocol work, tracked in issue #14:
+    //   1. TokenMessenger.depositForBurn on the source chain
+    //   2. Poll Circle's Iris attestation API with backoff
+    //   3. MessageTransmitter.receiveMessage on the destination chain
+    //
+    // Until those land there is no transaction to report. Returning a synthetic hash here
+    // would mark the payment COMPLETED for a settlement that never happened.
+    throw new NotImplementedError(
+      `CCTP settlement (${sourceChainId} -> ${destinationChainId})`,
+      "Route this corridor over the vault rail, or implement depositForBurn/attestation/receiveMessage first."
+    );
   }
 }

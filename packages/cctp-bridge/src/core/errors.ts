@@ -6,6 +6,8 @@ export enum ErrorCode {
   PAYMENT_RELEASE_FAILED = "PAYMENT_RELEASE_FAILED",
   PAYMENT_NOT_FOUND = "PAYMENT_NOT_FOUND",
   RELAYER_EXECUTION_ERROR = "RELAYER_EXECUTION_ERROR",
+  INVALID_RECIPIENT = "INVALID_RECIPIENT",
+  NOT_IMPLEMENTED = "NOT_IMPLEMENTED",
 }
 
 export class BridgeError extends Error {
@@ -52,6 +54,35 @@ export class UnsupportedRouteError extends BridgeError {
       { source, destination }
     );
     this.name = "UnsupportedRouteError";
+  }
+}
+
+/**
+ * Raised when a code path would otherwise have to invent a result it cannot produce.
+ *
+ * Settlement paths must never return a transaction hash they did not obtain from a real
+ * broadcast: a synthetic hash reports success for a transaction that never existed, and it
+ * resolves to nothing on any block explorer. Refusing is the honest behaviour.
+ */
+export class NotImplementedError extends BridgeError {
+  constructor(what: string, guidance?: string) {
+    super(
+      ErrorCode.NOT_IMPLEMENTED,
+      guidance ? `${what} is not implemented. ${guidance}` : `${what} is not implemented.`,
+      { what }
+    );
+    this.name = "NotImplementedError";
+  }
+}
+
+export class InvalidRecipientError extends BridgeError {
+  constructor(recipient: string, expected: string) {
+    super(
+      ErrorCode.INVALID_RECIPIENT,
+      `Invalid recipient "${recipient}". Expected ${expected}.`,
+      { recipient, expected }
+    );
+    this.name = "InvalidRecipientError";
   }
 }
 
