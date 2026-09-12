@@ -1,6 +1,24 @@
 import { IEvmAdapter, ISettlementRail } from "../../core/interfaces.js";
 import { CrossChainDomain, PaymentIntent, SettlementRailType } from "../../core/types.js";
-import { BridgeError, ErrorCode } from "../../core/errors.js";
+import { BridgeError, ErrorCode, InvalidRecipientError } from "../../core/errors.js";
+
+const EVM_ADDRESS = /^0x[a-fA-F0-9]{40}$/;
+
+/**
+ * Validates that a recipient is a 20-byte EVM address before funds move.
+ *
+ * A vault release transfers real USDC, so a malformed recipient must be rejected rather than
+ * reshaped. Truncating a non-EVM identifier — a Stellar `G...` address, for example — into
+ * something that merely parses as an address sends funds to a key nobody holds, and they
+ * cannot be recovered.
+ */
+function assertEvmAddress(recipient: string): `0x${string}` {
+  if (!EVM_ADDRESS.test(recipient)) {
+    throw new InvalidRecipientError(recipient, "a 20-byte EVM address (0x + 40 hex characters)");
+  }
+
+  return recipient as `0x${string}`;
+}
 
 export class VaultSettlementRail implements ISettlementRail {
   public readonly railType: SettlementRailType = "LIQUIDITY_VAULT";
@@ -51,11 +69,7 @@ export class VaultSettlementRail implements ISettlementRail {
       );
     }
 
-    const recipient = (
-      intent.destinationRecipient.startsWith("0x")
-        ? intent.destinationRecipient
-        : `0x${intent.destinationRecipient.slice(0, 40)}`
-    ) as `0x${string}`;
+    const recipient = assertEvmAddress(intent.destinationRecipient);
 
     return this.vaultAdapter.releasePayment(intent.paymentId, recipient, intent.amount);
   }
