@@ -1,5 +1,15 @@
 # ZIP-0 — Arquitectura de Infraestructura de Pagos Institucionales Cross-Border (Circle USDC + Pollar)
 
+> **Este documento describe la arquitectura OBJETIVO, no el estado actual del código.**
+>
+> Varios componentes descritos aquí — el riel CCTP, el `PaymentRoutingEngine`, el SDK y el API
+> Gateway — están diseñados pero **no implementados**. Para saber exactamente qué existe hoy,
+> consultá [`docs/project-status.md`](../docs/project-status.md), que fue verificado ejecutando el
+> código y consultando redes en vivo.
+>
+> Los parámetros de red y direcciones de HashKey Chain verificados están en
+> [`docs/hsk-chain-integration.md`](../docs/hsk-chain-integration.md).
+
 ## 1. Visión General: Rieles de Liquidación Institucional (Reemplazo SWIFT)
 
 El proyecto **ZIP-0** es una infraestructura de ingeniería de pagos cross-border y liquidación en **Circle USDC** diseñada para instituciones financieras, gobiernos, ONGs y fintechs globales (e.g. transferencias directas hacia centros financieros como Singapur, Europa o Latinoamérica sin intermediarios bancarios tradicionales ni SWIFT).
@@ -42,7 +52,8 @@ El motor evalúa automáticamente la ruta de pago y selecciona el riel óptimo m
 | **Mecanismo On-Chain** | Quema en origen y acuñación en destino 1:1 (*Iris Attestation*) | Bloqueo en Vault origen y liberación en Vault destino vía Relayer |
 | **Capacidad de Liquidez** | **Infinita (Sin Pools)**. Apta para pagos institucionales ($1M - $50M+) | **Limitada al Float disponible** en el contrato `ZIP0PaymentVault` |
 | **Slippage y Riesgo** | 0% Slippage. Cero riesgo de contraparte de pools privados | Requiere rebalanceo y monitorización de liquidez del Vault |
-| **Redes Soportadas** | **Polygon PoS**, **Avalanche**, **Arbitrum**, **Base**, **Ethereum** | **HashKey Chain (HSK Testnet `133`)**, Hardhat Local (`31337`) |
+| **Redes Soportadas** | **Polygon PoS**, **Avalanche**, **Arbitrum**, **Base**, **Ethereum** | **HashKey Chain** (Testnet `133` / Mainnet `177`), Hardhat Local (`31337`) |
+| **Tipo de USDC** | USDC nativo de Circle | Avalanche: USDC nativo · HashKey Chain: **USDC.e bridged** (`0x054ed4…8D0a`, 6 decimales) |
 
 ---
 
@@ -84,10 +95,14 @@ Las instituciones financieras no adquieren tokens nativos de red para comisiones
 
 ## 5. Arquitectura de Interfaces (Core Domain)
 
-El código del paquete central define abstracciones desacopladas:
+> ⚠️ **Estado: DISEÑO PROPUESTO, no implementado.** Las interfaces de abajo (`ISettlementRail`,
+> `IPaymentRouter`, `PaymentIntent.railType`) todavía no existen en el código. El archivo real
+> `packages/cctp-bridge/src/core/interfaces.ts` define hoy `IEvmAdapter`, `IStellarAdapter` e
+> `IRelayerOrchestrator`, y `PaymentIntent` no tiene campo `railType`. Esta sección es el destino
+> del refactor descrito en la Fase 1 de la hoja de ruta.
 
 ```typescript
-// packages/cctp-bridge/src/core/interfaces.ts
+// packages/cctp-bridge/src/core/interfaces.ts — OBJETIVO (aún no implementado)
 
 export type SettlementRailType = 'CCTP_BURN_MINT' | 'LIQUIDITY_VAULT';
 
@@ -120,7 +135,10 @@ export interface IPaymentRouter {
 
 ## 6. Superficie de Consumo: API Gateway y SDK (`@zip-0/sdk`)
 
-Las instituciones interactúan con ZIP-0 a través de interfaces de alto nivel:
+> ⚠️ **Estado: DISEÑO PROPUESTO, no implementado.** Ni el paquete `@zip-0/sdk` ni los endpoints
+> REST existen todavía. Corresponden a la Fase 4 de la hoja de ruta.
+
+Las instituciones interactuarán con ZIP-0 a través de interfaces de alto nivel:
 
 ### A. Endpoints REST API
 
@@ -158,7 +176,8 @@ console.log(`Payment status: ${payment.status}, Rail: ${payment.railType}`);
 | :--- | :--- | :--- | :--- | :--- |
 | **Polygon PoS** | `137` / `80002` | Hub Institucional & Pollar EVM | **CCTP Rail** | Configurado |
 | **Avalanche Fuji** | `43113` | Hub EVM Principal (Cochabamba Bounty) | **CCTP Rail / Vault** | **Desplegado y Activo** |
-| **HashKey Chain (HSK)** | `133` | Riel EVM Simétrico | **Vault Rail** | Listo para desplegar |
+| **HashKey Chain Testnet** | `133` | Riel EVM Simétrico | **Vault Rail** | Red activa — listo para desplegar |
+| **HashKey Chain Mainnet** | `177` | Riel EVM Simétrico | **Vault Rail** | Red activa — listo para desplegar |
 | **Stellar Testnet** | — | Corredor Pollar clásico | **Bridge Adapter** | Activo (Issue abierto para CCTP) |
 | **Hardhat Local** | `31337` | CI/CD y Pruebas Unitarias | **Vault Rail** | Soportado (`pnpm node:local`) |
 
