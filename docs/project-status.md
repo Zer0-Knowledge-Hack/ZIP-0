@@ -13,7 +13,7 @@ the design document.
 
 | Component | State |
 | :--- | :--- |
-| `ZIP0PaymentVault.sol` | ✅ Built, tested, deployed on Avalanche Fuji |
+| `ZIP0PaymentVault.sol` | ✅ Built, tested, deployed on Avalanche Fuji & HSK Testnet |
 | EIP-2612 gasless deposit | ✅ Built and tested |
 | Relayer orchestration (EVM ↔ Stellar) | ⚠️ Built, tested against mocks only |
 | Pollar / Stellar adapter | ⚠️ Built, no live-network test |
@@ -37,8 +37,9 @@ Test evidence: `pnpm --filter @zip-0/contracts-evm test` → **8 passing**, cove
 and roles, deposit with event emission, duplicate-`paymentId` rejection, permit-based deposit,
 relayer release, non-relayer rejection, insufficient-liquidity rejection, and treasury rebalance.
 
-Deployment evidence: the vault at `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa` on Avalanche Fuji
-returns contract bytecode from `eth_getCode` and holds a non-zero USDC balance.
+Deployment evidence:
+- Avalanche Fuji (`43113`): `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa` returns contract bytecode from `eth_getCode` and holds a non-zero USDC balance.
+- HashKey Chain Testnet (`133`): `0x14e59806054773fc341377aEC472C07e500BCc86` (pointing to MockUSDC at `0x46a7BE8Cea2d9EB017D0a0277467E680bcA04f17`), verified on-chain runtime bytecode (5,228 bytes) with 50,000 MockUSDC initial liquidity.
 
 Bytecode size: 5,966 bytes init / 5,228 bytes deployed — comfortably under the EIP-170 24 KB limit.
 
