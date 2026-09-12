@@ -165,4 +165,59 @@ describe("Institutional Payment Infrastructure & Dual-Rail Routing (Vitest)", ()
       })
     ).rejects.toMatchObject({ code: ErrorCode.NOT_IMPLEMENTED });
   });
+
+  describe("VaultSettlementRail recipient validation", () => {
+    it("should reject non-EVM Stellar recipient (starts with G) with INVALID_RECIPIENT error", async () => {
+      const vaultRail = new VaultSettlementRail(mockVault);
+      const stellarRecipient = "GDS232ENS4F7DZHDN6OYNECGX2ZXZ4JAWMXFPQDUH5P4DR6NRBR4J2VS";
+
+      await expect(
+        vaultRail.executeSettlement({
+          paymentId: "0x1234567890123456789012345678901234567890123456789012345678901234",
+          amount: 100n * 1_000_000n,
+          sourceDomain: 133,
+          destinationDomain: 43113,
+          sourceChainId: 133,
+          destinationChainId: 43113,
+          sourcePayer: "0x1234567890123456789012345678901234567890",
+          destinationRecipient: stellarRecipient,
+        })
+      ).rejects.toMatchObject({ code: ErrorCode.INVALID_RECIPIENT });
+    });
+
+    it("should reject malformed or truncated recipient addresses", async () => {
+      const vaultRail = new VaultSettlementRail(mockVault);
+
+      await expect(
+        vaultRail.executeSettlement({
+          paymentId: "0x1234567890123456789012345678901234567890123456789012345678901234",
+          amount: 100n * 1_000_000n,
+          sourceDomain: 133,
+          destinationDomain: 43113,
+          sourceChainId: 133,
+          destinationChainId: 43113,
+          sourcePayer: "0x1234567890123456789012345678901234567890",
+          destinationRecipient: "0x1234",
+        })
+      ).rejects.toMatchObject({ code: ErrorCode.INVALID_RECIPIENT });
+    });
+
+    it("should successfully release for valid 20-byte EVM address", async () => {
+      const vaultRail = new VaultSettlementRail(mockVault);
+      const validEvmRecipient = "0x0987654321098765432109876543210987654321";
+
+      const txHash = await vaultRail.executeSettlement({
+        paymentId: "0x1234567890123456789012345678901234567890123456789012345678901234",
+        amount: 100n * 1_000_000n,
+        sourceDomain: 133,
+        destinationDomain: 43113,
+        sourceChainId: 133,
+        destinationChainId: 43113,
+        sourcePayer: "0x1234567890123456789012345678901234567890",
+        destinationRecipient: validEvmRecipient,
+      });
+
+      expect(txHash).toBe("0xmockreleasetx");
+    });
+  });
 });
