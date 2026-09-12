@@ -1,0 +1,14 @@
+# Default owners for everything in the repository.
+# Any pull request requires review from the core team.
+*                               @TOMOKI977 @moises-cisneros
+
+# Contracts hold funds. Changes here alter the ABI and invalidate deployed
+# addresses and explorer verification — review with extra care.
+/packages/contracts-evm/contracts/   @TOMOKI977 @moises-cisneros
+
+# Core domain contracts: changing these ripples into every settlement rail.
+/packages/cctp-bridge/src/core/      @TOMOKI977 @moises-cisneros
+
+# Security policy and secret-handling rules.
+/SECURITY.md                    @TOMOKI977 @moises-cisneros
+/.gitignore                     @TOMOKI977 @moises-cisneros
