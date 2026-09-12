@@ -3,6 +3,7 @@ import {
   BridgePaymentStatus,
   CrossChainDomain,
   PaymentIntent,
+  PaymentQuote,
   PaymentRequest,
   RoutedPaymentIntent,
 } from "../core/types.js";
@@ -32,11 +33,37 @@ export class PaymentRoutingEngine implements IPaymentRouter {
     this.payments.set(intent.paymentId, intent);
   }
 
-  async routePayment(request: PaymentRequest): Promise<RoutedPaymentIntent> {
-    const rail = this.selectRail(request.sourceDomain, request.destinationDomain);
+  async getQuote(
+    sourceChainId: number,
+    destinationChainId: number,
+    amount: bigint
+  ): Promise<PaymentQuote> {
+    const rail = this.selectRail(sourceChainId, destinationChainId);
+    const estimatedFee = await rail.estimateFee(sourceChainId, destinationChainId, amount);
+    const estimatedFinalitySeconds = rail.railType === "CCTP_BURN_MINT" ? 20 : 5;
+
+    return {
+      sourceChainId,
+      destinationChainId,
+      amount,
+      estimatedFee,
+      railType: rail.railType,
+      estimatedFinalitySeconds,
+    };
+  }
+
+  async routePayment(
+    request: PaymentRequest | Omit<PaymentIntent, "status" | "createdAt" | "railType">
+  ): Promise<RoutedPaymentIntent> {
+    const source = request.sourceChainId ?? request.sourceDomain;
+    const destination = request.destinationChainId ?? request.destinationDomain;
+
+    const rail = this.selectRail(source, destination);
 
     const intent: RoutedPaymentIntent = {
       ...request,
+      sourceDomain: request.sourceDomain ?? (source as CrossChainDomain),
+      destinationDomain: request.destinationDomain ?? (destination as CrossChainDomain),
       railType: rail.railType,
       status: BridgePaymentStatus.PROCESSING,
       createdAt: new Date(),
@@ -64,8 +91,8 @@ export class PaymentRoutingEngine implements IPaymentRouter {
   }
 
   async estimateFee(
-    source: CrossChainDomain,
-    destination: CrossChainDomain,
+    source: CrossChainDomain | number,
+    destination: CrossChainDomain | number,
     amount: bigint
   ): Promise<bigint> {
     return this.selectRail(source, destination).estimateFee(source, destination, amount);
@@ -77,13 +104,13 @@ export class PaymentRoutingEngine implements IPaymentRouter {
 
   /** First registered rail that claims the route wins. Registration order is precedence. */
   private selectRail(
-    source: CrossChainDomain,
-    destination: CrossChainDomain
+    source: CrossChainDomain | number,
+    destination: CrossChainDomain | number
   ): ISettlementRail {
     const rail = this.rails.find((candidate) => candidate.supportsRoute(source, destination));
 
     if (!rail) {
-      throw new UnsupportedRouteError(source, destination);
+      throw new UnsupportedRouteError(Number(source), Number(destination));
     }
 
     return rail;
