@@ -1,6 +1,7 @@
 {
   "name": "@zip-0/contracts-evm",
   "version": "0.1.0",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "compile": "hardhat compile",

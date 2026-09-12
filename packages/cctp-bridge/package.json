@@ -1,6 +1,7 @@
 {
   "name": "@zip-0/cctp-bridge",
   "version": "0.1.0",
+  "license": "MIT",
   "description": "Cross-chain payment bridging engine prioritizing HashKey Chain (HSK) and Stellar (Pollar)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
