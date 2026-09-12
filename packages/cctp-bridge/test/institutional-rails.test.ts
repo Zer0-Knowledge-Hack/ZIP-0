@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { privateKeyToAccount } from "viem/accounts";
+import { ErrorCode } from "../src/core/errors.js";
 import {
   PaymentRoutingEngine,
   CctpSettlementRail,
@@ -30,21 +31,28 @@ describe("Institutional Payment Infrastructure & Dual-Rail Routing (Vitest)", ()
     expect(quote.railType).toBe("CCTP_BURN_MINT");
     expect(quote.estimatedFee).toBe(0n); // 0 slippage, 0 protocol fee
 
-    const intent = await router.routePayment({
-      paymentId: "0x1111111111111111111111111111111111111111111111111111111111111111",
-      amount: 5_000_000n * 1_000_000n,
-      sourceDomain: 7, // Polygon
-      destinationDomain: 1, // Avalanche
-      sourceChainId: 137,
-      destinationChainId: 43113,
-      sourcePayer: "0x1234567890123456789012345678901234567890",
-      destinationRecipient: "0x0987654321098765432109876543210987654321",
-    });
+    // Routing and quoting are implemented; the CCTP protocol calls are not (issue #14).
+    // The rail must refuse rather than report a settlement that never happened.
+    const paymentId =
+      "0x1111111111111111111111111111111111111111111111111111111111111111" as const;
 
-    expect(intent.status).toBe(BridgePaymentStatus.COMPLETED);
-    expect(intent.railType).toBe("CCTP_BURN_MINT");
-    expect(intent.destinationTxHash).toBeDefined();
-    expect(intent.destinationTxHash?.startsWith("0xcctp43113")).toBe(true);
+    await expect(
+      router.routePayment({
+        paymentId,
+        amount: 5_000_000n * 1_000_000n,
+        sourceDomain: 7, // Polygon
+        destinationDomain: 1, // Avalanche
+        sourceChainId: 137,
+        destinationChainId: 43113,
+        sourcePayer: "0x1234567890123456789012345678901234567890",
+        destinationRecipient: "0x0987654321098765432109876543210987654321",
+      })
+    ).rejects.toMatchObject({ code: ErrorCode.NOT_IMPLEMENTED });
+
+    const stored = await router.getPaymentStatus(paymentId);
+    expect(stored?.status).toBe(BridgePaymentStatus.FAILED);
+    expect(stored?.railType).toBe("CCTP_BURN_MINT");
+    expect(stored?.destinationTxHash).toBeUndefined();
   });
 
   it("should fallback to Vault rail when corridor includes non-CCTP chain (HSK)", async () => {
@@ -144,21 +152,17 @@ describe("Institutional Payment Infrastructure & Dual-Rail Routing (Vitest)", ()
     expect(quote.railType).toBe("CCTP_BURN_MINT");
     expect(quote.estimatedFee).toBe(0n);
 
-    // 2. Transfer
-    const payment = await client.payments.create({
-      sourceChainId: 137,
-      destinationChainId: 43113,
-      sourcePayer: "0x1111111111111111111111111111111111111111",
-      destinationRecipient: "0x2222222222222222222222222222222222222222",
-      amount: "1000000.00",
-      metadata: { invoice: "INV-SINGAPORE-2026-001" },
-    });
-
-    expect(payment.status).toBe(BridgePaymentStatus.COMPLETED);
-    expect(payment.amount).toBe(1_000_000n * 1_000_000n);
-
-    // 3. Status
-    const status = await client.payments.get(payment.paymentId);
-    expect(status?.status).toBe(BridgePaymentStatus.COMPLETED);
+    // 2. Transfer — quoting works end to end through the SDK, but a CCTP corridor cannot
+    //    settle yet (issue #14). The SDK must surface that refusal rather than a fake success.
+    await expect(
+      client.payments.create({
+        sourceChainId: 137,
+        destinationChainId: 43113,
+        sourcePayer: "0x1111111111111111111111111111111111111111",
+        destinationRecipient: "0x2222222222222222222222222222222222222222",
+        amount: "1000000.00",
+        metadata: { invoice: "INV-SINGAPORE-2026-001" },
+      })
+    ).rejects.toMatchObject({ code: ErrorCode.NOT_IMPLEMENTED });
   });
 });

@@ -96,6 +96,26 @@ of every in-flight payment. Acceptable for a demo; not acceptable for settlement
 
 ---
 
+
+### Settlement broadcast vs. verification
+
+Three components implement correct cryptography and routing but do **not** broadcast a
+transaction. They refuse rather than return a hash, so no payment is ever marked settled without
+a real transaction behind it.
+
+| Component | Implemented | Not implemented |
+| :--- | :--- | :--- |
+| `CctpSettlementRail` | Circle domain map, route support, fee quote | `depositForBurn`, Iris attestation, `receiveMessage` |
+| `Erc3009Relayer` | EIP-712 recovery, signer validation, nonce replay protection | `transferWithAuthorization` broadcast |
+| `PollarPolygonAdapter` | Account/config surface | Sponsored transfer submission |
+
+All three throw `NotImplementedError`. A test in `test/settlement-honesty.test.ts` scans `src/`
+and fails if synthetic transaction-hash construction reappears.
+
+This distinction matters: signature verification being real is a genuine milestone, and it is not
+the same milestone as settlement working.
+
+
 ## What is designed but not built
 
 These appear in `spec/Payment-Bridge-Architecture.md` in present tense but have no implementation.
