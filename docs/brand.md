@@ -76,9 +76,28 @@ page are signal-coloured, one of them is wrong.
 
 | Use | Face | Weight |
 | :--- | :--- | :--- |
-| Display | Inter Tight (fallback Inter) | 600 |
-| Text | Inter | 400 / 500 |
+| Display | **Source Serif 4** (fallback Georgia) | 600 / 700 |
+| Text | Inter | 400 / 500 / 600 |
 | **Figures, hashes, addresses** | JetBrains Mono | 400 |
+
+### Why the display face is a serif
+
+The first attempt paired Inter Tight with Inter. Those are the same superfamily, so the result
+read as a single typeface with no hierarchy — a fair criticism when it was raised in review.
+
+A serif against a grotesque gives genuine contrast, and it carries the register the pitch needs:
+financial reporting, prospectuses and central bank publications are set in serif. It signals
+institution rather than startup, without the antique feel of a full heritage-bank treatment.
+
+**Load the weights you use.** The stylesheet initially requested 700 and 900 while only 400-600
+were loaded, and with `font-synthesis: none` the browser rendered every heading at 600 — the
+hierarchy was silently flat. If you introduce a weight, add it to the font import.
+
+### Type scale
+
+Seven steps, from `--zip-text-xs` (12px) to `--zip-text-display` (56px). Hierarchy comes from
+choosing a step, not from inventing a size. The prototype had twenty different values mixing px
+and rem, which is precisely why it read as flat.
 
 ### Why tabular figures are a correctness feature
 
@@ -111,13 +130,18 @@ for body text (≥ 4.5:1):
 | :--- | ---: | ---: |
 | Ink | 18.34:1 | 16.02:1 |
 | Ink muted | 5.39:1 | 7.55:1 |
+| **Ink faint** | **4.56:1** | 5.01:1 |
 | Signal | 5.28:1 | 5.67:1 |
 | Settled | 5.06:1 | 10.06:1 |
-| **Pending** | **4.74:1** | 11.59:1 |
+| Pending | 4.74:1 | 11.59:1 |
 | Failed | 6.20:1 | 6.99:1 |
 
-Pending on light paper is the tightest pair in the system at 4.74:1. It passes, but there is
-almost no margin — if that amber is ever lightened, re-check it. Do not use it for small text.
+Ink faint on light paper is now the tightest pair at 4.56:1. It passes, but with little margin —
+if it is ever lightened, re-check it.
+
+A note on how this was corrected: the first audit only covered the tokens listed in this document
+and never tested ink faint, which was failing at 2.82:1 while being used for every label. Measure
+every token that renders text, not the ones you remembered to write down.
 
 ## What not to do
 
