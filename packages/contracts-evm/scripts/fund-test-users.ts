@@ -4,14 +4,42 @@ import * as dotenv from "dotenv";
 dotenv.config();
 dotenv.config({ path: "../../.env" });
 
+import * as fs from "fs";
+import * as path from "path";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let testWallets: any = null;
+const walletsPath = path.resolve(__dirname, "../wallets/test-wallets.json");
+if (fs.existsSync(walletsPath)) {
+  try {
+    testWallets = JSON.parse(fs.readFileSync(walletsPath, "utf-8"));
+  } catch {
+    // ignore
+  }
+}
+
+const aliceAddress =
+  process.env.ALICE_ADDRESS ||
+  testWallets?.evm?.users?.alice?.address;
+
+const bobAddress =
+  process.env.BOB_ADDRESS ||
+  testWallets?.evm?.users?.bob?.address;
+
+if (!aliceAddress || !bobAddress) {
+  throw new Error(
+    "Missing test user addresses. Configure ALICE_ADDRESS and BOB_ADDRESS in .env or provide wallets/test-wallets.json"
+  );
+}
+
 const TEST_USERS = [
   {
     name: "Test User 1 (Alice - Buyer)",
-    address: "0x8dF4b3F59DF5B67E7372B1e74Ad952cB2da7d246",
+    address: aliceAddress,
   },
   {
     name: "Test User 2 (Bob - Merchant)",
-    address: "0x503a41a175e599F62353790D1B958d1c296C38ef",
+    address: bobAddress,
   },
 ];
 

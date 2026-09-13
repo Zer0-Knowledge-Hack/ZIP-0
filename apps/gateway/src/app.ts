@@ -1,5 +1,6 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import cors from "cors";
+import crypto from "crypto";
 import { IPaymentRouter } from "@zip-0/cctp-bridge/dist/core/interfaces.js";
 import { CrossChainDomain } from "@zip-0/cctp-bridge/dist/core/types.js";
 import { resolveChain } from "./config/chains.js";
@@ -94,12 +95,7 @@ export function createApp(router?: IPaymentRouter): Express {
       }
       const rawAmount = BigInt(Math.round(parsedAmount * 1_000_000));
 
-      const randomBytes = Array.from({ length: 32 }, () =>
-        Math.floor(Math.random() * 256)
-          .toString(16)
-          .padStart(2, "0")
-      ).join("");
-      const paymentId = `0x${randomBytes}` as `0x${string}`;
+      const paymentId = `0x${crypto.randomBytes(32).toString("hex")}` as `0x${string}`;
 
       if (reference || metadata) {
         paymentMetadata.set(paymentId, { reference, ...(metadata || {}) });
@@ -176,7 +172,7 @@ export function createApp(router?: IPaymentRouter): Express {
       return res.status(400).json({ error: "Missing required fields: url, secret" });
     }
 
-    const hookId = `hook_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const hookId = `hook_${Date.now()}_${crypto.randomBytes(4).toString("hex")}`;
     const hook: WebhookRecord = {
       id: hookId,
       url,

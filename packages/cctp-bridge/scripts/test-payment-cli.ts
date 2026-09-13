@@ -129,18 +129,32 @@ async function main() {
 
   const relayerAccount = privateKeyToAccount(relayerKey as `0x${string}`);
 
-  const aliceAddress = (testWallets?.evm?.users?.alice?.address ||
-    "0x8dF4b3F59DF5B67E7372B1e74Ad952cB2da7d246") as `0x${string}`;
   const aliceKey = requireSecret(
     "test payer (alice) private key",
     ["ALICE_PRIVATE_KEY"],
     testWallets?.evm?.users?.alice?.privateKey
   );
-  const bobAddress = (testWallets?.evm?.users?.bob?.address ||
-    "0x503a41a175e599F62353790D1B958d1c296C38ef") as `0x${string}`;
+  const aliceAccount = privateKeyToAccount(aliceKey);
+  const aliceAddress = (process.env.ALICE_ADDRESS ||
+    testWallets?.evm?.users?.alice?.address ||
+    aliceAccount.address) as `0x${string}`;
+
+  const bobAddress = (process.env.BOB_ADDRESS ||
+    testWallets?.evm?.users?.bob?.address) as `0x${string}`;
+  if (!bobAddress) {
+    throw new Error(
+      "Missing BOB_ADDRESS. Set BOB_ADDRESS in packages/cctp-bridge/.env or provide test-wallets.json"
+    );
+  }
+
   const charlieStellar =
-    testWallets?.stellar?.users?.charlie?.publicKey ||
-    "GDS232ENS4F7DZHDN6OYNECGX2ZXZ4JAWMXFPQDUH5P4DR6NRBR4J2VS";
+    process.env.CHARLIE_STELLAR_ADDRESS ||
+    testWallets?.stellar?.users?.charlie?.publicKey;
+  if (!charlieStellar) {
+    throw new Error(
+      "Missing CHARLIE_STELLAR_ADDRESS. Set CHARLIE_STELLAR_ADDRESS in packages/cctp-bridge/.env or provide test-wallets.json"
+    );
+  }
 
   console.log("Configuration:");
   console.log(`  • Stellar Network:    Testnet (${horizonUrl})`);

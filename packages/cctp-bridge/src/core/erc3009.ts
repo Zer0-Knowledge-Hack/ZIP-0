@@ -1,4 +1,5 @@
 import { recoverTypedDataAddress } from "viem";
+import crypto from "crypto";
 import { AuthorizationPayload } from "./types.js";
 import { BridgeError, ErrorCode } from "./errors.js";
 
@@ -26,12 +27,7 @@ export class Erc3009Authorizer {
   private consumedNonces = new Set<string>();
 
   public generateNonce(): `0x${string}` {
-    const randomHex = Array.from({ length: 32 }, () =>
-      Math.floor(Math.random() * 256)
-        .toString(16)
-        .padStart(2, "0")
-    ).join("");
-    return `0x${randomHex}` as `0x${string}`;
+    return `0x${crypto.randomBytes(32).toString("hex")}` as `0x${string}`;
   }
 
   public isNonceConsumed(from: `0x${string}`, nonce: `0x${string}`): boolean {
