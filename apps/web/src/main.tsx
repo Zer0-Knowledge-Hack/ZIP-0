@@ -109,6 +109,18 @@ function Receipt({ t }: { t: typeof es }) {
   return (
     <figure className="receipt" aria-label={t.receiptTitle}>
       <div className="receipt-body">
+        {/*
+          Watermark. The mark sits behind the record the way a security print sits behind a
+          banknote — present, not competing. It is the same geometry as the logo, scaled up.
+        */}
+        <svg className="receipt-watermark" viewBox="0 0 64 64" aria-hidden="true">
+          <g fill="none" stroke="currentColor" strokeWidth="5">
+            <path d="M 32 7 A 25 25 0 0 1 55.4 39.2" />
+            <path d="M 32 57 A 25 25 0 0 1 8.6 24.8" />
+            <path d="M 2 32 H 62" />
+          </g>
+        </svg>
+
         <header className="receipt-head">
           <span className="receipt-brand">
             <Mark />

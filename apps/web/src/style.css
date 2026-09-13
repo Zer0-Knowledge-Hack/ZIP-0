@@ -2119,3 +2119,172 @@ a.landing-hash:hover {
     cx: 120px;
   }
 }
+
+/* ============================================================
+   The mark as a system
+   ============================================================
+   The logo is a zero with an aperture where the rail crosses it. That single idea — an opening
+   that lets value through — is reused as a motion and surface language rather than sitting in
+   the corner as a badge.
+   ============================================================ */
+
+/* ---------- Watermark ---------- */
+
+.receipt-body {
+  position: relative;
+  overflow: hidden;
+}
+
+.receipt-watermark {
+  position: absolute;
+  right: -18%;
+  bottom: -22%;
+  width: 68%;
+  height: auto;
+  color: var(--zip-on-dark);
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.receipt-body > *:not(.receipt-watermark) {
+  position: relative;
+}
+
+/* ---------- Aperture reveal ---------- */
+
+/*
+ * The receipt opens the way the mark does: from the rail outward. It begins as a horizontal
+ * slit on the centre line and expands vertically, so the reveal is the logo's aperture rather
+ * than a generic fade.
+ */
+.receipt {
+  animation: aperture-open 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+@keyframes aperture-open {
+  from {
+    clip-path: inset(50% 0 50% 0);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+/* ---------- Buttons: the rail extends ---------- */
+
+/*
+ * On hover the rail runs under the label, the same line that crosses the zero. It reads as the
+ * corridor opening rather than a colour change.
+ */
+.primary,
+.text-button {
+  position: relative;
+}
+
+.primary::after,
+.text-button::after {
+  content: "";
+  position: absolute;
+  left: var(--zip-space-4);
+  right: var(--zip-space-4);
+  bottom: 8px;
+  height: 2px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  opacity: 0.5;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.primary:hover::after,
+.text-button:hover::after,
+.primary:focus-visible::after,
+.text-button:focus-visible::after {
+  transform: scaleX(1);
+}
+
+/* ---------- Navbar: the rail marks position ---------- */
+
+.desktop-nav button {
+  position: relative;
+}
+
+.desktop-nav button::after {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 4px;
+  height: 2px;
+  background: var(--zip-signal);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.desktop-nav button.selected::after,
+.desktop-nav button:hover::after {
+  transform: scaleX(1);
+}
+
+/* The mark's own rail sweeps once when the bar mounts. */
+.topbar .brand-mark path:last-child {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: brand-rail 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+
+@keyframes brand-rail {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .receipt {
+    animation: none;
+  }
+  .primary::after,
+  .text-button::after,
+  .desktop-nav button::after {
+    transition: none;
+  }
+  .topbar .brand-mark path:last-child {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ---------- Hero mark: the aperture opens ---------- */
+
+/*
+ * The two arcs ease apart as value reaches the centre and close again once it has passed. The
+ * zero behaves like an aperture admitting the transfer, which is the whole proposition in one
+ * gesture: one opening, one crossing, nothing in between.
+ */
+.hero-mark-zero {
+  transform-origin: 120px 60px;
+  animation: aperture-breathe 2.8s cubic-bezier(0.4, 0, 0.2, 1) 1.4s infinite;
+}
+
+@keyframes aperture-breathe {
+  0%,
+  30% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.1);
+  }
+  70%,
+  100% {
+    transform: scaleY(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-mark-zero {
+    animation: none;
+  }
+}
