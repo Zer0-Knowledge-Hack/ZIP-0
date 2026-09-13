@@ -118,7 +118,7 @@ timeout. Relayer payment state lives in an in-memory `Map` and does not survive 
 | Network | Chain ID | Role | Status |
 | :--- | :--- | :--- | :--- |
 | Avalanche Fuji | `43113` | Primary EVM testbed | Vault deployed |
-| HashKey Chain Testnet | `133` | Symmetric EVM rail | Ready to deploy |
+| HashKey Chain Testnet | `133` | Symmetric EVM rail | Vault deployed |
 | HashKey Chain Mainnet | `177` | Symmetric EVM rail | Ready to deploy |
 | Hardhat local | `31337` | CI and unit tests | Supported |
 | Stellar Testnet | — | Pollar corridor | Adapter implemented |
@@ -131,6 +131,13 @@ timeout. Relayer payment state lives in an in-memory `Map` and does not survive 
 | :--- | :--- |
 | `ZIP0PaymentVault` | [`0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa`](https://testnet.snowtrace.io/address/0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa) |
 | Circle USDC (Fuji) | `0x5425890298aed601595a70ab815c96711a31bc65` |
+
+**HashKey Chain Testnet (`133`)**
+
+| Contract | Address |
+| :--- | :--- |
+| `ZIP0PaymentVault` | [`0x14e59806054773fc341377aEC472C07e500BCc86`](https://testnet-explorer.hsk.xyz/address/0x14e59806054773fc341377aEC472C07e500BCc86) |
+| `MockUSDC` | [`0x46a7BE8Cea2d9EB017D0a0277467E680bcA04f17`](https://testnet-explorer.hsk.xyz/address/0x46a7BE8Cea2d9EB017D0a0277467E680bcA04f17) |
 
 ---
 
