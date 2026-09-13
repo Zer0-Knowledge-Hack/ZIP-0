@@ -266,5 +266,13 @@ export const es = {
   profileLegalTitle: "Información legal",
   profileLegalBody: "Estado del producto, postura regulatoria, riesgos del sistema y privacidad.",
   profileLegalCta: "Ver divulgaciones",
+  netTitle: "Estado de la red",
+  netLive: "Lectura en vivo de HashKey Chain Testnet.",
+  netBlock: "Último bloque",
+  netLiquidity: "Fondos disponibles",
+  netReading: "Leyendo…",
+  netUnavailable: "No disponible",
+  netUnavailableHint: "No pudimos conectarnos a la red. Los datos no se muestran hasta poder confirmarlos.",
+  netVerified: "Ver contrato verificado",
 };
 export type Messages = Record<keyof typeof es, string>;

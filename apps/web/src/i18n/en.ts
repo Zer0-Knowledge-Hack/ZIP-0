@@ -265,4 +265,12 @@ export const en: Messages = {
   profileLegalTitle: "Legal information",
   profileLegalBody: "Product status, regulatory posture, system risks and privacy.",
   profileLegalCta: "View disclosures",
+  netTitle: "Network status",
+  netLive: "Read live from HashKey Chain Testnet.",
+  netBlock: "Latest block",
+  netLiquidity: "Available funds",
+  netReading: "Reading…",
+  netUnavailable: "Unavailable",
+  netUnavailableHint: "We could not reach the network. Figures stay hidden until we can confirm them.",
+  netVerified: "View verified contract",
 };

@@ -1,16 +1,54 @@
-# ZIP-0 web — banking visual direction
+# ZIP-0 web
 
-First navigable application preview: purple business dashboard with Lato typography and turquoise accents inspired by the supplied banking reference, payment draft, local PDF fingerprint, help, wallet connection, and ES/EN dictionaries. No transactions are submitted. Balances and history deliberately remain empty until their read integration is implemented. A draft recipient is not yet validated as Stellar StrKey; it must not be used for settlement.
+Landing page and product shell for ZIP-0. Uses the Modern Rail identity and design tokens from #37.
 
 ```sh
 pnpm --filter @zip-0/web dev
 pnpm --filter @zip-0/web build
 pnpm --filter @zip-0/web test
-pnpm --filter @zip-0/web lint
 ```
 
-Wallet connection only requests public accounts. The network selector does not switch the wallet network. PDFs stay in the browser; only their Keccak-256 fingerprint is retained in component state. Form state survives page and language switches, but not a reload.
+`pnpm dev` from the repository root starts this app alongside the gateway.
 
-Next integration stage: exact amount and Stellar checksum validation, chain reads, capability detection per deployment, deposit signing, confirmed receipts, and payer refunds. Do not infer ERC-3009 support from REFUND_TIMEOUT alone: contract releases introduced these capabilities separately. ACKNOWLEDGED is not proof of destination settlement; source and destination records must be tracked separately. Existing public test deployments must be revalidated before enabling transactions.
+## What is real and what is not
 
-For local integration, run the repository Hardhat node and deployment script, then configure the resulting addresses in a future network adapter. This visual preview needs neither a node nor funds.
+This distinction is the point, so it is stated first.
+
+| Element | Status |
+| --- | --- |
+| Available funds on the overview | **Live.** Read from the deployed vault on HashKey Chain Testnet, polled every 15s |
+| Chain height in the legal disclosure | **Live.** Same read |
+| Vault link | **Live.** Points at the verified contract source |
+| Payment submission | **Disabled.** The confirm button does not send |
+| Activity and history | **Empty.** No read integration yet, and no placeholder rows |
+
+There is no path in this app that displays a transaction hash, a balance, or a settled status that
+did not come from a real chain read. When the RPC is unreachable the figure is replaced with an
+explicit unavailable state — never a cached or default number. Three fabricated transaction hashes
+were removed from this repository earlier in its history; reintroducing that pattern in the UI,
+where it is far more visible, would be worse.
+
+## Chain reads
+
+`src/chain.ts` holds the entire read surface: a viem public client pinned to chain `133` on
+`https://testnet.hsk.xyz`, plus pure formatters that are unit-tested without a network.
+
+Reads are issued as a pair and both must succeed. A block height rendered next to a missing balance
+would invite the reader to assume the balance is zero rather than unknown.
+
+Amounts truncate rather than round: overstating available funds is the direction that misleads
+someone deciding whether a payment will settle.
+
+## Wallet
+
+Connection requests public accounts only. The network selector labels the route; it does not switch
+the wallet's network. Uploaded PDFs never leave the browser — only their Keccak-256 fingerprint is
+held in component state, and it is not submitted anywhere.
+
+## Known gaps
+
+- Recipient input is validated as Stellar StrKey shape, not checksum.
+- `ACKNOWLEDGED` is not proof of destination settlement; source and destination need separate
+  tracking before any status is shown as complete.
+- Do not infer ERC-3009 support from `REFUND_TIMEOUT` alone — those capabilities shipped in
+  separate contract releases.
