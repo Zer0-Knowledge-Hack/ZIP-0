@@ -4,8 +4,16 @@ ZIP-0 is payment infrastructure for institutional cross-border settlement in USD
 institution send value between an EVM chain and Stellar without holding native gas tokens, without
 a pool-based AMM, and without touching SWIFT.
 
-This repository contains the on-chain settlement vault and the off-chain relayer that moves a
-payment between chains.
+This repository contains the on-chain settlement vault, the off-chain relayer that moves a payment
+between chains, a REST gateway, a typed SDK, and the web app an institution uses to send one.
+
+**Live app: [zip-0.pages.dev](https://zip-0.pages.dev/)** — the available-funds figure and the chain
+height are read from the deployed HashKey Chain Testnet vault. Payment submission is deliberately
+disabled; [Web app](#web-app) states exactly which surfaces are live.
+
+**Demo: [The amount you send is the amount that arrives](https://youtu.be/yX7G3O1c4tg)** — a
+three-minute walkthrough of the problem, the settlement rail, and the deployed contract. The
+spoken script is in [docs/pitch-script.md](docs/pitch-script.md).
 
 > **Status: hackathon-stage prototype.** The settlement vault is implemented, tested, and deployed
 > on a live testnet. The relayer orchestration is implemented and unit-tested against mocks.
@@ -18,12 +26,14 @@ payment between chains.
 ## Quick path
 
 ```bash
-pnpm install                                  # install workspace (3 packages)
-pnpm --filter @zip-0/contracts-evm test       # 19 contract tests
-pnpm --filter @zip-0/cctp-bridge test         # 5 relayer tests
+pnpm install                                  # install the workspace (5 packages)
+pnpm --filter @zip-0/contracts-evm test       # 23 contract tests
+pnpm --filter @zip-0/cctp-bridge test         # 63 relayer tests
+pnpm -r test                                  # every suite
 ```
 
-Expected result: 13 passing tests, no configuration or network access required.
+Expected result: 120 passing tests (23 contracts, 63 relayer, 19 web, 10 gateway, 5 SDK), with no
+configuration or network access required.
 
 To deploy the vault to a live network:
 
@@ -97,6 +107,7 @@ provide.
 | `packages/cctp-bridge` | Relayer orchestrator, EVM/Stellar adapters, core types |
 | `packages/sdk` | `@zip-0/sdk` typed client library (`Zip0Client`) |
 | `apps/gateway` | REST API gateway exposing `/v1/payments/*` endpoints |
+| `apps/web` | React web app (landing, payment shell, legal disclosure), deployed at [zip-0.pages.dev](https://zip-0.pages.dev/) |
 | `spec/` | Architecture reference (design intent, includes planned work) |
 | `docs/` | Operational documentation (verified facts, integration guides) |
 | `openspec/` | OpenSpec change tracking |
@@ -154,6 +165,35 @@ console.log(`Payment initiated: ${payment.paymentId}, Tx: ${payment.destinationT
 const status = await zip0.payments.get(payment.paymentId);
 console.log(`Current status: ${status.status}`);
 ```
+
+---
+
+## Web app
+
+`apps/web` is a React 19 + Vite single-page app deployed to Cloudflare Pages at
+[zip-0.pages.dev](https://zip-0.pages.dev/). It ships English and Spanish copy and routes between a
+marketing landing page (`/`), the product shell (`/app`, `/app/pay`, `/app/activity`), and a legal
+disclosure page (`/legal`).
+
+```bash
+pnpm --filter @zip-0/web dev      # http://127.0.0.1:5173
+pnpm --filter @zip-0/web build
+```
+
+What is live and what is not — the same rule the rest of this repository follows:
+
+| Surface | Status |
+| :--- | :--- |
+| Available funds on the overview | **Live.** Read from the HSK Testnet vault via viem, polled every 15 s |
+| Chain height in the legal disclosure | **Live.** Same read |
+| Vault link | **Live.** Points at the verified contract |
+| Payment submission | **Disabled.** The confirm button does not send a transaction |
+| Activity and history | **Empty.** No read integration yet, and no placeholder rows |
+
+No screen in the app displays a balance, a hash, or a settled status that did not come from a real
+chain read; when the RPC is unreachable the figure renders as explicitly unavailable rather than as
+zero. Uploaded invoice PDFs never leave the browser — only their Keccak-256 fingerprint is held in
+component state. See [apps/web/README.md](apps/web/README.md) for the read surface and known gaps.
 
 ---
 
@@ -289,7 +329,9 @@ Contracts are tested with Hardhat; TypeScript is tested with Vitest.
 3. Persist relayer payment state so it survives restarts.
 4. ~~Record a live CCTP testnet transfer.~~ Done: a Fuji → Arbitrum Sepolia burn-and-mint completed
    end to end (hashes in [Project Status](docs/project-status.md)).
-5. Package `@zip-0/sdk` and a REST gateway so institutions integrate without touching chain code.
+5. ~~Package `@zip-0/sdk` and a REST gateway so institutions integrate without touching chain code.~~
+   Done: `packages/sdk` and `apps/gateway` ship in this repository.
+6. Wire the web app's payment submission to the gateway, and back the activity view with real reads.
 
 ---
 
