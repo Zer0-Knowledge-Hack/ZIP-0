@@ -39,26 +39,43 @@ import {
   type NetworkState,
 } from "./chain";
 import { PATHS, isKnownPath, pageFromPath, pathForPage, type AppPage } from "./routes";
+import {
+  HSK_CHAIN_ID,
+  chainName,
+  getProvider,
+  mapWalletError,
+  readAccounts,
+  readChainId,
+  readNativeBalance,
+  requestAccounts,
+  shortenAddress,
+  switchToHsk,
+} from "./wallet";
+import { createTransfer, fetchQuote, mapApiError, type QuoteResult } from "./api";
+import { loadPayments, savePayment, statusTone, type StoredPayment } from "./history";
+import { registerServiceWorker } from "./pwa";
+import { WalletGuide } from "./WalletGuide";
 import "./style.css";
 
+registerServiceWorker();
+
+const CHAINS = [
+  { id: "hashkey", key: "chainHashkey" },
+  { id: "stellar", key: "chainStellar" },
+  { id: "avalanche", key: "chainAvalanche" },
+] as const;
+
 type Page = AppPage;
-type Provider = {
-  request(args: { method: string }): Promise<unknown>;
-  on?: (event: string, callback: (accounts: unknown) => void) => void;
-  removeListener?: (
-    event: string,
-    callback: (accounts: unknown) => void
-  ) => void;
-};
+type RouteId = (typeof CHAINS)[number]["id"];
 /*
  * Deployment references. Deliberately not surfaced in the landing or the four main tabs:
  * an institution evaluating the product does not need a contract address to decide, and the
  * chain detail belongs with the disclosures. These are consumed by the legal section (#48).
  */
-export const VAULT = "0x14e59806054773fc341377aEC472C07e500BCc86";
+export const VAULT = "0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07";
 export const EXPLORER = "https://testnet-explorer.hsk.xyz";
 
-const provider = () => (window as Window & { ethereum?: Provider }).ethereum;
+const provider = () => getProvider();
 
 /**
  * The ZIP-0 mark: a zero crossed by a settlement rail.
@@ -184,6 +201,7 @@ function LegalPage({
         <ul className="legal-bullets">
           <li>{t.legalPrivacy1}</li>
           <li>{t.legalPrivacy2}</li>
+          <li>{t.legalPrivacy3}</li>
         </ul>
         <p className="legal-lead">{t.legalPrivacyWallet}</p>
       </section>
@@ -305,6 +323,17 @@ function App() {
   const [network, setNetwork] = useState("HSK Testnet");
   const [account, setAccount] = useState("");
   const [connecting, setConnecting] = useState(false);
+  const [walletChainId, setWalletChainId] = useState<number | null>(null);
+  const [walletBalance, setWalletBalance] = useState<string | null>(null);
+  const [source, setSource] = useState<RouteId>("hashkey");
+  const [destination, setDestination] = useState<RouteId>("stellar");
+  const [sheet, setSheet] = useState<null | "source" | "destination">(null);
+  const [walletGuide, setWalletGuide] = useState(false);
+  const [quote, setQuote] = useState<QuoteResult | null>(null);
+  const [quoting, setQuoting] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [payments, setPayments] = useState<StoredPayment[]>(loadPayments);
+  const [openPaymentId, setOpenPaymentId] = useState<string | null>(null);
   /*
    * Live view of the deployed vault. Named chainState rather than network because network is
    * already the label shown in the route card.
@@ -381,38 +410,164 @@ function App() {
   }, [page]);
   useEffect(() => {
     const wallet = provider();
-    const changed = (accounts: unknown) =>
-      setAccount(
-        Array.isArray(accounts) &&
-          typeof accounts[0] === "string" &&
-          isAddress(accounts[0])
-          ? accounts[0]
-          : ""
-      );
-    wallet?.on?.("accountsChanged", changed);
-    return () => wallet?.removeListener?.("accountsChanged", changed);
+    if (!wallet) return;
+    const onAccounts = (...args: unknown[]) => {
+      const next = Array.isArray(args[0]) ? args[0][0] : "";
+      setAccount(typeof next === "string" && isAddress(next) ? next : "");
+      if (!next) setWalletBalance(null);
+    };
+    const onChain = (...args: unknown[]) => {
+      const hex = args[0];
+      if (typeof hex === "string") {
+        const id = Number.parseInt(hex, 16);
+        setWalletChainId(Number.isFinite(id) ? id : null);
+      }
+    };
+    void readAccounts(wallet).then((next) => {
+      if (next && isAddress(next)) setAccount(next);
+    });
+    void readChainId(wallet).then(setWalletChainId);
+    wallet.on?.("accountsChanged", onAccounts);
+    wallet.on?.("chainChanged", onChain);
+    return () => {
+      wallet.removeListener?.("accountsChanged", onAccounts);
+      wallet.removeListener?.("chainChanged", onChain);
+    };
   }, []);
+  useEffect(() => {
+    const wallet = provider();
+    if (!wallet || !account) {
+      setWalletBalance(null);
+      return;
+    }
+    void readNativeBalance(wallet, account).then(setWalletBalance);
+  }, [account, walletChainId]);
   async function connect() {
     setError(null);
     if (account) {
       setAccount("");
+      setWalletBalance(null);
       return;
     }
     const wallet = provider();
     if (!wallet) {
-      setError("walletMissing");
+      setWalletGuide(true);
       return;
     }
     setConnecting(true);
     try {
-      const accounts = await wallet.request({ method: "eth_requestAccounts" });
-      if (!Array.isArray(accounts) || !isAddress(accounts[0]))
-        throw new Error();
-      setAccount(accounts[0]);
-    } catch {
-      setError("walletError");
+      const next = await requestAccounts(wallet);
+      if (!isAddress(next)) throw new Error();
+      setAccount(next);
+      setWalletChainId(await readChainId(wallet));
+    } catch (err) {
+      setError(mapWalletError(err));
     } finally {
       setConnecting(false);
+    }
+  }
+  async function changeNetwork() {
+    const wallet = provider();
+    if (!wallet) {
+      setWalletGuide(true);
+      return;
+    }
+    try {
+      await switchToHsk(wallet);
+      setWalletChainId(HSK_CHAIN_ID);
+      setError(null);
+    } catch (err) {
+      setError(mapWalletError(err));
+    }
+  }
+  function pickRoute(which: "source" | "destination", id: RouteId) {
+    if (which === "source") {
+      setSource(id);
+      if (id === destination) {
+        setDestination(id === "stellar" ? "hashkey" : "stellar");
+      }
+    } else {
+      setDestination(id);
+      if (id === source) {
+        setSource(id === "stellar" ? "hashkey" : "stellar");
+      }
+    }
+    setQuote(null);
+    setSheet(null);
+  }
+  function validRecipient(value: string, dest: RouteId) {
+    return dest === "stellar" ? isStellarAddress(value) : isAddress(value);
+  }
+  async function requestQuote() {
+    const nextErrors = {
+      amount: !amountValue(form.amount),
+      recipient: false,
+      reference: false,
+    };
+    setFieldErrors(nextErrors);
+    if (nextErrors.amount) {
+      setError("invalid");
+      return;
+    }
+    setQuoting(true);
+    setError(null);
+    try {
+      const next = await fetchQuote({
+        sourceChain: source,
+        destinationChain: destination,
+        amount: form.amount,
+      });
+      setQuote(next);
+    } catch (err) {
+      setQuote(null);
+      setError(mapApiError(err));
+    } finally {
+      setQuoting(false);
+    }
+  }
+  async function sendPayment() {
+    if (!account) {
+      setWalletGuide(true);
+      return;
+    }
+    const nextErrors = {
+      amount: !amountValue(form.amount),
+      recipient: !validRecipient(form.recipient, destination),
+      reference: !form.reference.trim(),
+    };
+    setFieldErrors(nextErrors);
+    if (nextErrors.amount || nextErrors.recipient || nextErrors.reference) {
+      setError("invalid");
+      return;
+    }
+    setSending(true);
+    setError(null);
+    try {
+      const created = await createTransfer({
+        sourceChain: source,
+        destinationChain: destination,
+        amount: form.amount,
+        recipient: form.recipient.trim(),
+        payer: account,
+        reference: form.reference.trim(),
+      });
+      const stored: StoredPayment = {
+        paymentId: created.paymentId,
+        status: created.status,
+        amount: created.amount,
+        sourceChain: created.sourceChain,
+        destinationChain: created.destinationChain,
+        destinationRecipient: created.destinationRecipient,
+        destinationTxHash: created.destinationTxHash,
+        createdAt: created.createdAt ?? new Date().toISOString(),
+      };
+      setPayments(savePayment(stored));
+      setOpenPaymentId(stored.paymentId);
+      go("activity");
+    } catch (err) {
+      setError(mapApiError(err) === "quoteError" ? "sendError" : mapApiError(err));
+    } finally {
+      setSending(false);
     }
   }
   const go = (next: Page) => {
@@ -588,7 +743,7 @@ function App() {
         {t.skipToContent}
       </a>
       <div className="main-shell">
-        <header className="topbar">
+        <header className="topbar wallet-topbar">
           <div className="topbar-brand-group">
             <Link to={PATHS.landing} className="brand" aria-label={t.backToLanding}>
               <Mark />
@@ -596,6 +751,19 @@ function App() {
                 ZIP<span>·0</span>
               </b>
             </Link>
+            <p className="wallet-page-title">
+              {page === "overview"
+                ? t.overview
+                : page === "newPayment"
+                  ? t.pay
+                  : page === "activity"
+                    ? t.activity
+                    : page === "profile"
+                      ? t.profile
+                      : page === "help"
+                        ? t.help
+                        : t.legalTitle}
+            </p>
             <Link to={PATHS.landing} className="back-to-landing">
               <ArrowLeft size={16} />
               {t.home}
@@ -622,14 +790,17 @@ function App() {
               disabled={connecting}
               onClick={connect}
               aria-label={account ? t.disconnect : t.connect}
+              aria-busy={connecting || undefined}
             >
               <Wallet size={18} />
               <span className="wallet-button-label">
-                {account
-                  ? `${account.slice(0, 6)}…${account.slice(-4)}`
-                  : t.connect}
+                {connecting
+                  ? t.connectingWallet
+                  : account
+                    ? shortenAddress(account)
+                    : t.connect}
               </span>
-              {account && <X size={14} />}
+              {account && !connecting && <X size={14} />}
             </button>
             <NavLink
               to={PATHS.profile}
@@ -644,7 +815,7 @@ function App() {
             </NavLink>
           </div>
         </header>
-        <nav className="mobile-nav" aria-label={t.navigation}>
+        <nav className="mobile-nav tab-bar" aria-label={t.navigation}>
           {appNav.map(({ id, icon: Icon }) => (
             <NavLink
               key={id}
@@ -654,20 +825,29 @@ function App() {
               className={({ isActive }) => (isActive ? "selected" : undefined)}
               onClick={() => setError(null)}
             >
-              <Icon size={21} />
+              <Icon size={22} />
               <span>
                 {id === "overview"
-                  ? t.overview
+                  ? t.home
                   : id === "newPayment"
                   ? t.pay
                   : t.activity}
               </span>
             </NavLink>
           ))}
+          <NavLink
+            to={PATHS.profile}
+            aria-current={page === "profile" ? "page" : undefined}
+            className={({ isActive }) => (isActive ? "selected" : undefined)}
+            onClick={() => setError(null)}
+          >
+            <User size={22} />
+            <span>{t.profile}</span>
+          </NavLink>
         </nav>
         <main id="main">
           <div
-            className={`page-heading${
+            className={`page-heading page-heading--app${
               page === "profile" ? " page-heading--profile" : ""
             }`}
           >
@@ -712,10 +892,56 @@ function App() {
           </div>
           {error && (
             <div className="alert" role="alert">
-              {t[error]}
+              <div>
+                <p>{t[error]}</p>
+                {(error === "walletError" ||
+                  error === "walletRejected" ||
+                  error === "walletPending" ||
+                  error === "walletMissing" ||
+                  error === "quoteError" ||
+                  error === "quoteNetworkError" ||
+                  error === "sendError") && (
+                  <button
+                    type="button"
+                    className="alert-retry"
+                    onClick={() => {
+                      setError(null);
+                      if (error === "walletMissing") {
+                        setWalletGuide(true);
+                        return;
+                      }
+                      if (error.startsWith("wallet")) void connect();
+                    }}
+                  >
+                    {t.retry}
+                  </button>
+                )}
+              </div>
               <button aria-label={t.back} onClick={() => setError(null)}>
                 <X size={16} />
               </button>
+            </div>
+          )}
+          {account && walletChainId !== null && walletChainId !== HSK_CHAIN_ID && (
+            <div className="alert alert--warn" role="status">
+              <div>
+                <p>{t.wrongNetwork}</p>
+                <button type="button" className="alert-retry" onClick={() => void changeNetwork()}>
+                  {t.switchNetwork}
+                </button>
+              </div>
+            </div>
+          )}
+          {account && (
+            <div className="wallet-chip" aria-live="polite">
+              <strong>{t.walletConnected}</strong>
+              <span>{shortenAddress(account)}</span>
+              <span>{chainName(walletChainId)}</span>
+              {walletBalance && (
+                <span>
+                  {t.nativeBalance} {walletBalance}
+                </span>
+              )}
             </div>
           )}
           {page === "overview" && (
@@ -776,14 +1002,17 @@ function App() {
                   </p>
                 </div>
                 {!account && (
-                  <button
-                    type="button"
-                    className="primary"
-                    disabled={connecting}
-                    onClick={connect}
-                  >
-                    {t.connect}
-                  </button>
+                  <div className="overview-wallet-cta">
+                    <button
+                      type="button"
+                      className="primary"
+                      disabled={connecting}
+                      onClick={connect}
+                    >
+                      {connecting ? t.connectingWallet : t.connect}
+                    </button>
+                    <p className="wallet-hint">{t.walletHint}</p>
+                  </div>
                 )}
               </aside>
 
@@ -864,7 +1093,34 @@ function App() {
                     <ArrowUpRight size={16} />
                   </button>
                 </div>
-                {empty}
+                {payments.length === 0 ? (
+                  empty
+                ) : (
+                  <ul className="pay-list">
+                    {payments.slice(0, 3).map((item) => (
+                      <li key={item.paymentId}>
+                        <button
+                          type="button"
+                          className="pay-card"
+                          onClick={() => {
+                            setOpenPaymentId(item.paymentId);
+                            go("activity");
+                          }}
+                        >
+                          <strong>
+                            {item.amount} USDC
+                          </strong>
+                          <span>
+                            {item.sourceChain} → {item.destinationChain}
+                          </span>
+                          <em className={`pay-status pay-status--${statusTone(item.status)}`}>
+                            {item.status}
+                          </em>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </section>
             </>
           )}
@@ -884,7 +1140,49 @@ function App() {
                   <ArrowUpRight size={16} />
                 </button>
               </div>
-              {empty}
+              {payments.length === 0 ? (
+                empty
+              ) : (
+                <ul className="pay-list">
+                  {payments.map((item) => {
+                    const open = openPaymentId === item.paymentId;
+                    return (
+                      <li key={item.paymentId}>
+                        <button
+                          type="button"
+                          className="pay-card"
+                          onClick={() =>
+                            setOpenPaymentId(open ? null : item.paymentId)
+                          }
+                          aria-expanded={open}
+                        >
+                          <strong>{item.amount} USDC</strong>
+                          <span>
+                            {item.sourceChain} → {item.destinationChain}
+                          </span>
+                          <em className={`pay-status pay-status--${statusTone(item.status)}`}>
+                            {item.status}
+                          </em>
+                          <small>
+                            {item.createdAt
+                              ? new Date(item.createdAt).toLocaleString(locale)
+                              : ""}
+                          </small>
+                        </button>
+                        {open && (
+                          <div className="pay-detail">
+                            <p>{item.destinationRecipient}</p>
+                            {item.destinationTxHash && (
+                              <code>{item.destinationTxHash}</code>
+                            )}
+                            <p>{item.paymentId}</p>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </section>
           )}
           {page === "newPayment" && (
@@ -896,7 +1194,7 @@ function App() {
                       e.preventDefault();
                       const nextErrors = {
                         amount: !amountValue(form.amount),
-                        recipient: !isStellarAddress(form.recipient),
+                        recipient: !validRecipient(form.recipient, destination),
                         reference: !form.reference.trim(),
                       };
                       setFieldErrors(nextErrors);
@@ -924,7 +1222,7 @@ function App() {
                     </div>
                     <label className={fieldErrors.amount ? "is-invalid" : undefined}>
                       {t.amount}
-                      <div className="amount-input">
+                      <div className="amount-input wallet-amount">
                         <input
                           aria-label={t.amount}
                           aria-invalid={fieldErrors.amount || undefined}
@@ -946,6 +1244,26 @@ function App() {
                         <span className="field-error">{t.fieldAmount}</span>
                       )}
                     </label>
+                    <div className="route-pickers">
+                      <button
+                        type="button"
+                        className="route-picker"
+                        onClick={() => setSheet("source")}
+                      >
+                        <small>{t.source}</small>
+                        <strong>{t[CHAINS.find((c) => c.id === source)!.key]}</strong>
+                        <ChevronDown size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="route-picker"
+                        onClick={() => setSheet("destination")}
+                      >
+                        <small>{t.destination}</small>
+                        <strong>{t[CHAINS.find((c) => c.id === destination)!.key]}</strong>
+                        <ChevronDown size={16} />
+                      </button>
+                    </div>
                     <label
                       className={
                         fieldErrors.recipient ? "is-invalid" : undefined
@@ -962,7 +1280,11 @@ function App() {
                             recipient: false,
                           }));
                         }}
-                        placeholder={t.recipientPlaceholder}
+                        placeholder={
+                          destination === "stellar"
+                            ? t.recipientPlaceholder
+                            : "0x…"
+                        }
                         required
                         autoComplete="off"
                         spellCheck={false}
@@ -1071,6 +1393,39 @@ function App() {
                       <ShieldCheck size={15} />
                       {t.documentHint}
                     </p>
+                    <button
+                      className="secondary full"
+                      type="button"
+                      disabled={quoting}
+                      onClick={() => void requestQuote()}
+                    >
+                      {quoting ? t.quoting : t.quote}
+                    </button>
+                    {quoting && <div className="skeleton" aria-hidden="true" />}
+                    {quote && (
+                      <dl className="quote-card">
+                        <div>
+                          <dt>{t.amount}</dt>
+                          <dd>{quote.amount} USDC</dd>
+                        </div>
+                        <div>
+                          <dt>{t.fee}</dt>
+                          <dd>{quote.estimatedFee} USDC</dd>
+                        </div>
+                        <div>
+                          <dt>{t.receive}</dt>
+                          <dd>{quote.amount} USDC</dd>
+                        </div>
+                        <div>
+                          <dt>{t.eta}</dt>
+                          <dd>
+                            {quote.estimatedFinalitySeconds}
+                            {t.seconds}
+                          </dd>
+                        </div>
+                      </dl>
+                    )}
+                    <p className="form-hint">{t.gatewayNotice}</p>
                     <button className="primary full" type="submit">
                       {t.review}
                       <ArrowRight size={17} />
@@ -1082,15 +1437,25 @@ function App() {
                       <span>01 · {t.stepPrepare}</span>
                       <span className="is-active">02 · {t.stepConfirm}</span>
                     </div>
-                    <span className="draft-badge">{t.draft}</span>
+                    <span className={`draft-badge pay-status--${quote ? "pending" : "draft"}`}>
+                      {quote ? t.statusQuoted : t.draft}
+                    </span>
                     <h2>{t.summary}</h2>
                     <div className="review-amount zip-amount">
                       {form.amount} <small>USDC</small>
                     </div>
                     {[
+                      [t.source, t[CHAINS.find((c) => c.id === source)!.key]],
+                      [t.destination, t[CHAINS.find((c) => c.id === destination)!.key]],
                       [t.recipient, form.recipient],
                       [t.reference, form.reference],
                       [t.hs, form.hs || "—"],
+                      ...(quote
+                        ? ([
+                            [t.fee, `${quote.estimatedFee} USDC`],
+                            [t.eta, `${quote.estimatedFinalitySeconds}${t.seconds}`],
+                          ] as const)
+                        : []),
                       ...(document
                         ? ([[t.documentAttached, document.name]] as const)
                         : []),
@@ -1122,11 +1487,14 @@ function App() {
                       <button
                         type="button"
                         className="primary"
-                        disabled
-                        aria-disabled="true"
-                        title={t.reviewHint}
+                        disabled={sending}
+                        onClick={() => {
+                          if (!account) void connect();
+                          else void sendPayment();
+                        }}
+                        title={account ? t.reviewHint : t.needWalletToSend}
                       >
-                        {t.sendSoon}
+                        {sending ? t.sending : account ? t.send : t.connect}
                       </button>
                     </div>
                   </div>
@@ -1138,12 +1506,12 @@ function App() {
                   <h2>{t.route}</h2>
                   <div>
                     <small>{t.source}</small>
-                    <strong>{network}</strong>
+                    <strong>{t[CHAINS.find((c) => c.id === source)!.key]}</strong>
                   </div>
                   <span className="route-line" />
                   <div>
                     <small>{t.destination}</small>
-                    <strong>Stellar</strong>
+                    <strong>{t[CHAINS.find((c) => c.id === destination)!.key]}</strong>
                   </div>
                   <span className="currency-pill">USDC → USDC</span>
                 </section>
@@ -1176,7 +1544,11 @@ function App() {
                     disabled={connecting}
                     onClick={connect}
                   >
-                    {account ? t.disconnect : t.connect}
+                    {connecting
+                      ? t.connectingWallet
+                      : account
+                        ? t.disconnect
+                        : t.connect}
                   </button>
                 </div>
               </section>
@@ -1331,6 +1703,44 @@ function App() {
           </footer>
         </main>
       </div>
+      <WalletGuide
+        t={t}
+        open={walletGuide}
+        connecting={connecting}
+        onClose={() => setWalletGuide(false)}
+        onConnect={() => {
+          setWalletGuide(false);
+          void connect();
+        }}
+      />
+      {sheet && (
+        <div className="sheet-root">
+          <button
+            type="button"
+            className="sheet-backdrop"
+            aria-label={t.closeSheet}
+            onClick={() => setSheet(null)}
+          />
+          <div className="sheet" role="dialog" aria-label={t.pickNetwork}>
+            <header className="sheet-head">
+              <strong>{t.pickNetwork}</strong>
+              <button type="button" className="icon-button" onClick={() => setSheet(null)}>
+                <X size={18} />
+              </button>
+            </header>
+            {CHAINS.map((chain) => (
+              <button
+                key={chain.id}
+                type="button"
+                className="sheet-option"
+                onClick={() => pickRoute(sheet, chain.id)}
+              >
+                {t[chain.key]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
