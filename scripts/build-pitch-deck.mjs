@@ -17,10 +17,19 @@
  *
  * Figures never use Georgia. It ships old-style numerals, which sit at different heights and
  * destroy the alignment the identity is built on.
+ *
+ * The mark is rasterised from docs/assets/zip0-mark.svg — the real asset, not an approximation.
+ * An earlier version drew a full ring with a line across it, which reads as a circle with a line
+ * through it rather than a zero opened where the rail passes.
  */
 import PptxGenJS from "pptxgenjs";
+import sharp from "sharp";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const ASSETS = path.join(HERE, "..", "docs", "assets");
 
 // Tokens mirrored from docs/assets/zip0-tokens.css (dark palette).
 const C = {
@@ -39,8 +48,27 @@ const DISPLAY = "Georgia";
 const MONO = "Consolas";
 
 const W = 13.333;
-const H = 7.5;
 const M = 0.95;
+
+/*
+ * Geometry taken from the mark itself: stroke-width 6 in a 64 unit viewBox, rail centred at 32.
+ * Keeping these as ratios means the rail drawn on the slide lines up with the rail inside the
+ * image at any size.
+ */
+const STROKE_RATIO = 6 / 64;
+const RAIL_CENTRE_RATIO = 0.5;
+
+/** Renders the real mark at print resolution, tinted to a token colour. */
+async function markPng(hex) {
+  const svg = readFileSync(path.join(ASSETS, "zip0-mark.svg"), "utf8")
+    .replace(/currentColor/g, `#${hex}`)
+    .replace(/width="64"/, 'width="1024"')
+    .replace(/height="64"/, 'height="1024"');
+  const png = await sharp(Buffer.from(svg)).png().toBuffer();
+  return "image/png;base64," + png.toString("base64");
+}
+
+const MARK = await markPng(C.signal);
 
 const deck = new PptxGenJS();
 deck.layout = "LAYOUT_16x9";
@@ -78,32 +106,11 @@ function foot(s, left, num) {
   });
 }
 
-/**
- * The mark: a zero crossed by a rail.
- *
- * Drawn as a ring, then the aperture punched by a thick line in the ground colour, then the rail
- * itself on top. That reproduces the gap where the transfer passes through instead of faking it.
- */
-function mark(s, x, y, size) {
-  const stroke = size * 0.095;
-  s.addShape(deck.ShapeType.ellipse, {
-    x, y, w: size, h: size,
-    fill: { type: "none" }, line: { color: C.signal, width: stroke * 72 },
-  });
-  s.addShape(deck.ShapeType.rect, {
-    x: x - size * 0.14, y: y + size / 2 - stroke * 0.9, w: size * 1.28, h: stroke * 1.8,
-    fill: { color: C.paper }, line: { width: 0 },
-  });
-  s.addShape(deck.ShapeType.rect, {
-    x: x - size * 0.14, y: y + size / 2 - stroke / 2, w: size * 1.28, h: stroke,
-    fill: { color: C.signal }, line: { width: 0 },
-  });
-}
-
-function wordmark(s, x, y) {
+function lockup(s, x, y, size, wordSize) {
+  s.addImage({ data: MARK, x, y, w: size, h: size });
   s.addText("ZIP·0", {
-    x, y, w: 5, h: 1.5,
-    fontFace: DISPLAY, fontSize: 66, bold: true, color: C.ink, charSpacing: 2,
+    x: x + size * 1.35, y: y - size * 0.16, w: 6, h: size * 1.3, valign: "middle",
+    fontFace: DISPLAY, fontSize: wordSize, bold: true, color: C.ink, charSpacing: 2,
   });
 }
 
@@ -112,10 +119,9 @@ function wordmark(s, x, y) {
   const s = slide(
     "Say it plainly and stop: \"My name is Julio Severiche, and this is ZIP-0.\" Do not explain the name."
   );
-  mark(s, M, 2.55, 1.25);
-  wordmark(s, M + 1.75, 2.5);
+  lockup(s, M, 2.5, 1.3, 66);
   s.addText("Cross-border settlement for institutions that cannot hold crypto.", {
-    x: M, y: 4.35, w: 8.5, h: 0.6,
+    x: M, y: 4.45, w: 8.5, h: 0.6,
     fontFace: DISPLAY, fontSize: 20, color: C.inkMuted,
   });
   foot(s, "Julio Severiche", "01");
@@ -162,7 +168,6 @@ function wordmark(s, x, y) {
   );
   eyebrow(s, "Where the money actually moves");
 
-  // Lane 1 — messaging. One clean line: it never holds the money.
   s.addText(
     [
       { text: "SWIFT", options: { color: C.ink, bold: true } },
@@ -177,7 +182,6 @@ function wordmark(s, x, y) {
     x: M, y: 2.95, w: 8, h: 0.4, fontFace: DISPLAY, fontSize: 16, color: C.inkMuted,
   });
 
-  // Lane 2 — settlement. Three intermediaries, each taking a bite.
   s.addText(
     [
       { text: "CORRESPONDENT BANKING", options: { color: C.ink, bold: true } },
@@ -214,13 +218,34 @@ function wordmark(s, x, y) {
 {
   const s = slide("First time you may say the word \"contract\". Still do not say \"blockchain\".");
   eyebrow(s, "ZIP·0");
-  s.addText("One rail.\nNo intermediaries.", {
-    x: M, y: 2.35, w: 10, h: 2.1,
-    fontFace: DISPLAY, fontSize: 54, color: C.ink, lineSpacing: 60,
+
+  /*
+   * The claim is "one rail", so the slide shows one: a single line crossing the full width,
+   * passing through the aperture of the mark. Saying it and drawing it are not the same thing.
+   */
+  const size = 1.9;
+  const markY = 2.5;
+  const centre = markY + size * RAIL_CENTRE_RATIO;
+  const stroke = size * STROKE_RATIO;
+  const markX = (W - size) / 2;
+
+  s.addShape(deck.ShapeType.rect, {
+    x: 0, y: centre - stroke / 2, w: markX + size * 0.04, h: stroke,
+    fill: { color: C.signal }, line: { width: 0 },
+  });
+  s.addShape(deck.ShapeType.rect, {
+    x: markX + size * 0.96, y: centre - stroke / 2, w: W - markX - size * 0.96, h: stroke,
+    fill: { color: C.signal }, line: { width: 0 },
+  });
+  s.addImage({ data: MARK, x: markX, y: markY, w: size, h: size });
+
+  s.addText("One rail. No intermediaries.", {
+    x: M, y: 5.0, w: W - M * 2, h: 0.9, align: "center",
+    fontFace: DISPLAY, fontSize: 44, color: C.ink,
   });
   s.addText("A settlement contract holds the funds. It locks on one side and releases on the other.", {
-    x: M, y: 4.75, w: 8.5, h: 0.8,
-    fontFace: DISPLAY, fontSize: 19, color: C.inkMuted,
+    x: M, y: 5.85, w: W - M * 2, h: 0.5, align: "center",
+    fontFace: DISPLAY, fontSize: 17, color: C.inkMuted,
   });
   foot(s, "No pre-funded account in every corridor", "04");
 }
@@ -286,28 +311,58 @@ function wordmark(s, x, y) {
   foot(s, "Nothing here is decoration", "06");
 }
 
-/* ---------------------------------------------------------------- 07 */
+/* ---------------------------------------------------------------- 07 — the team */
+{
+  const s = slide(
+    "Name the team. Five people, and every one of these contributions is in the commit history — do not inflate the roles."
+  );
+  eyebrow(s, "Built by five people in Bolivia");
+
+  /*
+   * Roles are taken from what each person actually shipped, read off the commit history.
+   * Crediting someone for work they did not do is worse than not listing a role at all.
+   */
+  const team = [
+    ["Julio Severiche", "Architecture · Web · Identity"],
+    ["Moises Cisneros", "CCTP bridge · SDK · Gateway"],
+    ["Fernando Vasquez", "Settlement rail · Gasless deposits"],
+    ["Luishiño Pericena", "Live payment evidence · Relayer state"],
+    ["William Y.M", "Refund timeout · Relayer acknowledgement"],
+  ];
+
+  team.forEach(([name, role], i) => {
+    const y = 2.25 + i * 0.82;
+    s.addText(name, {
+      x: M, y, w: 4.6, h: 0.5, valign: "middle",
+      fontFace: DISPLAY, fontSize: 22, color: C.ink,
+    });
+    s.addText(role, {
+      x: M + 4.8, y, w: W - M * 2 - 4.8, h: 0.5, valign: "middle",
+      fontFace: MONO, fontSize: 12.5, color: C.inkMuted,
+    });
+    if (i < team.length - 1) {
+      s.addShape(deck.ShapeType.rect, {
+        x: M, y: y + 0.63, w: W - M * 2, h: 0.008, fill: { color: C.border }, line: { width: 0 },
+      });
+    }
+  });
+  foot(s, "Zer0-Knowledge-Hack", "07");
+}
+
+/* ---------------------------------------------------------------- 08 */
 {
   const s = slide("End on the line. Do not add a thank-you sentence after it.");
-  mark(s, M, 1.65, 0.95);
-  wordmark(s, M + 1.4, 1.55);
+  lockup(s, M, 1.6, 1.0, 46);
   s.addText("The amount you send\nis the amount that arrives.", {
-    x: M, y: 3.35, w: 11, h: 2,
+    x: M, y: 3.2, w: 11, h: 2,
     fontFace: DISPLAY, fontSize: 46, color: C.ink, lineSpacing: 54,
   });
   s.addText("Next: an audit, and one pilot corridor — Bolivia to Brazil.", {
-    x: M, y: 5.5, w: 9, h: 0.5, fontFace: DISPLAY, fontSize: 18, color: C.inkMuted,
+    x: M, y: 5.4, w: 9, h: 0.5, fontFace: DISPLAY, fontSize: 18, color: C.inkMuted,
   });
-  foot(s, "ZIP·0", "07");
+  foot(s, "ZIP·0", "08");
 }
 
-const out = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "docs",
-  "assets",
-  "zip0-pitch.pptx"
-);
-
+const out = path.join(ASSETS, "zip0-pitch.pptx");
 await deck.writeFile({ fileName: out });
 console.log("wrote " + out);

@@ -6,7 +6,7 @@ Positioning follows [`market.md`](market.md): we are **not** an alternative to S
 alternative to correspondent banking. The lead is reconciliation, not speed and not verifiability —
 tracking is already what gpi promises banks, so leading with it says we match the incumbent.
 
-**337 spoken words — about 2:30 at a deliberate pace.** That is under three minutes on purpose. The
+**344 spoken words — about 2:40 at a deliberate pace.** That is under three minutes on purpose. The
 marked pauses and the switch to the live app consume the rest, and a pitch that fills its slot with
 words has no room to land. Do not add more text to reach 3:00.
 
@@ -72,7 +72,11 @@ Let me be precise about what this is. A testnet prototype. Unaudited. A trusted 
 The submit button is disabled, and that is deliberate. Every figure in this interface came from a
 real chain read — or it says unavailable. Nothing here is decoration.
 
-> **[2:45 — Slide 7: close. Wordmark and one line.]**
+> **[2:40 — Slide 7: the team. Look at the room, not the screen.]**
+
+Five of us built this, in Bolivia.
+
+> **[2:50 — Slide 8: close. Wordmark and one line.]**
 
 The contract is live and verified. What we need next is an audit and one pilot corridor:
 Bolivia to Brazil.
