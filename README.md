@@ -45,10 +45,12 @@ ZIP-0 routes a payment over one of two settlement rails:
 | Rail | Mechanism | Liquidity | Status |
 | :--- | :--- | :--- | :--- |
 | **Vault rail** | Lock USDC in a vault on the source chain, release from the vault on the destination chain via an authorized relayer | Bounded by vault float | **Implemented** |
-| **CCTP rail** | Circle burn-and-mint, 1:1, no pools | Unbounded | **Implemented** (Circle Bridge Kit; live testnet transfer pending) |
+| **CCTP rail** | Circle burn-and-mint, 1:1, no pools | Unbounded | **Implemented and proven** (live Fuji → Arbitrum Sepolia transfer) |
 
 Vault-rail payments settle today. CCTP corridors between Circle-supported EVM chains are
-implemented and routed automatically; a live testnet transfer has not been recorded yet.
+implemented and routed automatically, and a live testnet burn-and-mint has completed end to end —
+see the "CCTP settlement rail" section of [Project Status](docs/project-status.md) for the
+transaction hashes.
 
 ```text
   EVM chain (HSK / Avalanche)                      Stellar (Pollar)
@@ -285,8 +287,8 @@ Contracts are tested with Hardhat; TypeScript is tested with Vitest.
 1. Deploy the vault to HashKey Chain mainnet and settle a real payment end to end.
 2. Replace mock-based relayer tests with integration tests against a live chain.
 3. Persist relayer payment state so it survives restarts.
-4. Record a live CCTP testnet transfer to prove the burn-and-mint rail end to end. The rail itself
-   is implemented over Circle's Bridge Kit (`depositForBurn` -> Iris attestation -> `receiveMessage`).
+4. ~~Record a live CCTP testnet transfer.~~ Done: a Fuji → Arbitrum Sepolia burn-and-mint completed
+   end to end (hashes in [Project Status](docs/project-status.md)).
 5. Package `@zip-0/sdk` and a REST gateway so institutions integrate without touching chain code.
 
 ---
