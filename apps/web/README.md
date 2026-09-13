@@ -10,6 +10,43 @@ pnpm --filter @zip-0/web test
 
 `pnpm dev` from the repository root starts this app alongside the gateway.
 
+## Deployment (Cloudflare Pages)
+
+This is a pnpm workspace, so the defaults Cloudflare suggests for a Vite project are wrong: they
+build from the repository root and look for `dist` there, which does not exist.
+
+| Setting | Value |
+| --- | --- |
+| Framework preset | React (Vite) — only prefills the fields below |
+| Build command | `pnpm --filter @zip-0/web build` |
+| Build output directory | `apps/web/dist` |
+| Root directory | *leave empty* (the repository root) |
+
+Root directory stays empty on purpose. pnpm resolves the workspace from the root lockfile, so
+pointing Cloudflare at `apps/web` breaks dependency resolution.
+
+Node and pnpm versions are pinned in the repository — `.node-version` and the `packageManager`
+field in the root `package.json` — rather than configured in the dashboard, so a local build and a
+deployed build use the same toolchain. If the build image ignores `packageManager`, set a
+`PNPM_VERSION` environment variable to match.
+
+### Why `public/_redirects` exists
+
+A single-page app has no server-side routes. Without a fallback, every path except `/` returns 404
+on a reload or a shared link — including `/legal`, which the landing footer links to.
+
+```
+/*    /index.html   200
+```
+
+Cloudflare serves the file when one exists and falls back to the shell otherwise. This makes
+`pageFromPath` the only thing deciding what a visitor sees on a deep link, which is why
+`routes.test.ts` covers every published path.
+
+`public/_headers` sets `nosniff`, `DENY` framing and a strict referrer policy, and caches hashed
+assets hard while keeping `index.html` uncached — otherwise a deploy strands visitors on a stale
+shell pointing at assets that no longer exist.
+
 ## What is real and what is not
 
 This distinction is the point, so it is stated first.
