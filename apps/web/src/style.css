@@ -3379,3 +3379,38 @@ a.legal-hash:hover {
     gap: var(--zip-space-1);
   }
 }
+
+/* ---------- Footer disclosure link ---------- */
+
+/*
+ * Present on every page, including inside the app. Someone about to send a payment should not
+ * have to return to the marketing shell to learn this is an unlicensed prototype.
+ */
+footer {
+  align-items: center;
+  gap: var(--zip-space-4);
+  flex-wrap: wrap;
+}
+
+.footer-legal {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: var(--zip-text-xs);
+  color: var(--zip-signal);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-right: auto;
+}
+
+.footer-legal:hover {
+  color: var(--zip-signal-hover);
+}
+
+.footer-legal:focus-visible {
+  outline: 2px solid var(--zip-signal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}

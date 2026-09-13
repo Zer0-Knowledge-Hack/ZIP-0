@@ -1148,10 +1148,18 @@ function App() {
               <p>{t.trustBody}</p>
             </div>
           </section>
+          {/*
+            Global footer, so the disclosure is reachable from every page rather than only from
+            the landing. Someone about to send a payment should not have to go back to the
+            marketing shell to find out this is an unlicensed prototype.
+          */}
           <footer>
             <span>
               ZIP-0 <span>·</span> {t.footer}
             </span>
+            <button className="footer-legal" onClick={() => go("legal")}>
+              {t.legal}
+            </button>
             <span className="preview-tag">{t.beta}</span>
           </footer>
         </main>
