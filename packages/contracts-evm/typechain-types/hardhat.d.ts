@@ -118,6 +118,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ReentrantRefundToken__factory>;
     getContractFactory(
+      name: "IERC20TransferWithAuthorization",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IERC20TransferWithAuthorization__factory>;
+    getContractFactory(
       name: "ZIP0PaymentVault",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.ZIP0PaymentVault__factory>;
@@ -253,6 +257,11 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.ReentrantRefundToken>;
     getContractAt(
+      name: "IERC20TransferWithAuthorization",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IERC20TransferWithAuthorization>;
+    getContractAt(
       name: "ZIP0PaymentVault",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -363,6 +372,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ReentrantRefundToken>;
     deployContract(
+      name: "IERC20TransferWithAuthorization",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC20TransferWithAuthorization>;
+    deployContract(
       name: "ZIP0PaymentVault",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ZIP0PaymentVault>;
@@ -497,6 +510,11 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.ReentrantRefundToken>;
+    deployContract(
+      name: "IERC20TransferWithAuthorization",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IERC20TransferWithAuthorization>;
     deployContract(
       name: "ZIP0PaymentVault",
       args: any[],

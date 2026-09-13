@@ -19,7 +19,7 @@ the design document.
 | Pollar / Stellar adapter | ⚠️ Built, no live-network test |
 | Ports & Adapters core (ISettlementRail / PaymentRoutingEngine) | ✅ Built and tested |
 | CCTP settlement rail | ❌ Not started |
-| ERC-3009 `transferWithAuthorization` | ❌ Not started |
+| ERC-3009 `transferWithAuthorization` | ✅ Vault deposit + EIP-712 signing/validation; standalone relayer broadcast not implemented |
 | `@zip-0/sdk` package | ❌ Not started |
 | REST API gateway | ❌ Not started |
 | Persistent payment state | ❌ Not started |
@@ -80,8 +80,19 @@ five pre-existing tests pass untouched.
 (`0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9`). The permit path is
 therefore compatible with HSK mainnet.
 
-Note this uses **EIP-2612 permit**, not ERC-3009 `transferWithAuthorization`. The architecture
-document describes the latter; the code implements the former.
+`depositWithAuthorization()` adds the ERC-3009 `transferWithAuthorization` path the architecture
+document describes. Both USDC contracts expose the canonical
+`TRANSFER_WITH_AUTHORIZATION_TYPEHASH` (`0x7c7c6cdb…2267`). The signing/validation helper lives in
+`packages/cctp-bridge/src/core/erc3009Signer.ts` and checks `validAfter` / `validBefore` and the
+token's on-chain `authorizationState()` before submission.
+
+Test evidence (`pnpm --filter @zip-0/contracts-evm test` → **12 passing**) covers a valid
+authorization, an expired window, a not-yet-valid window, and a replayed nonce. The permit path is
+unchanged and still passing.
+
+**Not implemented:** the standalone `Erc3009Relayer.relayAuthorization()` still refuses to broadcast
+(it verifies the signature, then throws `NotImplementedError`). The vault entry point performs the
+on-chain transfer directly; the separate relayer broadcast remains future work.
 
 ---
 

@@ -27,8 +27,10 @@ export interface MockUSDCInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "DOMAIN_SEPARATOR"
+      | "TRANSFER_WITH_AUTHORIZATION_TYPEHASH"
       | "allowance"
       | "approve"
+      | "authorizationState"
       | "balanceOf"
       | "decimals"
       | "eip712Domain"
@@ -40,14 +42,23 @@ export interface MockUSDCInterface extends Interface {
       | "totalSupply"
       | "transfer"
       | "transferFrom"
+      | "transferWithAuthorization"
   ): FunctionFragment;
 
   getEvent(
-    nameOrSignatureOrTopic: "Approval" | "EIP712DomainChanged" | "Transfer"
+    nameOrSignatureOrTopic:
+      | "Approval"
+      | "AuthorizationUsed"
+      | "EIP712DomainChanged"
+      | "Transfer"
   ): EventFragment;
 
   encodeFunctionData(
     functionFragment: "DOMAIN_SEPARATOR",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "TRANSFER_WITH_AUTHORIZATION_TYPEHASH",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -57,6 +68,10 @@ export interface MockUSDCInterface extends Interface {
   encodeFunctionData(
     functionFragment: "approve",
     values: [AddressLike, BigNumberish]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "authorizationState",
+    values: [AddressLike, BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "balanceOf",
@@ -98,13 +113,35 @@ export interface MockUSDCInterface extends Interface {
     functionFragment: "transferFrom",
     values: [AddressLike, AddressLike, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "transferWithAuthorization",
+    values: [
+      AddressLike,
+      AddressLike,
+      BigNumberish,
+      BigNumberish,
+      BigNumberish,
+      BytesLike,
+      BigNumberish,
+      BytesLike,
+      BytesLike
+    ]
+  ): string;
 
   decodeFunctionResult(
     functionFragment: "DOMAIN_SEPARATOR",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "TRANSFER_WITH_AUTHORIZATION_TYPEHASH",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "allowance", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "authorizationState",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "decimals", data: BytesLike): Result;
   decodeFunctionResult(
@@ -125,6 +162,10 @@ export interface MockUSDCInterface extends Interface {
     functionFragment: "transferFrom",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "transferWithAuthorization",
+    data: BytesLike
+  ): Result;
 }
 
 export namespace ApprovalEvent {
@@ -138,6 +179,19 @@ export namespace ApprovalEvent {
     owner: string;
     spender: string;
     value: bigint;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
+}
+
+export namespace AuthorizationUsedEvent {
+  export type InputTuple = [authorizer: AddressLike, nonce: BytesLike];
+  export type OutputTuple = [authorizer: string, nonce: string];
+  export interface OutputObject {
+    authorizer: string;
+    nonce: string;
   }
   export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
   export type Filter = TypedDeferredTopicFilter<Event>;
@@ -218,6 +272,12 @@ export interface MockUSDC extends BaseContract {
 
   DOMAIN_SEPARATOR: TypedContractMethod<[], [string], "view">;
 
+  TRANSFER_WITH_AUTHORIZATION_TYPEHASH: TypedContractMethod<
+    [],
+    [string],
+    "view"
+  >;
+
   allowance: TypedContractMethod<
     [owner: AddressLike, spender: AddressLike],
     [bigint],
@@ -228,6 +288,12 @@ export interface MockUSDC extends BaseContract {
     [spender: AddressLike, value: BigNumberish],
     [boolean],
     "nonpayable"
+  >;
+
+  authorizationState: TypedContractMethod<
+    [authorizer: AddressLike, nonce: BytesLike],
+    [boolean],
+    "view"
   >;
 
   balanceOf: TypedContractMethod<[account: AddressLike], [bigint], "view">;
@@ -290,12 +356,31 @@ export interface MockUSDC extends BaseContract {
     "nonpayable"
   >;
 
+  transferWithAuthorization: TypedContractMethod<
+    [
+      from: AddressLike,
+      to: AddressLike,
+      value: BigNumberish,
+      validAfter: BigNumberish,
+      validBefore: BigNumberish,
+      nonce: BytesLike,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
+
   getFunction<T extends ContractMethod = ContractMethod>(
     key: string | FunctionFragment
   ): T;
 
   getFunction(
     nameOrSignature: "DOMAIN_SEPARATOR"
+  ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "TRANSFER_WITH_AUTHORIZATION_TYPEHASH"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "allowance"
@@ -310,6 +395,13 @@ export interface MockUSDC extends BaseContract {
     [spender: AddressLike, value: BigNumberish],
     [boolean],
     "nonpayable"
+  >;
+  getFunction(
+    nameOrSignature: "authorizationState"
+  ): TypedContractMethod<
+    [authorizer: AddressLike, nonce: BytesLike],
+    [boolean],
+    "view"
   >;
   getFunction(
     nameOrSignature: "balanceOf"
@@ -382,6 +474,23 @@ export interface MockUSDC extends BaseContract {
     [boolean],
     "nonpayable"
   >;
+  getFunction(
+    nameOrSignature: "transferWithAuthorization"
+  ): TypedContractMethod<
+    [
+      from: AddressLike,
+      to: AddressLike,
+      value: BigNumberish,
+      validAfter: BigNumberish,
+      validBefore: BigNumberish,
+      nonce: BytesLike,
+      v: BigNumberish,
+      r: BytesLike,
+      s: BytesLike
+    ],
+    [void],
+    "nonpayable"
+  >;
 
   getEvent(
     key: "Approval"
@@ -389,6 +498,13 @@ export interface MockUSDC extends BaseContract {
     ApprovalEvent.InputTuple,
     ApprovalEvent.OutputTuple,
     ApprovalEvent.OutputObject
+  >;
+  getEvent(
+    key: "AuthorizationUsed"
+  ): TypedContractEvent<
+    AuthorizationUsedEvent.InputTuple,
+    AuthorizationUsedEvent.OutputTuple,
+    AuthorizationUsedEvent.OutputObject
   >;
   getEvent(
     key: "EIP712DomainChanged"
@@ -415,6 +531,17 @@ export interface MockUSDC extends BaseContract {
       ApprovalEvent.InputTuple,
       ApprovalEvent.OutputTuple,
       ApprovalEvent.OutputObject
+    >;
+
+    "AuthorizationUsed(address,bytes32)": TypedContractEvent<
+      AuthorizationUsedEvent.InputTuple,
+      AuthorizationUsedEvent.OutputTuple,
+      AuthorizationUsedEvent.OutputObject
+    >;
+    AuthorizationUsed: TypedContractEvent<
+      AuthorizationUsedEvent.InputTuple,
+      AuthorizationUsedEvent.OutputTuple,
+      AuthorizationUsedEvent.OutputObject
     >;
 
     "EIP712DomainChanged()": TypedContractEvent<
