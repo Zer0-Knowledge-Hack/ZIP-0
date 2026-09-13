@@ -2471,3 +2471,158 @@ a.landing-hash:hover {
     gap: var(--zip-space-1);
   }
 }
+
+/* ============================================================
+   Trade flow
+   ============================================================
+   What the payment unlocks. The receipt shows the transaction; this shows the operation it
+   sets in motion — which is the difference between settlement infrastructure and a wallet.
+   ============================================================ */
+
+.landing-hero-visual {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zip-space-4);
+  flex: 0 1 24rem;
+}
+
+.flow {
+  padding: var(--zip-space-4) var(--zip-space-4) var(--zip-space-3);
+  border: var(--zip-rail);
+  border-radius: var(--zip-radius-lg);
+  background: var(--zip-surface);
+}
+
+.flow-kicker {
+  font-size: var(--zip-text-xs);
+  font-weight: var(--zip-weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--zip-ink-faint);
+  margin-bottom: var(--zip-space-3);
+}
+
+.flow-origin {
+  padding-bottom: var(--zip-space-3);
+  border-bottom: var(--zip-rail);
+}
+
+.flow-origin strong {
+  display: block;
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink);
+}
+
+.flow-origin span {
+  font-size: var(--zip-text-xs);
+  color: var(--zip-ink-muted);
+}
+
+/* ---------- Steps ---------- */
+
+.flow-steps {
+  list-style: none;
+  margin: var(--zip-space-3) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--zip-space-3);
+  position: relative;
+}
+
+/* The rail runs down the column, joining each step — the corridor seen vertically. */
+.flow-steps::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: var(--zip-border);
+}
+
+.flow-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--zip-space-3);
+  position: relative;
+  animation: flow-step-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes flow-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Each step opens with the mark: the aperture is what lets the operation through. */
+.flow-node {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--zip-surface);
+  color: var(--zip-signal);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.flow-node .brand-mark {
+  width: 18px;
+  height: 18px;
+}
+
+.flow-steps strong {
+  display: block;
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink);
+}
+
+.flow-steps span {
+  font-size: var(--zip-text-xs);
+  color: var(--zip-ink-muted);
+}
+
+/* ---------- Outcome ---------- */
+
+.flow-unlocked {
+  display: flex;
+  align-items: center;
+  gap: var(--zip-space-2);
+  margin-top: var(--zip-space-4);
+  padding-top: var(--zip-space-3);
+  border-top: var(--zip-rail);
+  font-size: var(--zip-text-sm);
+  font-weight: var(--zip-weight-medium);
+  color: var(--zip-settled);
+}
+
+/*
+ * Not a disclaimer in the legal sense — a statement of what is scenario and what is built.
+ * Claiming a customs integration we do not have would assert regulatory endorsement.
+ */
+.flow-footnote {
+  margin-top: var(--zip-space-3);
+  font-size: var(--zip-text-xs);
+  line-height: 1.5;
+  color: var(--zip-ink-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flow-steps li {
+    animation: none;
+  }
+}
+
+@media (max-width: 48rem) {
+  .landing-hero-visual {
+    flex-basis: auto;
+    width: 100%;
+  }
+}

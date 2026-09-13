@@ -121,6 +121,59 @@ function HeroMark() {
 }
 
 /**
+ * Trade flow.
+ *
+ * The payment is not the point — what it unlocks is. A banana exporter in Cochabamba pays
+ * freight and duties, and the cargo moves. Showing the operation rather than the transaction
+ * is what separates settlement infrastructure from a wallet.
+ *
+ * Each step opens with the mark: the aperture is what lets the operation through.
+ *
+ * The footnote matters. Paying duties through ZIP-0 would require an integration with each
+ * customs authority that does not exist, and implying otherwise would claim regulatory
+ * endorsement we do not have.
+ */
+function TradeFlow({ t }: { t: typeof es }) {
+  const steps: Array<[string, string]> = [
+    [t.flowStep1, t.flowStep1Detail],
+    [t.flowStep2, t.flowStep2Detail],
+    [t.flowStep3, t.flowStep3Detail],
+  ];
+
+  return (
+    <section className="flow" aria-label={t.flowKicker}>
+      <p className="flow-kicker">{t.flowKicker}</p>
+
+      <div className="flow-origin">
+        <strong>{t.flowPayer}</strong>
+        <span>{t.flowPayerPlace}</span>
+      </div>
+
+      <ol className="flow-steps">
+        {steps.map(([label, detail], i) => (
+          <li key={label} style={{ animationDelay: `${0.9 + i * 0.45}s` }}>
+            <span className="flow-node" aria-hidden="true">
+              <Mark />
+            </span>
+            <div>
+              <strong>{label}</strong>
+              <span>{detail}</span>
+            </div>
+          </li>
+        ))}
+      </ol>
+
+      <p className="flow-unlocked">
+        <Check size={15} />
+        {t.flowUnlocked}
+      </p>
+
+      <p className="flow-footnote">{t.flowFootnote}</p>
+    </section>
+  );
+}
+
+/**
  * Settlement receipt.
  *
  * Mirrors the structure a block explorer shows for a transaction — same fields, same
@@ -132,11 +185,17 @@ function HeroMark() {
  * looks real while being invented is the same failure as a fabricated transaction hash.
  */
 function Receipt({ t }: { t: typeof es }) {
-  const rows: Array<[string, string, string?]> = [
-    [t.receiptFrom, "HashKey Chain", "zip-mono"],
-    [t.receiptTo, "Stellar", "zip-mono"],
-    [t.receiptRef, "INV-2026-0914", "zip-mono"],
-    [t.receiptTime, "4.2 s", "zip-mono"],
+  /*
+   * The receipt tells the same story as the flow beside it: this is the freight payment the
+   * Cochabamba exporter makes, not a generic transaction. One scenario, two views — the
+   * transaction and the operation it sets in motion.
+   */
+  const rows: Array<[string, string]> = [
+    [t.receiptConcept, t.receiptConceptValue],
+    [t.receiptFrom, t.receiptFromValue],
+    [t.receiptTo, t.receiptToValue],
+    [t.receiptRef, t.receiptRefValue],
+    [t.receiptTime, "4.2 s"],
   ];
 
   return (
@@ -164,7 +223,7 @@ function Receipt({ t }: { t: typeof es }) {
 
         <p className="receipt-label">{t.receiptAmount}</p>
         <p className="receipt-amount">
-          250,000.00 <span>USDC</span>
+          18,400.00 <span>USDC</span>
         </p>
 
         <dl className="receipt-rows">
@@ -486,7 +545,10 @@ function App() {
                     </button>
                   </div>
                 </div>
-                <Receipt t={t} />
+                <div className="landing-hero-visual">
+                  <Receipt t={t} />
+                  <TradeFlow t={t} />
+                </div>
               </section>
 
               {/*
