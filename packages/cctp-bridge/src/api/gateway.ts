@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { IPaymentRouter } from "../core/interfaces.js";
 import {
   BridgePaymentStatus,
@@ -47,12 +48,7 @@ export class PaymentApiGateway {
 
   public async handleTransfer(req: CreateTransferRequest): Promise<PaymentIntent> {
     const rawAmount = BigInt(Math.round(parseFloat(req.amount) * 1_000_000));
-    const randomBytes = Array.from({ length: 32 }, () =>
-      Math.floor(Math.random() * 256)
-        .toString(16)
-        .padStart(2, "0")
-    ).join("");
-    const paymentId = `0x${randomBytes}` as `0x${string}`;
+    const paymentId = `0x${crypto.randomBytes(32).toString("hex")}` as `0x${string}`;
 
     const intent = await this.router.routePayment({
       paymentId,

@@ -4,8 +4,16 @@ ZIP-0 is payment infrastructure for institutional cross-border settlement in USD
 institution send value between an EVM chain and Stellar without holding native gas tokens, without
 a pool-based AMM, and without touching SWIFT.
 
-This repository contains the on-chain settlement vault and the off-chain relayer that moves a
-payment between chains.
+This repository contains the on-chain settlement vault, the off-chain relayer that moves a payment
+between chains, a REST gateway, a typed SDK, and the web app an institution uses to send one.
+
+**Live app: [zip-0.pages.dev](https://zip-0.pages.dev/)** — the available-funds figure and the chain
+height are read from the deployed HashKey Chain Testnet vault. Payment submission is deliberately
+disabled; [Web app](#web-app) states exactly which surfaces are live.
+
+**Demo: [The amount you send is the amount that arrives](https://youtu.be/yX7G3O1c4tg)** — a
+three-minute walkthrough of the problem, the settlement rail, and the deployed contract. The
+spoken script is in [docs/pitch-script.md](docs/pitch-script.md).
 
 > **Status: hackathon-stage prototype.** The settlement vault is implemented, tested, and deployed
 > on a live testnet. The relayer orchestration is implemented and unit-tested against mocks.
@@ -18,12 +26,14 @@ payment between chains.
 ## Quick path
 
 ```bash
-pnpm install                                  # install workspace (3 packages)
-pnpm --filter @zip-0/contracts-evm test       # 19 contract tests
-pnpm --filter @zip-0/cctp-bridge test         # 5 relayer tests
+pnpm install                                  # install the workspace (5 packages)
+pnpm --filter @zip-0/contracts-evm test       # 23 contract tests
+pnpm --filter @zip-0/cctp-bridge test         # 63 relayer tests
+pnpm -r test                                  # every suite
 ```
 
-Expected result: 13 passing tests, no configuration or network access required.
+Expected result: 120 passing tests (23 contracts, 63 relayer, 19 web, 10 gateway, 5 SDK), with no
+configuration or network access required.
 
 To deploy the vault to a live network:
 
@@ -97,6 +107,7 @@ provide.
 | `packages/cctp-bridge` | Relayer orchestrator, EVM/Stellar adapters, core types |
 | `packages/sdk` | `@zip-0/sdk` typed client library (`Zip0Client`) |
 | `apps/gateway` | REST API gateway exposing `/v1/payments/*` endpoints |
+| `apps/web` | React web app (landing, payment shell, legal disclosure), deployed at [zip-0.pages.dev](https://zip-0.pages.dev/) |
 | `spec/` | Architecture reference (design intent, includes planned work) |
 | `docs/` | Operational documentation (verified facts, integration guides) |
 | `openspec/` | OpenSpec change tracking |
@@ -116,6 +127,7 @@ pnpm --filter @zip-0/gateway dev
 ```
 
 The gateway runs by default at `http://localhost:3000` and exposes:
+
 - `GET /health` — Service health check
 - `POST /v1/payments/quote` — Route evaluation, fee calculation, and rail selection
 - `POST /v1/payments/transfer` — Payment initiation
@@ -157,6 +169,35 @@ console.log(`Current status: ${status.status}`);
 
 ---
 
+## Web app
+
+`apps/web` is a React 19 + Vite single-page app deployed to Cloudflare Pages at
+[zip-0.pages.dev](https://zip-0.pages.dev/). It ships English and Spanish copy and routes between a
+marketing landing page (`/`), the product shell (`/app`, `/app/pay`, `/app/activity`), and a legal
+disclosure page (`/legal`).
+
+```bash
+pnpm --filter @zip-0/web dev      # http://127.0.0.1:5173
+pnpm --filter @zip-0/web build
+```
+
+What is live and what is not — the same rule the rest of this repository follows:
+
+| Surface | Status |
+| :--- | :--- |
+| Available funds on the overview | **Live.** Read from the HSK Testnet vault via viem, polled every 15 s |
+| Chain height in the legal disclosure | **Live.** Same read |
+| Vault link | **Live.** Points at the verified contract |
+| Payment submission | **Disabled.** The confirm button does not send a transaction |
+| Activity and history | **Empty.** No read integration yet, and no placeholder rows |
+
+No screen in the app displays a balance, a hash, or a settled status that did not come from a real
+chain read; when the RPC is unreachable the figure renders as explicitly unavailable rather than as
+zero. Uploaded invoice PDFs never leave the browser — only their Keccak-256 fingerprint is held in
+component state. See [apps/web/README.md](apps/web/README.md) for the read surface and known gaps.
+
+---
+
 ## Contract reference — `ZIP0PaymentVault`
 
 Solidity `>=0.8.20 <0.9.0`, compiled at `0.8.24` with `evmVersion: cancun`, optimizer 200 runs.
@@ -179,10 +220,9 @@ Amounts use 6 decimals, matching USDC on every supported network.
 
 **Known limitations.** Once the relayer acknowledges a deposit, only the relayer can refund it.
 The relayer acknowledges every EVM → Stellar deposit before crediting Stellar, so relayer downtime
-beyond `REFUND_TIMEOUT` lets payers reclaim unacknowledged deposits — see [SECURITY.md](SECURITY.md).
-The Avalanche Fuji vault (`0xF1ca…`) and the original HSK Testnet vault from #3 (`0x14e5…`)
-predate `acknowledgePayment` and `claimRefund`: Flow 2 (EVM → Stellar) reverts against them.
-The current HSK Testnet vault (`0x3028…`, redeployed in #35 / PR #45) matches this repository.
+The legacy Avalanche Fuji vault (`0xF1ca…`) and the original HSK Testnet vault from #3 (`0x14e5…`)
+predate `acknowledgePayment` and `claimRefund`. The active Avalanche Fuji vault (`0x9B9D238D3b7dfAdF87b6096889fcE2fe39d76f50`, verified on Snowtrace)
+and the active HSK Testnet vault (`0x3028…`) both implement full refund and acknowledgement support matching this repository.
 Relayer payment state lives in an in-memory `Map` and does not survive a process restart.
 
 ---
@@ -203,7 +243,7 @@ Relayer payment state lives in an in-memory `Map` and does not survive a process
 
 | Contract | Address |
 | :--- | :--- |
-| `ZIP0PaymentVault` | [`0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa`](https://testnet.snowtrace.io/address/0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa) |
+| `ZIP0PaymentVault` | [`0x9B9D238D3b7dfAdF87b6096889fcE2fe39d76f50`](https://testnet.snowtrace.io/address/0x9B9D238D3b7dfAdF87b6096889fcE2fe39d76f50#code) |
 | Circle USDC (Fuji) | `0x5425890298aed601595a70ab815c96711a31bc65` |
 
 **HashKey Chain Testnet (`133`)**
@@ -231,9 +271,8 @@ ALICE_PRIVATE_KEY=0x...     # must hold MockUSDC and a little HSK for gas
 pnpm --filter @zip-0/cctp-bridge test:payment
 ```
 
-Explorer links print as `https://testnet-explorer.hsk.xyz/tx/<hash>`. To force Avalanche Fuji
-instead, set `EVM_CHAIN_ID=43113` (Flow 2 will fail there until that vault is redeployed).
-
+Explorer links print as `https://testnet-explorer.hsk.xyz/tx/<hash>` or `https://testnet.snowtrace.io/tx/<hash>`.
+To run against Avalanche Fuji, set `EVM_CHAIN_ID=43113` in `packages/cctp-bridge/.env`.
 
 ### Recorded run — 2026-09-13
 
@@ -259,6 +298,18 @@ Merchant balance moved 0.25 → 0.50 MockUSDC.
 
 Flow 2 exercises `acknowledgePayment` before crediting Stellar, which is the ordering that keeps
 `claimRefund` from being reachable on a payment that already settled.
+
+**Avalanche Fuji Testnet ⇄ Stellar Testnet** (executed against verified vault `0x9B9D…`)
+
+- **Flow 1 — Stellar → Avalanche Fuji** (relayer releases 0.25 Circle USDC to the merchant)
+  - Stellar registration: [`d58eb8d7…4246`](https://stellar.expert/explorer/testnet/tx/d58eb8d7b1b76a55b0ed407848c290e39b84c407cf550cb69f3f2352175b4246)
+  - `releasePayment` on Fuji: [`0x8fe87064…390f`](https://testnet.snowtrace.io/tx/0x8fe870641157cca6abc62b928f4fece27b8022c78da872783114e21d4a02390f)
+  - Merchant balance moved 4.75 → 5.00 Circle USDC.
+
+- **Flow 2 — Avalanche Fuji → Stellar** (payer deposits 0.10 Circle USDC, relayer acknowledges, then credits Stellar)
+  - `approve`: [`0xee382894…4905`](https://testnet.snowtrace.io/tx/0xee3828947c13f72d7516773b8a57cbd8f0b3cc2ed4f54efc6796050b31454905)
+  - `depositPayment`: [`0x2066d08d…e0a2`](https://testnet.snowtrace.io/tx/0x2066d08da97ef309317fc457e207cdcb4e9b2856e5f7deb78e251850cd38e0a2)
+  - Stellar credit: [`5c34d8dc…e0cd`](https://stellar.expert/explorer/testnet/tx/5c34d8dcf059f3321a8464c506eff6b79bdb8b2281c7a87ae4935a74a970e0cd)
 
 > **Known issue.** The script sends `approve` and `depositPayment` without waiting for the
 > approve receipt, so a first run against a fresh payer reverts with
@@ -289,7 +340,9 @@ Contracts are tested with Hardhat; TypeScript is tested with Vitest.
 3. Persist relayer payment state so it survives restarts.
 4. ~~Record a live CCTP testnet transfer.~~ Done: a Fuji → Arbitrum Sepolia burn-and-mint completed
    end to end (hashes in [Project Status](docs/project-status.md)).
-5. Package `@zip-0/sdk` and a REST gateway so institutions integrate without touching chain code.
+5. ~~Package `@zip-0/sdk` and a REST gateway so institutions integrate without touching chain code.~~
+   Done: `packages/sdk` and `apps/gateway` ship in this repository.
+6. Wire the web app's payment submission to the gateway, and back the activity view with real reads.
 
 ---
 

@@ -10,6 +10,8 @@
     "deploy:hsk-testnet": "hardhat run scripts/deploy.ts --network hskTestnet",
     "deploy:hsk-mainnet": "hardhat run scripts/deploy.ts --network hskMainnet",
     "deploy:avax-fuji": "hardhat run scripts/deploy.ts --network avaxFuji",
+    "check:account": "hardhat run scripts/check-account.ts",
+    "verify:contract": "hardhat verify",
     "fund:test-users": "hardhat run scripts/fund-test-users.ts --network avaxFuji"
   },
   "devDependencies": {

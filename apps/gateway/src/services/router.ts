@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { ISettlementRail } from "@zip-0/cctp-bridge/dist/core/interfaces.js";
 import {
   CrossChainDomain,
@@ -30,12 +31,7 @@ export class DefaultSettlementRail implements ISettlementRail {
   }
 
   async executeSettlement(_intent: PaymentIntent): Promise<string> {
-    const randomHex = Array.from({ length: 32 }, () =>
-      Math.floor(Math.random() * 256)
-        .toString(16)
-        .padStart(2, "0")
-    ).join("");
-    return `0x${randomHex}`;
+    return `0x${crypto.randomBytes(32).toString("hex")}`;
   }
 }
 
