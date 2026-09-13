@@ -106,14 +106,26 @@ function LegalPage({ t }: { t: typeof es }) {
 
   return (
     <div className="legal">
+      <nav className="legal-index" aria-label={t.legalTitle}>
+        <h3>{t.legalTitle}</h3>
+        <ol>
+          <li><a href="#legal-status">{t.legalStatusTitle}</a></li>
+          <li><a href="#legal-reg">{t.legalRegTitle}</a></li>
+          <li><a href="#legal-risk">{t.legalRiskTitle}</a></li>
+          <li><a href="#legal-privacy">{t.legalPrivacyTitle}</a></li>
+          <li><a href="#legal-ref">{t.legalRefTitle}</a></li>
+        </ol>
+      </nav>
+
       <header className="legal-head">
         <h2>{t.legalTitle}</h2>
         <p className="legal-updated">{t.legalUpdated}</p>
         <p className="legal-intro">{t.legalIntro}</p>
       </header>
 
+      <div className="legal-body">
       {/* Status first. Everything below is read differently once this is known. */}
-      <section className="legal-status">
+      <section id="legal-status" className="legal-status">
         <ShieldCheck size={20} aria-hidden="true" />
         <div>
           <h3>{t.legalStatusTitle}</h3>
@@ -122,7 +134,7 @@ function LegalPage({ t }: { t: typeof es }) {
         </div>
       </section>
 
-      <section className="legal-section">
+      <section id="legal-reg" className="legal-section">
         <h3>{t.legalRegTitle}</h3>
         <p className="legal-lead">{t.legalRegIntro}</p>
         <dl className="legal-list">
@@ -135,7 +147,7 @@ function LegalPage({ t }: { t: typeof es }) {
         </dl>
       </section>
 
-      <section className="legal-section">
+      <section id="legal-risk" className="legal-section">
         <h3>{t.legalRiskTitle}</h3>
         <p className="legal-lead">{t.legalRiskIntro}</p>
         <dl className="legal-list">
@@ -152,7 +164,7 @@ function LegalPage({ t }: { t: typeof es }) {
         Verified against the code rather than written from assumption: localStorage holds only
         zip0-language and zip0-theme, and there is no analytics, telemetry or cookie anywhere.
       */}
-      <section className="legal-section">
+      <section id="legal-privacy" className="legal-section">
         <h3>{t.legalPrivacyTitle}</h3>
         <p className="legal-lead">{t.legalPrivacyBody}</p>
         <ul className="legal-bullets">
@@ -162,7 +174,7 @@ function LegalPage({ t }: { t: typeof es }) {
         <p className="legal-lead">{t.legalPrivacyWallet}</p>
       </section>
 
-      <section className="legal-section">
+      <section id="legal-ref" className="legal-section">
         <h3>{t.legalRefTitle}</h3>
         <p className="legal-lead">{t.legalRefBody}</p>
         <dl className="legal-ref">
@@ -188,6 +200,7 @@ function LegalPage({ t }: { t: typeof es }) {
       </section>
 
       <p className="legal-footer">{t.legalFooter}</p>
+      </div>
     </div>
   );
 }

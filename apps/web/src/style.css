@@ -3523,3 +3523,160 @@ footer {
   letter-spacing: 0.06em;
   color: var(--zip-pending);
 }
+
+/* ============================================================
+   Footer and legal — desktop treatment
+   ============================================================
+   Two corrections.
+
+   The element selector `footer` is declared four times in this file (see #44) and sets
+   font-size: 12px and display: flex. The landing footer inherited both, which shrank the columns
+   and fought its own grid. Scoping by class rather than element settles it.
+
+   The legal page used a single 46rem column inside a 1320px shell, so on a wide screen it read
+   as a phone column stranded in white space. Legal text still wants a narrow measure — the fix
+   is not to widen the prose but to give the page a structure that uses the width: a sticky index
+   beside it, which is the conventional shape for a document people scan rather than read.
+   ============================================================ */
+
+.landing-footer {
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink-muted);
+  justify-content: initial;
+  padding-top: var(--zip-space-8);
+}
+
+.landing-footer-links a,
+.landing-footer-base {
+  font-size: var(--zip-text-sm);
+}
+
+.landing-footer-links h3,
+.landing-footer-base {
+  font-size: var(--zip-text-xs);
+}
+
+/* ---------- Legal: index beside the document ---------- */
+
+.legal {
+  max-width: none;
+}
+
+.legal-body {
+  max-width: 42rem;
+}
+
+.legal-index {
+  display: none;
+}
+
+@media (min-width: 62rem) {
+  .legal {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    gap: var(--zip-space-8);
+    align-items: start;
+  }
+
+  .legal-head,
+  .legal-body {
+    grid-column: 2;
+  }
+
+  /*
+   * The index sits in the first column and spans from the head downward, so the document keeps
+   * a readable measure while the page uses the full width.
+   */
+  .legal-index {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    position: sticky;
+    top: var(--zip-space-6);
+    padding-right: var(--zip-space-4);
+    border-right: var(--zip-rail);
+  }
+
+  .legal-index h3 {
+    font-size: var(--zip-text-xs);
+    font-weight: var(--zip-weight-semibold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--zip-ink-faint);
+    margin-bottom: var(--zip-space-3);
+  }
+
+  .legal-index ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--zip-space-2);
+  }
+
+  .legal-index a {
+    font-size: var(--zip-text-sm);
+    color: var(--zip-ink-muted);
+    text-decoration: none;
+    display: block;
+    padding: 2px 0;
+  }
+
+  .legal-index a:hover {
+    color: var(--zip-signal);
+  }
+
+  .legal-index a:focus-visible {
+    outline: 2px solid var(--zip-signal);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+/* Anchor targets clear the sticky header when jumped to. */
+.legal-section,
+.legal-status {
+  scroll-margin-top: var(--zip-space-8);
+}
+
+/* ---------- Landing footer on small screens ---------- */
+
+@media (max-width: 42rem) {
+  .landing-footer {
+    grid-template-columns: 1fr;
+    gap: var(--zip-space-6);
+    padding-top: var(--zip-space-6);
+  }
+
+  /* Two columns rather than three: three 8rem tracks collide below this width. */
+  .landing-footer-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--zip-space-4) var(--zip-space-6);
+  }
+
+  .landing-footer-brand p {
+    max-width: none;
+  }
+
+  /* Stack the base line so the status badge does not wrap awkwardly beside the licence. */
+  .landing-footer-base {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--zip-space-2);
+  }
+}
+
+@media (max-width: 26rem) {
+  .landing-footer-links {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Legal on small screens ---------- */
+
+@media (max-width: 62rem) {
+  .legal-body {
+    max-width: none;
+  }
+}
