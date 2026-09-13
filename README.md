@@ -232,6 +232,37 @@ pnpm --filter @zip-0/cctp-bridge test:payment
 Explorer links print as `https://testnet-explorer.hsk.xyz/tx/<hash>`. To force Avalanche Fuji
 instead, set `EVM_CHAIN_ID=43113` (Flow 2 will fail there until that vault is redeployed).
 
+
+### Recorded run — 2026-09-13
+
+Both flows executed against the live deployment. Every hash below was confirmed on-chain by
+transaction receipt before being written here.
+
+**Flow 1 — Stellar → HashKey Chain** (relayer releases 0.25 MockUSDC to the merchant)
+
+| Step | Transaction |
+| :--- | :--- |
+| Stellar registration | [`d4a121b6…c6fb`](https://stellar.expert/explorer/testnet/tx/d4a121b6acc8654bdc3d5ccfd40b6ed63d2f2b90fb3a5141dbd0e28e9ef1c6fb) — ledger 4 651 194 |
+| `releasePayment` | [`0xcd298ce6…aab1`](https://testnet-explorer.hsk.xyz/tx/0xcd298ce61d6a6e5c89e6aba2254f565f2b36e0071cc2e56d41957e2c4604aab1) — block 33 046 453 |
+
+Merchant balance moved 0.25 → 0.50 MockUSDC.
+
+**Flow 2 — HashKey Chain → Stellar** (payer deposits 0.10 MockUSDC, relayer acknowledges, then credits Stellar)
+
+| Step | Transaction |
+| :--- | :--- |
+| `approve` | [`0x1097ca7e…1464`](https://testnet-explorer.hsk.xyz/tx/0x1097ca7e3b3da2ca23f0c5b499ca90f5387156c1ac5d46865aa0382512ac1464) — block 33 046 455 |
+| `depositPayment` | [`0x80c6cd7e…f9ec`](https://testnet-explorer.hsk.xyz/tx/0x80c6cd7ecb7e3f39ebadb70312ce522b3334b6142ed387eea54f178d7e71f9ec) — block 33 046 456 |
+| Stellar credit | [`7e3a7b77…e7a5`](https://stellar.expert/explorer/testnet/tx/7e3a7b77af4d6dfb18b129b0655afa64b8583bd5450b8a843705345c0bf5e7a5) — ledger 4 651 198 |
+
+Flow 2 exercises `acknowledgePayment` before crediting Stellar, which is the ordering that keeps
+`claimRefund` from being reachable on a payment that already settled.
+
+> **Known issue.** The script sends `approve` and `depositPayment` without waiting for the
+> approve receipt, so a first run against a fresh payer reverts with
+> `ERC20InsufficientAllowance`. The allowance lands regardless, so an immediate re-run succeeds.
+> The fix is to await the approve receipt — tracked separately.
+
 ---
 
 ## Development
