@@ -2288,3 +2288,186 @@ a.landing-hash:hover {
     animation: none;
   }
 }
+
+/* ---------- Use cases ---------- */
+
+.landing-section-title {
+  font-family: var(--zip-font-display);
+  font-size: var(--zip-text-xl);
+  font-weight: var(--zip-weight-semibold);
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-6);
+}
+
+.landing-use-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--zip-space-6);
+}
+
+.landing-use {
+  padding-top: var(--zip-space-4);
+  border-top: var(--zip-rail-strong);
+}
+
+/* The mark as a bullet — the aperture opening onto each scenario. */
+.landing-use-mark {
+  display: block;
+  color: var(--zip-signal);
+  margin-bottom: var(--zip-space-3);
+}
+
+.landing-use-mark .brand-mark {
+  width: 20px;
+  height: 20px;
+}
+
+.landing-use h4 {
+  font-family: var(--zip-font-display);
+  font-size: var(--zip-text-lg);
+  font-weight: var(--zip-weight-semibold);
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-2);
+}
+
+.landing-use p {
+  font-size: var(--zip-text-sm);
+  line-height: 1.6;
+  color: var(--zip-ink-muted);
+}
+
+/* ---------- Networks ---------- */
+
+.landing-network-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--zip-space-3);
+}
+
+.landing-network-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--zip-space-3);
+  padding: var(--zip-space-3) var(--zip-space-4);
+  border: var(--zip-rail);
+  border-radius: var(--zip-radius);
+  background: var(--zip-surface);
+}
+
+.landing-network-list span {
+  font-size: var(--zip-text-sm);
+  font-weight: var(--zip-weight-medium);
+  color: var(--zip-ink);
+  flex: 1;
+}
+
+.landing-network-list small {
+  font-size: var(--zip-text-xs);
+  color: var(--zip-ink-faint);
+}
+
+.network-mark {
+  width: 26px;
+  height: 26px;
+  color: var(--zip-ink-muted);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   Mobile
+   ============================================================
+   The demo may well be opened on a phone, and the landing is the first thing a judge sees.
+   ============================================================ */
+
+@media (max-width: 48rem) {
+  /*
+   * Touch targets. 36px is below the 44px minimum both platform guidelines use, which makes
+   * the language toggle awkward to hit exactly when someone is switching to read it.
+   */
+  .language button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .landing {
+    gap: var(--zip-space-6);
+  }
+
+  .landing-hero {
+    padding-top: var(--zip-space-6);
+    gap: var(--zip-space-6);
+  }
+
+  .landing-hero h2 {
+    font-size: clamp(1.75rem, 8vw, 2.25rem);
+    max-width: none;
+  }
+
+  .landing-lead {
+    font-size: var(--zip-text-base);
+    max-width: none;
+  }
+
+  /* One column: side-by-side cards become unreadable slivers below this width. */
+  .landing-use-grid,
+  .landing-qualities,
+  .landing-network-list {
+    grid-template-columns: 1fr;
+    gap: var(--zip-space-4);
+  }
+
+  .landing-qualities p,
+  .landing-use p {
+    max-width: none;
+  }
+
+  /* Label above value rather than pushed to opposite edges, which wraps badly on a phone. */
+  .landing-proof dl > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--zip-space-1);
+  }
+
+  .landing-hash {
+    font-size: var(--zip-text-xs);
+  }
+
+  .receipt-body {
+    padding: var(--zip-space-4);
+  }
+
+  .receipt-amount {
+    font-size: 1.5rem;
+  }
+
+  .hero-mark {
+    max-width: 16rem;
+  }
+
+  .landing-notice {
+    flex-direction: column;
+    gap: var(--zip-space-2);
+  }
+}
+
+/* Very narrow phones. */
+@media (max-width: 26rem) {
+  .landing-hero h2 {
+    font-size: 1.6rem;
+  }
+
+  .receipt-rows > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .receipt-hash {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--zip-space-1);
+  }
+}

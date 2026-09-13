@@ -135,4 +135,16 @@ export const en: Messages = {
   receiptHash: "Identifier",
   receiptVerify: "Check the public record",
   receiptFoot: "Sample with illustrative data. Does not correspond to a real operation.",
+
+  // --- Use cases ---
+  useTitle: "What it is used for",
+  use1Title: "Supplier payments",
+  use1Body: "Settle invoices with suppliers in another country without opening local accounts or depending on a correspondent bank.",
+  use2Title: "Payroll abroad",
+  use2Body: "Pay teams and contractors outside the country the same day, with every payment reference traceable.",
+  use3Title: "Intercompany transfers",
+  use3Body: "Move funds between entities of the same group with a record accounting and audit can verify.",
+  use4Title: "Fund disbursement",
+  use4Body: "Agencies and NGOs distributing funds to the field, with each leg traceable.",
+  networksTitle: "Connected networks",
 };

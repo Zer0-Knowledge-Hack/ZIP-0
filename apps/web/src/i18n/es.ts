@@ -136,5 +136,17 @@ export const es = {
   receiptHash: "Identificador",
   receiptVerify: "Comprobar en el registro público",
   receiptFoot: "Ejemplo con datos ilustrativos. No corresponde a una operación real.",
+
+  // --- Use cases ---
+  useTitle: "Para qué se usa",
+  use1Title: "Pago a proveedores",
+  use1Body: "Liquidá facturas con proveedores en otro país sin abrir cuentas locales ni depender de un banco corresponsal.",
+  use2Title: "Nómina en el exterior",
+  use2Body: "Pagá a equipos y contratistas fuera del país el mismo día, con la referencia de cada pago trazable.",
+  use3Title: "Movimientos entre filiales",
+  use3Body: "Mové fondos entre sedes de un mismo grupo con un registro que contabilidad y auditoría pueden verificar.",
+  use4Title: "Desembolso de fondos",
+  use4Body: "Organismos y ONGs que distribuyen fondos a terreno, con trazabilidad de cada tramo.",
+  networksTitle: "Redes conectadas",
 };
 export type Messages = Record<keyof typeof es, string>;

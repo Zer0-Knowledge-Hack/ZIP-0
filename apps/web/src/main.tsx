@@ -59,6 +59,39 @@ function Mark() {
 }
 
 /**
+ * Network marks.
+ *
+ * Drawn in ZIP-0's own geometry rather than reproducing each project's logo. Two reasons:
+ * approximating someone else's trademark from memory usually gets it wrong, and a row of three
+ * different brand styles fights the page. If official marks are wanted, they should come from
+ * each project's brand assets.
+ */
+const NETWORKS = [
+  { name: "HashKey Chain", chainId: "133", shape: "hex" },
+  { name: "Avalanche Fuji", chainId: "43113", shape: "triangle" },
+  { name: "Stellar", chainId: "—", shape: "orbit" },
+] as const;
+
+function NetworkMark({ shape }: { shape: (typeof NETWORKS)[number]["shape"] }) {
+  return (
+    <svg className="network-mark" viewBox="0 0 32 32" aria-hidden="true">
+      {shape === "hex" && (
+        <path d="M16 4 L27 10 L27 22 L16 28 L5 22 L5 10 Z" fill="none" stroke="currentColor" strokeWidth="2.5" />
+      )}
+      {shape === "triangle" && (
+        <path d="M16 5 L28 26 L4 26 Z" fill="none" stroke="currentColor" strokeWidth="2.5" />
+      )}
+      {shape === "orbit" && (
+        <>
+          <circle cx="16" cy="16" r="5" fill="none" stroke="currentColor" strokeWidth="2.5" />
+          <ellipse cx="16" cy="16" rx="12" ry="5" fill="none" stroke="currentColor" strokeWidth="2.5" transform="rotate(-25 16 16)" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+/**
  * Hero mark.
  *
  * The logo, scaled up and put to work. The zero draws itself, the rail runs through the
@@ -473,6 +506,44 @@ function App() {
                     <p>{body}</p>
                   </article>
                 ))}
+              </section>
+
+              {/*
+                Use cases carry a heading, unlike the hero. By this point the reader has
+                decided the product is interesting and is scanning for whether it applies to
+                them — a label helps rather than lectures.
+              */}
+              <section className="landing-uses">
+                <h3 className="landing-section-title">{t.useTitle}</h3>
+                <div className="landing-use-grid">
+                  {[
+                    [t.use1Title, t.use1Body],
+                    [t.use2Title, t.use2Body],
+                    [t.use3Title, t.use3Body],
+                    [t.use4Title, t.use4Body],
+                  ].map(([title, body]) => (
+                    <article key={title} className="landing-use">
+                      <span className="landing-use-mark" aria-hidden="true">
+                        <Mark />
+                      </span>
+                      <h4>{title}</h4>
+                      <p>{body}</p>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <section className="landing-networks">
+                <h3 className="landing-section-title">{t.networksTitle}</h3>
+                <ul className="landing-network-list">
+                  {NETWORKS.map((n) => (
+                    <li key={n.name}>
+                      <NetworkMark shape={n.shape} />
+                      <span>{n.name}</span>
+                      <small className="zip-num">{n.chainId}</small>
+                    </li>
+                  ))}
+                </ul>
               </section>
 
               <section className="landing-proof">
