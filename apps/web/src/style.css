@@ -3680,3 +3680,47 @@ footer {
     max-width: none;
   }
 }
+
+/* ---------- Live network figure (#38) ---------- */
+
+/*
+ * The figure carries the credibility here, so it gets display weight and tabular lining
+ * numerals: digits must not shift width as the balance updates on a 15s poll, or the number
+ * appears to twitch on a projector.
+ */
+
+.net-figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--zip-space-2);
+  margin: 0;
+}
+
+.net-figure > span {
+  color: var(--zip-ink-muted);
+  font-size: var(--zip-text-sm);
+}
+
+.net-figure > strong {
+  font-family: var(--zip-font-display);
+  font-size: var(--zip-text-xl);
+  font-weight: var(--zip-weight-semibold);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: -0.01em;
+}
+
+.net-figure > strong small {
+  margin-left: var(--zip-space-1);
+  color: var(--zip-ink-muted);
+  font-size: var(--zip-text-sm);
+  font-weight: var(--zip-weight-medium);
+}
+
+@media (max-width: 30rem) {
+  .net-figure {
+    flex-direction: column;
+    gap: var(--zip-space-1);
+  }
+}

@@ -32,6 +32,12 @@ import { keccak256, isAddress } from "viem";
 import { es } from "./i18n/es";
 import { en } from "./i18n/en";
 import { amountValue, initialLanguage, initialThemeDark, isStellarAddress } from "./model";
+import {
+  formatBlock,
+  formatLiquidity,
+  readNetworkState,
+  type NetworkState,
+} from "./chain";
 import { PATHS, isKnownPath, pageFromPath, pathForPage, type AppPage } from "./routes";
 import "./style.css";
 
@@ -87,7 +93,15 @@ function Mark() {
  * This is also where the chain detail lives. An institution evaluating the product does not need
  * a contract address to decide, but a counsel reading carefully should be able to find it.
  */
-function LegalPage({ t }: { t: typeof es }) {
+function LegalPage({
+  t,
+  chainState,
+  locale,
+}: {
+  t: typeof es;
+  chainState: NetworkState;
+  locale: string;
+}) {
   const regulatory: Array<[string, string]> = [
     [t.legalReg1, t.legalReg1Body],
     [t.legalReg2, t.legalReg2Body],
@@ -196,6 +210,21 @@ function LegalPage({ t }: { t: typeof es }) {
             <dt>{t.legalRefNetwork}</dt>
             <dd className="legal-hash">HashKey Chain Testnet · 133</dd>
           </div>
+          {/*
+            * Chain height belongs here rather than in the product shell: it is the detail a
+            * counsel checking our claims would want, and noise to everyone else. Rendered only
+            * when the read succeeded, so it never implies a confirmed figure we do not have.
+            */}
+          <div>
+            <dt>{t.netBlock}</dt>
+            <dd className="legal-hash">
+              {chainState.status === "ok"
+                ? formatBlock(chainState.blockNumber, locale)
+                : chainState.status === "loading"
+                  ? t.netReading
+                  : t.netUnavailable}
+            </dd>
+          </div>
         </dl>
       </section>
 
@@ -270,10 +299,17 @@ function App() {
   const page = pageFromPath(location.pathname);
   const [language, setLanguage] = useState(initialLanguage);
   const t = language === "es" ? es : en;
+  /* Figures are grouped per locale, so the number reads naturally in both languages. */
+  const locale = language === "es" ? "es-ES" : "en-US";
   const [dark, setDark] = useState(initialThemeDark);
   const [network, setNetwork] = useState("HSK Testnet");
   const [account, setAccount] = useState("");
   const [connecting, setConnecting] = useState(false);
+  /*
+   * Live view of the deployed vault. Named chainState rather than network because network is
+   * already the label shown in the route card.
+   */
+  const [chainState, setChainState] = useState<NetworkState>({ status: "loading" });
   const [error, setError] = useState<keyof typeof es | null>(null);
   const [fieldErrors, setFieldErrors] = useState<{
     amount?: boolean;
@@ -292,6 +328,26 @@ function App() {
     hash: string;
   } | null>(null);
   const uploadVersion = useRef(0);
+  /*
+   * Reads the deployed vault on an interval so the figure stays honest during a demo rather
+   * than freezing at whatever it was when the tab opened. Polling beats a socket here: the
+   * public RPC is the only dependency, and a dropped poll degrades to the unavailable state
+   * instead of a stale number presented as current.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    const read = () => {
+      readNetworkState(VAULT).then((next) => {
+        if (!cancelled) setChainState(next);
+      });
+    };
+    read();
+    const timer = window.setInterval(read, 15_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
   useEffect(() => {
     window.document.documentElement.lang = language;
     try {
@@ -730,6 +786,45 @@ function App() {
                   </button>
                 )}
               </aside>
+
+              {/*
+                * The only live chain read in the product shell. Deliberately framed as
+                * available funds rather than vault liquidity: an institution reads the former.
+                * Chain detail belongs in the disclosures, not here.
+                */}
+              <section className="panel net-panel">
+                <div className="panel-heading">
+                  <div>
+                    <h2>{t.netTitle}</h2>
+                    <p>{t.netLive}</p>
+                  </div>
+                  <a
+                    className="text-button"
+                    href={`${EXPLORER}/address/${VAULT}#code`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t.netVerified}
+                    <ArrowUpRight size={16} />
+                  </a>
+                </div>
+                {chainState.status === "unavailable" ? (
+                  <p className="notice">{t.netUnavailableHint}</p>
+                ) : (
+                  <p className="net-figure">
+                    <span>{t.netLiquidity}</span>
+                    <strong className="zip-amount">
+                      {chainState.status === "ok" ? (
+                        <>
+                          {formatLiquidity(chainState.liquidity, locale)} <small>USDC</small>
+                        </>
+                      ) : (
+                        t.netReading
+                      )}
+                    </strong>
+                  </p>
+                )}
+              </section>
 
               <section className="journey">
                 <div>
@@ -1210,7 +1305,9 @@ function App() {
             </section>
           )}
 
-          {page === "legal" && <LegalPage t={t} />}
+          {page === "legal" && (
+            <LegalPage t={t} chainState={chainState} locale={locale} />
+          )}
           <section className="trust">
             <ShieldCheck size={22} />
             <div>
