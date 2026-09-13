@@ -1,0 +1,127 @@
+/*
+ * ZIP-0 design tokens — Modern Rail
+ *
+ * Consume these directly in apps/web (#38). Do not redefine colours locally; if a value is
+ * missing here, add it here rather than inventing one at the call site.
+ *
+ * Light is the default palette. Dark is applied under prefers-color-scheme and by an explicit
+ * [data-theme="dark"], so a manual toggle wins in both directions.
+ */
+
+:root {
+  /* Surfaces */
+  --zip-paper: #f7f9fc;
+  --zip-surface: #ffffff;
+  --zip-surface-raised: #ffffff;
+  --zip-border: #d9e1ec;
+  --zip-border-strong: #b9c5d6;
+
+  /* Text */
+  --zip-ink: #0a0e14;
+  --zip-ink-muted: #5a6879;
+  --zip-ink-faint: #8a97a8;
+
+  /* The single accent. One accent only — restraint is the point. */
+  --zip-signal: #1f5fe0;
+  --zip-signal-hover: #1a51c0;
+  --zip-signal-faint: #e8f0ff;
+
+  /* Settlement states. Never rely on colour alone: pair with a label or icon. */
+  --zip-settled: #0f7a54;
+  --zip-settled-faint: #e3f5ed;
+  --zip-pending: #9a6400;
+  --zip-pending-faint: #fdf1dc;
+  --zip-failed: #b3261e;
+  --zip-failed-faint: #fce9e7;
+
+  /* Type */
+  --zip-font-display: "Inter Tight", "Inter", system-ui, -apple-system, sans-serif;
+  --zip-font-text: "Inter", system-ui, -apple-system, sans-serif;
+  --zip-font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
+
+  /* Rhythm — a 4px base keeps numeric tables aligned */
+  --zip-space-1: 0.25rem;
+  --zip-space-2: 0.5rem;
+  --zip-space-3: 0.75rem;
+  --zip-space-4: 1rem;
+  --zip-space-6: 1.5rem;
+  --zip-space-8: 2rem;
+
+  --zip-radius: 6px;
+  --zip-radius-lg: 10px;
+
+  /* Rails: the horizontal rule is a brand element, not just a divider */
+  --zip-rail: 1px solid var(--zip-border);
+  --zip-rail-strong: 2px solid var(--zip-ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --zip-paper: #0a0e14;
+    --zip-surface: #141a23;
+    --zip-surface-raised: #1b2330;
+    --zip-border: #243040;
+    --zip-border-strong: #35455a;
+
+    --zip-ink: #e6eaf0;
+    --zip-ink-muted: #96a3b5;
+    --zip-ink-faint: #64748b;
+
+    --zip-signal: #4b86ff;
+    --zip-signal-hover: #6b9dff;
+    --zip-signal-faint: #10203c;
+
+    --zip-settled: #34d399;
+    --zip-settled-faint: #0c2b22;
+    --zip-pending: #fbbf24;
+    --zip-pending-faint: #2c2210;
+    --zip-failed: #f87171;
+    --zip-failed-faint: #2e1414;
+  }
+}
+
+:root[data-theme="dark"] {
+  --zip-paper: #0a0e14;
+  --zip-surface: #141a23;
+  --zip-surface-raised: #1b2330;
+  --zip-border: #243040;
+  --zip-border-strong: #35455a;
+
+  --zip-ink: #e6eaf0;
+  --zip-ink-muted: #96a3b5;
+  --zip-ink-faint: #64748b;
+
+  --zip-signal: #4b86ff;
+  --zip-signal-hover: #6b9dff;
+  --zip-signal-faint: #10203c;
+
+  --zip-settled: #34d399;
+  --zip-settled-faint: #0c2b22;
+  --zip-pending: #fbbf24;
+  --zip-pending-faint: #2c2210;
+  --zip-failed: #f87171;
+  --zip-failed-faint: #2e1414;
+}
+
+/*
+ * Numerals.
+ *
+ * This product shows amounts, chain IDs and hashes constantly. Tabular, lining figures are a
+ * correctness feature here, not a stylistic preference: proportional digits make a column of
+ * amounts impossible to scan and let a misplaced decimal hide.
+ */
+.zip-num,
+td.zip-num,
+.zip-amount {
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1, "zero" 1;
+  letter-spacing: 0;
+}
+
+/* Hashes and addresses are never read as words — keep them monospaced and truncatable. */
+.zip-hash {
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="ZIP-0 mark">
+  <title>ZIP-0</title>
+  <!--
+    The mark is a zero crossed by a settlement rail.
+
+    Geometric rather than typographic, so it renders identically without webfonts and
+    stays legible at favicon size. The gap where the rail meets the ring reads as a
+    transfer passing through, not as a broken circle.
+  -->
+  <g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="butt">
+    <!-- the zero: two arcs, opened where the rail crosses -->
+    <path d="M 32 7 A 25 25 0 0 1 55.4 39.2" />
+    <path d="M 32 57 A 25 25 0 0 1 8.6 24.8" />
+  </g>
+  <!-- the rail: one continuous line through the aperture -->
+  <path d="M 2 32 H 62" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="butt" />
+</svg>
