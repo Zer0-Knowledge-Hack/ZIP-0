@@ -47,7 +47,16 @@ const C = {
 const DISPLAY = "Georgia";
 const MONO = "Consolas";
 
+/*
+ * Slide size and layout come from the same two constants, deliberately.
+ *
+ * These were previously out of sync: the coordinates below were written for 13.333 x 7.5 while
+ * the deck was set to pptxgenjs's LAYOUT_16x9, which is 10 x 5.625 — not the widescreen size the
+ * name suggests. Everything overflowed 3.33in right and 1.88in down. PowerPoint clipped it
+ * quietly; LibreOffice drew the overflow, which is how it surfaced.
+ */
 const W = 13.333;
+const H = 7.5;
 const M = 0.95;
 
 /*
@@ -71,18 +80,41 @@ async function markPng(hex) {
 const MARK = await markPng(C.signal);
 
 const deck = new PptxGenJS();
-deck.layout = "LAYOUT_16x9";
+deck.defineLayout({ name: "ZIP0_WIDE", width: W, height: H });
+deck.layout = "ZIP0_WIDE";
 deck.author = "ZIP-0";
 deck.title = "ZIP-0 — Pitch";
 
+/*
+ * Every placed element is recorded so the deck can prove nothing sits outside the slide before it
+ * is written. A layout mismatch does not raise an error anywhere in the toolchain — PowerPoint
+ * clips the overflow without comment — so it has to be asserted here or not at all.
+ */
+const placed = [];
+
+function track(where, opts) {
+  if (opts && typeof opts.x === "number") {
+    placed.push({ where, x: opts.x, y: opts.y ?? 0, w: opts.w ?? 0, h: opts.h ?? 0 });
+  }
+  return opts;
+}
+
 /** Every slide opens with the rail. It is the one structural device in the identity. */
 function slide(notes) {
-  const s = deck.addSlide();
-  s.background = { color: C.paper };
+  const raw = deck.addSlide();
+  const n = placed.length ? `slide ${deck.slides.length}` : "slide 1";
+  raw.background = { color: C.paper };
+
+  const s = {
+    addText: (text, opts) => raw.addText(text, track(n, opts)),
+    addShape: (type, opts) => raw.addShape(type, track(n, opts)),
+    addImage: (opts) => raw.addImage(track(n, opts)),
+  };
+
   s.addShape(deck.ShapeType.rect, {
     x: M, y: 0.8, w: W - M * 2, h: 0.012, fill: { color: C.border }, line: { width: 0 },
   });
-  if (notes) s.addNotes(notes);
+  if (notes) raw.addNotes(notes);
   return s;
 }
 
@@ -363,6 +395,42 @@ function lockup(s, x, y, size, wordSize) {
   foot(s, "ZIP·0", "08");
 }
 
+/*
+ * Fail loudly rather than shipping a deck that only looks right in one renderer.
+ *
+ * The bounds are read back from the deck's own layout, not from W and H. Checking the design
+ * constants against themselves is what let the original mismatch through: the coordinates agreed
+ * with each other perfectly while the slide underneath them was a different size.
+ */
+const EMU = 914400;
+const slideW = deck.presLayout.width / EMU;
+const slideH = deck.presLayout.height / EMU;
+
+if (Math.abs(slideW - W) > 0.01 || Math.abs(slideH - H) > 0.01) {
+  throw new Error(
+    `Layout is ${slideW.toFixed(3)}x${slideH.toFixed(3)}in but the coordinates were written for ` +
+      `${W}x${H}in. Set both from the same constants.`
+  );
+}
+
+const EPS = 0.02;
+const overflow = placed.filter(
+  (p) => p.x < -EPS || p.y < -EPS || p.x + p.w > slideW + EPS || p.y + p.h > slideH + EPS
+);
+
+if (overflow.length) {
+  for (const p of overflow.slice(0, 8)) {
+    console.error(
+      `  ${p.where}: x ${p.x.toFixed(2)}–${(p.x + p.w).toFixed(2)} ` +
+        `y ${p.y.toFixed(2)}–${(p.y + p.h).toFixed(2)}`
+    );
+  }
+  throw new Error(
+    `${overflow.length} element(s) fall outside the ${W}x${H}in slide. ` +
+      "PowerPoint clips this silently; LibreOffice draws it."
+  );
+}
+
 const out = path.join(ASSETS, "zip0-pitch.pptx");
 await deck.writeFile({ fileName: out });
-console.log("wrote " + out);
+console.log(`wrote ${out} — ${deck.slides.length} slides at ${W}x${H}in, ${placed.length} elements in bounds`);
