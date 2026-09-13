@@ -211,10 +211,55 @@ events.
 
 ## Contract verification
 
-HashKey's documentation does not specify a Hardhat verification configuration, API URL, or whether
-an API key is required. Both Blockscout and OKLink support verification through their web
-interfaces. Expect to use a standard Blockscout verification setup and budget time for trial and
-error.
+Verification works through Blockscout, but the API URL published in HashKey's documentation is not
+the one you can configure. Both explorer hosts answer with a `301` to a **different domain**:
+
+| Published host | Actually serves the API |
+|---|---|
+| `testnet-explorer.hsk.xyz` | `testnet-explorer.hskchain.net` |
+| `hashkey.blockscout.com` | `hsk.blockscout.com` |
+
+`curl` hides this when you pass `-L`, so a manual probe looks healthy. `hardhat-verify` does **not**
+follow redirects: it receives the HTML redirect body and fails with
+
+```
+A network request failed. This is an error from the block explorer, not Hardhat.
+Error: Unexpected token '<', "<html> ..." is not valid JSON
+```
+
+The fix is to configure the post-redirect hosts directly in `customChains` (already applied in
+`packages/contracts-evm/hardhat.config.ts`). Blockscout accepts any non-empty API key.
+
+### Proven recipe
+
+```bash
+pnpm --filter @zip-0/contracts-evm exec hardhat verify --network hskTestnet \
+  <vault-address> <usdcToken> <admin> <initialRelayer>
+```
+
+Confirm independently — do not trust the command's own output alone:
+
+```bash
+curl -s "https://testnet-explorer.hskchain.net/api?module=contract&action=getabi&address=<addr>"
+# verified   -> {"message":"OK","result":"[{...ABI...}]","status":"1"}
+# unverified -> {"message":"Contract source code not verified","result":null,"status":"0"}
+```
+
+### Recovering constructor arguments
+
+If the deployment record is lost, the arguments are appended to the creation bytecode. Read it from
+the v2 API and take the trailing 32-byte words, one per argument:
+
+```bash
+curl -sL "https://testnet-explorer.hskchain.net/api/v2/smart-contracts/<addr>" # -> creation_bytecode
+```
+
+### Known limitation
+
+`MockUSDC` (`0x1f65E72EE31F709969Dfc75f98f5867EaE332CD9`) still fails with the HTML error above even
+with the corrected host, while the vault verifies against the same configuration. The cause is not
+yet identified. It is a test mock rather than a settlement contract, so it is not on the critical
+path; use the Blockscout web form if it needs verifying.
 
 ---
 

@@ -61,16 +61,16 @@ const config: HardhatUserConfig = {
         network: "hskMainnet",
         chainId: 177,
         urls: {
-          apiURL: "https://hashkey.blockscout.com/api",
-          browserURL: "https://hashkey.blockscout.com",
+          apiURL: "https://hsk.blockscout.com/api",
+          browserURL: "https://hsk.blockscout.com",
         },
       },
       {
         network: "hskTestnet",
         chainId: 133,
         urls: {
-          apiURL: "https://testnet-explorer.hsk.xyz/api",
-          browserURL: "https://testnet-explorer.hsk.xyz",
+          apiURL: "https://testnet-explorer.hskchain.net/api",
+          browserURL: "https://testnet-explorer.hskchain.net",
         },
       },
     ],
