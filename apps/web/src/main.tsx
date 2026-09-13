@@ -132,7 +132,12 @@ function HeroMark() {
  */
 function RouteCompare({ t }: { t: typeof es }) {
   return (
-    <figure className="cmp" aria-label={`${t.cmpOld}: ${t.cmpOldTime}. ${t.cmpNew}: ${t.cmpNewTime}.`}>
+    <figure className="cmp" aria-label={`${t.cmpOld} vs ${t.cmpNew}`}>
+      <div className="cmp-head">
+        <span>{t.cmpSent}</span>
+        <span>{t.cmpArrived}</span>
+      </div>
+
       <div className="cmp-lane cmp-lane--old">
         <span className="cmp-label">{t.cmpOld}</span>
         <svg viewBox="0 0 260 34" aria-hidden="true">
@@ -141,7 +146,11 @@ function RouteCompare({ t }: { t: typeof es }) {
             <circle key={x} cx={x} cy="17" r="5" className="cmp-hop" />
           ))}
         </svg>
-        <span className="cmp-time">{t.cmpOldTime}</span>
+        <div className="cmp-figures">
+          <span className="cmp-amount">18,400</span>
+          {/* The amount shrinks at each hop. This is the pain, drawn. */}
+          <span className="cmp-amount cmp-amount--short">18,127</span>
+        </div>
       </div>
 
       <div className="cmp-lane cmp-lane--new">
@@ -157,13 +166,11 @@ function RouteCompare({ t }: { t: typeof es }) {
           </g>
           <circle cy="17" r="4" className="cmp-value" />
         </svg>
-        <span className="cmp-time cmp-time--fast">{t.cmpNewTime}</span>
+        <div className="cmp-figures">
+          <span className="cmp-amount">18,400</span>
+          <span className="cmp-amount cmp-amount--whole">18,400</span>
+        </div>
       </div>
-
-      <figcaption className="cmp-ends">
-        <span>{t.cmpOrigin}</span>
-        <span>{t.cmpDest}</span>
-      </figcaption>
     </figure>
   );
 }

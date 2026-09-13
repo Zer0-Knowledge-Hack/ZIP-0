@@ -2599,3 +2599,48 @@ a.landing-hash:hover {
     cx: 130px;
   }
 }
+
+/* ---------- Amounts in the comparison ---------- */
+
+/*
+ * The point of the graphic. Correspondent banking deducts along the way, so the beneficiary
+ * receives less than the invoice and someone reconciles the difference by hand. Showing the
+ * two figures side by side makes that concrete without a sentence explaining it.
+ */
+.cmp-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--zip-space-3);
+  padding-bottom: var(--zip-space-2);
+  border-bottom: var(--zip-rail);
+  font-size: var(--zip-text-xs);
+  font-weight: var(--zip-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--zip-ink-faint);
+}
+
+.cmp-figures {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--zip-space-1);
+}
+
+.cmp-amount {
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1, "zero" 1;
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink-muted);
+}
+
+.cmp-amount--short {
+  color: var(--zip-failed);
+  font-weight: var(--zip-weight-medium);
+}
+
+.cmp-amount--whole {
+  color: var(--zip-settled);
+  font-weight: var(--zip-weight-medium);
+}

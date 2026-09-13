@@ -106,16 +106,16 @@ export const es = {
 
   // --- Landing ---
   landing: "Inicio",
-  landingTitle: "Un clic. Cualquier frontera.",
-  landingLead: "Pagos institucionales transfronterizos, sin bancos intermediarios y con el respaldo legal que exige una tesorería.",
+  landingTitle: "Lo que enviás es lo que llega.",
+  landingLead: "Pagos entre empresas de distintos países, sin la cadena de bancos que descuenta en el camino.",
   landingCta: "Abrir la aplicación",
   landingCtaSecondary: "Ver el registro público",
-  q1Title: "Directo",
-  q1Body: "De la institución que paga a la que cobra. Sin cadena de corresponsales en el medio.",
-  q2Title: "Inmediato",
-  q2Body: "El destinatario dispone del dinero hoy, no dentro de tres días hábiles.",
-  q3Title: "Auditable",
-  q3Body: "Cada operación queda registrada y es comprobable por cualquiera de las partes.",
+  q1Title: "Sin descuentos",
+  q1Body: "Nadie toca el monto en el trayecto. El proveedor recibe la cifra de la factura, exacta.",
+  q2Title: "Sin cuentas previas",
+  q2Body: "No hace falta inmovilizar capital en cada país al que pagás.",
+  q3Title: "Sin conciliar",
+  q3Body: "El pago coincide con la factura. Nadie persigue diferencias al cierre del mes.",
   landingProofVault: "Registro de operaciones",
   landingProofNetwork: "Red",
   landingPrototype: "Prototipo en red de prueba",
@@ -174,5 +174,7 @@ export const es = {
   cmpNewTime: "segundos",
   cmpOrigin: "Cochabamba",
   cmpDest: "Buenos Aires",
+  cmpSent: "Enviado",
+  cmpArrived: "Recibido",
 };
 export type Messages = Record<keyof typeof es, string>;
