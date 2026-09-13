@@ -43,11 +43,16 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
 
     IERC20 public immutable usdcToken;
 
+    /// @notice Time after deposit during which only the relayer can act on a payment.
+    uint256 public constant REFUND_TIMEOUT = 24 hours;
+
+    /// @dev ACKNOWLEDGED is appended so the existing status values stay unchanged.
     enum PaymentStatus {
         NONE,
         INITIATED,
         RELEASED,
-        REFUNDED
+        REFUNDED,
+        ACKNOWLEDGED
     }
 
     struct Payment {
@@ -89,6 +94,11 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
         address indexed destination,
         uint256 amount,
         address treasury
+    );
+
+    event PaymentAcknowledged(
+        bytes32 indexed paymentId,
+        address relayer
     );
 
     constructor(address _usdcToken, address admin, address initialRelayer) {
@@ -280,7 +290,11 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
      */
     function refundPayment(bytes32 paymentId) external onlyRole(RELAYER_ROLE) nonReentrant {
         Payment storage payment = payments[paymentId];
-        require(payment.status == PaymentStatus.INITIATED, "Payment not refundable");
+        require(
+            payment.status == PaymentStatus.INITIATED ||
+                payment.status == PaymentStatus.ACKNOWLEDGED,
+            "Payment not refundable"
+        );
 
         payment.status = PaymentStatus.REFUNDED;
         usdcToken.safeTransfer(payment.payer, payment.amount);
@@ -300,5 +314,38 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
 
         usdcToken.safeTransfer(destination, amount);
         emit VaultRebalanced(destination, amount, msg.sender);
+    }
+
+    // ---------------------------------------------------------------------
+    // Payer-initiated refund after timeout (#11)
+    // ---------------------------------------------------------------------
+
+    /**
+     * @notice Marks a deposit as picked up by the relayer before it settles on the other side.
+     * @dev A deposit never leaves INITIATED on a successful settlement, so without this step a
+     *      payer could be credited on the destination chain and still claim a refund here.
+     */
+    function acknowledgePayment(bytes32 paymentId) external onlyRole(RELAYER_ROLE) {
+        Payment storage payment = payments[paymentId];
+        require(payment.status == PaymentStatus.INITIATED, "Payment not acknowledgeable");
+
+        payment.status = PaymentStatus.ACKNOWLEDGED;
+
+        emit PaymentAcknowledged(paymentId, msg.sender);
+    }
+
+    /**
+     * @notice Lets the payer recover a deposit the relayer never acknowledged.
+     */
+    function claimRefund(bytes32 paymentId) external nonReentrant {
+        Payment storage payment = payments[paymentId];
+        require(payment.status == PaymentStatus.INITIATED, "Payment not refundable");
+        require(msg.sender == payment.payer, "Not the payer");
+        require(block.timestamp >= payment.timestamp + REFUND_TIMEOUT, "Refund timeout not elapsed");
+
+        payment.status = PaymentStatus.REFUNDED;
+        usdcToken.safeTransfer(payment.payer, payment.amount);
+
+        emit PaymentRefunded(paymentId, payment.payer, payment.amount);
     }
 }

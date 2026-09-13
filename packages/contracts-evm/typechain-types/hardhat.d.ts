@@ -110,6 +110,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.MockUSDC__factory>;
     getContractFactory(
+      name: "IRefundableVault",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IRefundableVault__factory>;
+    getContractFactory(
+      name: "ReentrantRefundToken",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ReentrantRefundToken__factory>;
+    getContractFactory(
       name: "IERC20TransferWithAuthorization",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20TransferWithAuthorization__factory>;
@@ -239,6 +247,16 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.MockUSDC>;
     getContractAt(
+      name: "IRefundableVault",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IRefundableVault>;
+    getContractAt(
+      name: "ReentrantRefundToken",
+      address: string | ethers.Addressable,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ReentrantRefundToken>;
+    getContractAt(
       name: "IERC20TransferWithAuthorization",
       address: string | ethers.Addressable,
       signer?: ethers.Signer
@@ -346,6 +364,14 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.MockUSDC>;
     deployContract(
+      name: "IRefundableVault",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IRefundableVault>;
+    deployContract(
+      name: "ReentrantRefundToken",
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ReentrantRefundToken>;
+    deployContract(
       name: "IERC20TransferWithAuthorization",
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.IERC20TransferWithAuthorization>;
@@ -474,6 +500,16 @@ declare module "hardhat/types/runtime" {
       args: any[],
       signerOrOptions?: ethers.Signer | DeployContractOptions
     ): Promise<Contracts.MockUSDC>;
+    deployContract(
+      name: "IRefundableVault",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.IRefundableVault>;
+    deployContract(
+      name: "ReentrantRefundToken",
+      args: any[],
+      signerOrOptions?: ethers.Signer | DeployContractOptions
+    ): Promise<Contracts.ReentrantRefundToken>;
     deployContract(
       name: "IERC20TransferWithAuthorization",
       args: any[],
