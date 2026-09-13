@@ -123,3 +123,25 @@ liquidación sin confianza es el riel CCTP.
 | Reembolso por el relayer | `ZIP0PaymentVault.refundPayment` (`INITIATED` o `ACKNOWLEDGED`) |
 | Anti-reentrada | modificador `nonReentrant` en las funciones que transfieren fondos |
 | Trabajo de relayer relacionado | issue **#26** — *acknowledge vault deposits before settling on Stellar* |
+
+---
+
+## Guion corto para presentar (40 segundos)
+
+> "Elegimos nuestro contrato de pagos, `ZIP0PaymentVault`. La regla que siempre debe cumplirse es:
+> **un depósito no puede pagarse dos veces**. Si el dinero se entrega en el destino, no puede además
+> devolverse en origen.
+>
+> El fallo sería este: el relayer entrega el dinero en el otro lado, pero **olvida avisarle al
+> contrato**. A las 24 horas, el pagador pide su devolución y cobra dos veces — se rompe la regla.
+>
+> La solución es simple: el relayer debe avisarle al contrato **'ya tomé este pago' antes** de
+> entregar el dinero. Con ese aviso, el pagador ya no puede auto-devolverse; solo el relayer puede
+> devolver si algo falla. Así se paga una sola vez.
+>
+> En resumen: el contrato garantiza su parte, y el orden del relayer cierra el hueco."
+
+Al terminar: **escanear el QR del quest.**
+
+**En una frase, si preguntan:** "Es un candado: el dinero solo puede salir una vez, y el contrato
+obliga al relayer a marcar el pago antes de pagar."
