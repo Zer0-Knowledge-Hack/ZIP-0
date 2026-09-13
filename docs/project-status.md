@@ -20,6 +20,7 @@ the design document.
 | Ports & Adapters core (ISettlementRail / PaymentRoutingEngine) | ✅ Built and tested |
 | CCTP settlement rail | ❌ Not started |
 | ERC-3009 `transferWithAuthorization` | ✅ Vault deposit + EIP-712 signing/validation; standalone relayer broadcast not implemented |
+| ZK privacy model (KYC-gated deposits) | 📝 Designed, not built — see [`zk-privacy-model.md`](zk-privacy-model.md) |
 | `@zip-0/sdk` package | ❌ Not started |
 | REST API gateway | ❌ Not started |
 | Persistent payment state | ❌ Not started |
@@ -168,6 +169,23 @@ A repository-wide search for each term returns zero matches outside the design d
 
 The root `package.json` `dev` script targets `--filter=backend --filter=web`. Neither workspace
 exists, so `pnpm dev` cannot currently run.
+
+---
+
+## Privacy roadmap (designed, not built)
+
+A ZK privacy model for KYC-gated institutional deposits is documented in
+[`zk-privacy-model.md`](zk-privacy-model.md). A payer would prove, in zero knowledge, that it holds
+a valid non-revoked KYC Soul Bound Token (`IKycSBT`) of sufficient tier, that the amount is within
+that tier's limit, and that a nullifier has not been used — without revealing identity, amount, or
+counterparty.
+
+HSK can verify such a proof on-chain today: the `ecPairing` precompile at `0x08` returns `0x…01`
+and the BLS12-381 precompiles are present, both probed directly against `https://mainnet.hsk.xyz`.
+
+**This is a model only.** No circuit, verifier contract, nullifier registry, or vault entry point
+exists, and `ZIP0PaymentVault` is unchanged. It should leave this section only once there is
+running code and test evidence.
 
 ---
 
