@@ -127,6 +127,7 @@ pnpm --filter @zip-0/gateway dev
 ```
 
 The gateway runs by default at `http://localhost:3000` and exposes:
+
 - `GET /health` — Service health check
 - `POST /v1/payments/quote` — Route evaluation, fee calculation, and rail selection
 - `POST /v1/payments/transfer` — Payment initiation
@@ -219,10 +220,9 @@ Amounts use 6 decimals, matching USDC on every supported network.
 
 **Known limitations.** Once the relayer acknowledges a deposit, only the relayer can refund it.
 The relayer acknowledges every EVM → Stellar deposit before crediting Stellar, so relayer downtime
-beyond `REFUND_TIMEOUT` lets payers reclaim unacknowledged deposits — see [SECURITY.md](SECURITY.md).
-The Avalanche Fuji vault (`0xF1ca…`) and the original HSK Testnet vault from #3 (`0x14e5…`)
-predate `acknowledgePayment` and `claimRefund`: Flow 2 (EVM → Stellar) reverts against them.
-The current HSK Testnet vault (`0x3028…`, redeployed in #35 / PR #45) matches this repository.
+The legacy Avalanche Fuji vault (`0xF1ca…`) and the original HSK Testnet vault from #3 (`0x14e5…`)
+predate `acknowledgePayment` and `claimRefund`. The active Avalanche Fuji vault (`0x9B9D238D3b7dfAdF87b6096889fcE2fe39d76f50`, verified on Snowtrace)
+and the active HSK Testnet vault (`0x3028…`) both implement full refund and acknowledgement support matching this repository.
 Relayer payment state lives in an in-memory `Map` and does not survive a process restart.
 
 ---
@@ -243,7 +243,7 @@ Relayer payment state lives in an in-memory `Map` and does not survive a process
 
 | Contract | Address |
 | :--- | :--- |
-| `ZIP0PaymentVault` | [`0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa`](https://testnet.snowtrace.io/address/0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa) |
+| `ZIP0PaymentVault` | [`0x9B9D238D3b7dfAdF87b6096889fcE2fe39d76f50`](https://testnet.snowtrace.io/address/0x9B9D238D3b7dfAdF87b6096889fcE2fe39d76f50#code) |
 | Circle USDC (Fuji) | `0x5425890298aed601595a70ab815c96711a31bc65` |
 
 **HashKey Chain Testnet (`133`)**
@@ -273,7 +273,6 @@ pnpm --filter @zip-0/cctp-bridge test:payment
 
 Explorer links print as `https://testnet-explorer.hsk.xyz/tx/<hash>`. To force Avalanche Fuji
 instead, set `EVM_CHAIN_ID=43113` (Flow 2 will fail there until that vault is redeployed).
-
 
 ### Recorded run — 2026-09-13
 

@@ -54,7 +54,7 @@ const AVALANCHE_FUJI: EvmNetworkProfile = {
   rpcUrl: "https://api.avax-test.network/ext/bc/C/rpc",
   explorerName: "SnowTrace",
   explorerTx: (hash) => `https://testnet.snowtrace.io/tx/${hash}`,
-  vaultAddress: "0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa",
+  vaultAddress: "0x9B9D238D3b7dfAdF87b6096889fcE2fe39d76f50",
   usdcAddress: "0x5425890298aed601595a70ab815c96711a31bc65",
   usdcLabel: "Circle USDC",
   domain: CrossChainDomain.AVALANCHE,

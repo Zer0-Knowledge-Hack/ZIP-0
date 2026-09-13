@@ -50,13 +50,11 @@ failed acknowledgement stops the settlement (#26). Verified against mocks only, 
 the relayer.
 
 Deployment evidence:
-- Avalanche Fuji (`43113`): `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa` returns contract bytecode from `eth_getCode` and holds a non-zero USDC balance.
+- Avalanche Fuji (`43113`): `0x9B9D238D3b7dfAdF87b6096889fcE2fe39d76f50` verified on [Snowtrace](https://testnet.snowtrace.io/address/0x9B9D238D3b7dfAdF87b6096889fcE2fe39d76f50#code), deployed from current `main` bytecode with full support for `claimRefund`, `acknowledgePayment`, and `depositWithAuthorization`. Legacy deployment `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa` predated these functions.
 - HashKey Chain Testnet (`133`): `0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07` (pointing to MockUSDC at `0x1f65E72EE31F709969Dfc75f98f5867EaE332CD9`), verified on-chain runtime bytecode (6,673 bytes) with 50,000 MockUSDC initial liquidity. Deployed from current `main` bytecode with full support for `claimRefund`, `acknowledgePayment`, and `depositWithAuthorization`.
 - HashKey Chain Testnet (legacy #3): `0x14e59806054773fc341377aEC472C07e500BCc86` predates those functions. Keep it as a historical artifact; do not use it for the live runner.
 
-Avalanche Fuji (`0xF1ca…`) still predates `acknowledgePayment` and `claimRefund`. The current HSK
-Testnet vault (`0x3028…`) does not: Flow 2 can acknowledge there. Pointing the relayer at Fuji or
-at `0x14e5…` makes EVM → Stellar settlement revert on `acknowledgePayment`.
+Both the current Avalanche Fuji vault (`0x9B9D…`) and the current HSK Testnet vault (`0x3028…`) support Flow 2 acknowledgement on-chain. Pointing the relayer at legacy vaults (`0xF1ca…` or `0x14e5…`) makes EVM → Stellar settlement revert on `acknowledgePayment`.
 
 Bytecode size: 6,782 bytes init / 6,037 bytes deployed — comfortably under the EIP-170 24 KB limit.
 
