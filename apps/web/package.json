@@ -17,8 +17,10 @@
     "viem": "^2.19.8"
   },
   "devDependencies": {
+    "@types/node": "^26.5.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "postcss": "^8.5.28",
     "typescript": "^5.4.5",
     "vite": "^6.1.0",
     "vitest": "^1.6.0"
