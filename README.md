@@ -45,9 +45,10 @@ ZIP-0 routes a payment over one of two settlement rails:
 | Rail | Mechanism | Liquidity | Status |
 | :--- | :--- | :--- | :--- |
 | **Vault rail** | Lock USDC in a vault on the source chain, release from the vault on the destination chain via an authorized relayer | Bounded by vault float | **Implemented** |
-| **CCTP rail** | Circle burn-and-mint, 1:1, no pools | Unbounded | **Planned** — no code yet |
+| **CCTP rail** | Circle burn-and-mint, 1:1, no pools | Unbounded | **Implemented** (Circle Bridge Kit; live testnet transfer pending) |
 
-Today every payment settles over the vault rail.
+Vault-rail payments settle today. CCTP corridors between Circle-supported EVM chains are
+implemented and routed automatically; a live testnet transfer has not been recorded yet.
 
 ```text
   EVM chain (HSK / Avalanche)                      Stellar (Pollar)
@@ -74,8 +75,9 @@ The vault rail is **not trust-minimized**. An address holding `RELAYER_ROLE` can
 balance. There is no on-chain proof of the Stellar-side credit.
 
 In other words, ZIP-0 currently assumes an honest relayer. Making settlement trust-minimized is
-what the planned CCTP rail is for. We state this explicitly rather than implying guarantees the
-code does not provide.
+what the CCTP rail is for: it settles 1:1 through Circle with no trusted operator in the middle.
+We state the vault rail's limits explicitly rather than implying guarantees the code does not
+provide.
 
 ---
 
@@ -161,7 +163,8 @@ Contracts are tested with Hardhat; TypeScript is tested with Vitest.
 1. Deploy the vault to HashKey Chain mainnet and settle a real payment end to end.
 2. Replace mock-based relayer tests with integration tests against a live chain.
 3. Persist relayer payment state so it survives restarts.
-4. Implement the CCTP rail (Circle `TokenMessenger` + Iris attestation) to remove relayer trust.
+4. Record a live CCTP testnet transfer to prove the burn-and-mint rail end to end. The rail itself
+   is implemented over Circle's Bridge Kit (`depositForBurn` -> Iris attestation -> `receiveMessage`).
 5. Package `@zip-0/sdk` and a REST gateway so institutions integrate without touching chain code.
 
 ---
