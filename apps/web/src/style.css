@@ -3168,3 +3168,515 @@ a.landing-hash:hover {
   color: var(--zip-settled);
   font-weight: var(--zip-weight-medium);
 }
+
+/* ============================================================
+   Legal disclosure
+   ============================================================
+   Written to be read by someone assessing risk, not skimmed. Generous measure, clear hierarchy,
+   and the status stated before anything else — everything below reads differently once the
+   reader knows this is an unlicensed prototype.
+   ============================================================ */
+
+.legal {
+  max-width: 46rem;
+  padding-bottom: var(--zip-space-8);
+}
+
+.legal-head h2 {
+  font-family: var(--zip-font-display);
+  font-size: var(--zip-text-xl);
+  font-weight: var(--zip-weight-semibold);
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-1);
+}
+
+.legal-updated {
+  font-family: var(--zip-font-mono);
+  font-size: var(--zip-text-xs);
+  color: var(--zip-ink-faint);
+  margin-bottom: var(--zip-space-4);
+}
+
+.legal-intro {
+  font-size: var(--zip-text-base);
+  line-height: 1.65;
+  color: var(--zip-ink-muted);
+  max-width: 60ch;
+}
+
+/* ---------- Status ---------- */
+
+.legal-status {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--zip-space-3);
+  margin: var(--zip-space-6) 0;
+  padding: var(--zip-space-4);
+  border: var(--zip-rail);
+  border-left: 3px solid var(--zip-pending);
+  border-radius: var(--zip-radius);
+  background: var(--zip-pending-faint);
+}
+
+.legal-status svg {
+  color: var(--zip-pending);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.legal-status h3 {
+  font-family: var(--zip-font-display);
+  font-size: var(--zip-text-base);
+  font-weight: var(--zip-weight-semibold);
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-2);
+}
+
+.legal-status p {
+  font-size: var(--zip-text-sm);
+  line-height: 1.6;
+  color: var(--zip-ink-muted);
+  max-width: 62ch;
+}
+
+.legal-status-warn {
+  margin-top: var(--zip-space-2);
+  font-weight: var(--zip-weight-medium);
+  color: var(--zip-ink) !important;
+}
+
+/* ---------- Sections ---------- */
+
+.legal-section {
+  margin-top: var(--zip-space-8);
+  padding-top: var(--zip-space-6);
+  border-top: var(--zip-rail);
+}
+
+.legal-section h3 {
+  font-family: var(--zip-font-display);
+  font-size: var(--zip-text-lg);
+  font-weight: var(--zip-weight-semibold);
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-3);
+}
+
+.legal-lead {
+  font-size: var(--zip-text-sm);
+  line-height: 1.65;
+  color: var(--zip-ink-muted);
+  max-width: 62ch;
+}
+
+/* ---------- Definition lists ---------- */
+
+.legal-list {
+  margin: var(--zip-space-4) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--zip-space-4);
+}
+
+.legal-list dt {
+  font-weight: var(--zip-weight-semibold);
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-1);
+}
+
+.legal-list dd {
+  margin: 0;
+  font-size: var(--zip-text-sm);
+  line-height: 1.65;
+  color: var(--zip-ink-muted);
+  max-width: 62ch;
+}
+
+.legal-bullets {
+  margin: var(--zip-space-3) 0;
+  padding-left: var(--zip-space-6);
+  font-size: var(--zip-text-sm);
+  line-height: 1.8;
+  color: var(--zip-ink-muted);
+}
+
+/* ---------- Technical reference ---------- */
+
+.legal-ref {
+  margin: var(--zip-space-4) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--zip-space-3);
+}
+
+.legal-ref > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--zip-space-3);
+  padding-bottom: var(--zip-space-3);
+  border-bottom: var(--zip-rail);
+}
+
+.legal-ref > div:last-child {
+  border-bottom: none;
+}
+
+.legal-ref dt {
+  font-size: var(--zip-text-xs);
+  font-weight: var(--zip-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--zip-ink-faint);
+}
+
+.legal-ref dd {
+  margin: 0;
+}
+
+.legal-hash {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zip-space-2);
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink-muted);
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+a.legal-hash {
+  color: var(--zip-signal);
+}
+
+a.legal-hash:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Footer ---------- */
+
+.legal-footer {
+  margin-top: var(--zip-space-8);
+  padding-top: var(--zip-space-4);
+  border-top: var(--zip-rail);
+  font-size: var(--zip-text-xs);
+  line-height: 1.6;
+  color: var(--zip-ink-faint);
+  max-width: 66ch;
+}
+
+@media (max-width: 48rem) {
+  .legal-status {
+    flex-direction: column;
+  }
+
+  .legal-ref > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--zip-space-1);
+  }
+}
+
+/* ---------- Footer disclosure link ---------- */
+
+/*
+ * Present on every page, including inside the app. Someone about to send a payment should not
+ * have to return to the marketing shell to learn this is an unlicensed prototype.
+ */
+footer {
+  align-items: center;
+  gap: var(--zip-space-4);
+  flex-wrap: wrap;
+}
+
+.footer-legal {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: var(--zip-text-xs);
+  color: var(--zip-signal);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-right: auto;
+}
+
+.footer-legal:hover {
+  color: var(--zip-signal-hover);
+}
+
+.footer-legal:focus-visible {
+  outline: 2px solid var(--zip-signal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ============================================================
+   Landing footer
+   ============================================================
+   The marketing shell had none. Every landing has a footer, and it is the conventional place a
+   visitor looks for legal and source links before deciding whether to trust the thing.
+   ============================================================ */
+
+.landing-footer {
+  display: grid;
+  gap: var(--zip-space-6);
+  margin-top: var(--zip-space-8);
+  padding: var(--zip-space-8) 0 var(--zip-space-6);
+  border-top: var(--zip-rail-strong);
+}
+
+@media (min-width: 42rem) {
+  .landing-footer {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.6fr);
+    align-items: start;
+  }
+}
+
+.landing-footer-brand {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--zip-space-3);
+}
+
+.landing-footer-brand .brand-mark {
+  width: 26px;
+  height: 26px;
+  color: var(--zip-ink);
+  flex-shrink: 0;
+}
+
+.landing-footer-brand strong {
+  display: block;
+  font-family: var(--zip-font-display);
+  font-size: var(--zip-text-base);
+  font-weight: var(--zip-weight-semibold);
+  letter-spacing: 0.04em;
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-1);
+}
+
+.landing-footer-brand p {
+  font-size: var(--zip-text-sm);
+  line-height: 1.55;
+  color: var(--zip-ink-muted);
+  max-width: 34ch;
+}
+
+/* ---------- Link columns ---------- */
+
+.landing-footer-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--zip-space-6);
+}
+
+.landing-footer-links h3 {
+  font-size: var(--zip-text-xs);
+  font-weight: var(--zip-weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--zip-ink-faint);
+  margin-bottom: var(--zip-space-3);
+}
+
+.landing-footer-links a {
+  display: inline-block;
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink-muted);
+  text-decoration: none;
+  padding: 2px 0;
+}
+
+.landing-footer-links a:hover {
+  color: var(--zip-signal);
+}
+
+.landing-footer-links a:focus-visible {
+  outline: 2px solid var(--zip-signal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ---------- Base line ---------- */
+
+.landing-footer-base {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zip-space-3);
+  padding-top: var(--zip-space-4);
+  border-top: var(--zip-rail);
+  font-size: var(--zip-text-xs);
+  color: var(--zip-ink-faint);
+}
+
+/* Status is stated in the footer too — it should not take a click to learn this is a prototype. */
+.landing-footer-status {
+  font-family: var(--zip-font-mono);
+  letter-spacing: 0.06em;
+  color: var(--zip-pending);
+}
+
+/* ============================================================
+   Footer and legal — desktop treatment
+   ============================================================
+   Two corrections.
+
+   The element selector `footer` is declared four times in this file (see #44) and sets
+   font-size: 12px and display: flex. The landing footer inherited both, which shrank the columns
+   and fought its own grid. Scoping by class rather than element settles it.
+
+   The legal page used a single 46rem column inside a 1320px shell, so on a wide screen it read
+   as a phone column stranded in white space. Legal text still wants a narrow measure — the fix
+   is not to widen the prose but to give the page a structure that uses the width: a sticky index
+   beside it, which is the conventional shape for a document people scan rather than read.
+   ============================================================ */
+
+.landing-footer {
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink-muted);
+  justify-content: initial;
+  padding-top: var(--zip-space-8);
+}
+
+.landing-footer-links a,
+.landing-footer-base {
+  font-size: var(--zip-text-sm);
+}
+
+.landing-footer-links h3,
+.landing-footer-base {
+  font-size: var(--zip-text-xs);
+}
+
+/* ---------- Legal: index beside the document ---------- */
+
+.legal {
+  max-width: none;
+}
+
+.legal-body {
+  max-width: 42rem;
+}
+
+.legal-index {
+  display: none;
+}
+
+@media (min-width: 62rem) {
+  .legal {
+    display: grid;
+    grid-template-columns: 14rem minmax(0, 1fr);
+    gap: var(--zip-space-8);
+    align-items: start;
+  }
+
+  .legal-head,
+  .legal-body {
+    grid-column: 2;
+  }
+
+  /*
+   * The index sits in the first column and spans from the head downward, so the document keeps
+   * a readable measure while the page uses the full width.
+   */
+  .legal-index {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    position: sticky;
+    top: var(--zip-space-6);
+    padding-right: var(--zip-space-4);
+    border-right: var(--zip-rail);
+  }
+
+  .legal-index h3 {
+    font-size: var(--zip-text-xs);
+    font-weight: var(--zip-weight-semibold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--zip-ink-faint);
+    margin-bottom: var(--zip-space-3);
+  }
+
+  .legal-index ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--zip-space-2);
+  }
+
+  .legal-index a {
+    font-size: var(--zip-text-sm);
+    color: var(--zip-ink-muted);
+    text-decoration: none;
+    display: block;
+    padding: 2px 0;
+  }
+
+  .legal-index a:hover {
+    color: var(--zip-signal);
+  }
+
+  .legal-index a:focus-visible {
+    outline: 2px solid var(--zip-signal);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+}
+
+/* Anchor targets clear the sticky header when jumped to. */
+.legal-section,
+.legal-status {
+  scroll-margin-top: var(--zip-space-8);
+}
+
+/* ---------- Landing footer on small screens ---------- */
+
+@media (max-width: 42rem) {
+  .landing-footer {
+    grid-template-columns: 1fr;
+    gap: var(--zip-space-6);
+    padding-top: var(--zip-space-6);
+  }
+
+  /* Two columns rather than three: three 8rem tracks collide below this width. */
+  .landing-footer-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--zip-space-4) var(--zip-space-6);
+  }
+
+  .landing-footer-brand p {
+    max-width: none;
+  }
+
+  /* Stack the base line so the status badge does not wrap awkwardly beside the licence. */
+  .landing-footer-base {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--zip-space-2);
+  }
+}
+
+@media (max-width: 26rem) {
+  .landing-footer-links {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------- Legal on small screens ---------- */
+
+@media (max-width: 62rem) {
+  .legal-body {
+    max-width: none;
+  }
+}

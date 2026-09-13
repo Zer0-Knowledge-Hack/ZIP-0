@@ -74,6 +74,138 @@ function Mark() {
 
 
 /**
+ * Legal disclosure.
+ *
+ * Deliberately not written as Terms of Service. ZIP-0 is an unlicensed prototype with a trusted
+ * operator and unaudited contracts; publishing authoritative-looking terms would misrepresent
+ * what it is, with legal exposure attached.
+ *
+ * What earns institutional credibility is not imitating a bank's paperwork — it is showing that
+ * we know precisely which obligations apply and stating honestly which we do not yet meet. The
+ * regulatory section is therefore written as "this is what would be required", not as a claim.
+ *
+ * This is also where the chain detail lives. An institution evaluating the product does not need
+ * a contract address to decide, but a counsel reading carefully should be able to find it.
+ */
+function LegalPage({ t }: { t: typeof es }) {
+  const regulatory: Array<[string, string]> = [
+    [t.legalReg1, t.legalReg1Body],
+    [t.legalReg2, t.legalReg2Body],
+    [t.legalReg3, t.legalReg3Body],
+    [t.legalReg4, t.legalReg4Body],
+    [t.legalReg5, t.legalReg5Body],
+  ];
+
+  const risks: Array<[string, string]> = [
+    [t.legalRisk1, t.legalRisk1Body],
+    [t.legalRisk2, t.legalRisk2Body],
+    [t.legalRisk3, t.legalRisk3Body],
+    [t.legalRisk4, t.legalRisk4Body],
+    [t.legalRisk5, t.legalRisk5Body],
+  ];
+
+  return (
+    <div className="legal">
+      <nav className="legal-index" aria-label={t.legalTitle}>
+        <h3>{t.legalTitle}</h3>
+        <ol>
+          <li><a href="#legal-status">{t.legalStatusTitle}</a></li>
+          <li><a href="#legal-reg">{t.legalRegTitle}</a></li>
+          <li><a href="#legal-risk">{t.legalRiskTitle}</a></li>
+          <li><a href="#legal-privacy">{t.legalPrivacyTitle}</a></li>
+          <li><a href="#legal-ref">{t.legalRefTitle}</a></li>
+        </ol>
+      </nav>
+
+      <header className="legal-head">
+        <h2>{t.legalTitle}</h2>
+        <p className="legal-updated">{t.legalUpdated}</p>
+        <p className="legal-intro">{t.legalIntro}</p>
+      </header>
+
+      <div className="legal-body">
+      {/* Status first. Everything below is read differently once this is known. */}
+      <section id="legal-status" className="legal-status">
+        <ShieldCheck size={20} aria-hidden="true" />
+        <div>
+          <h3>{t.legalStatusTitle}</h3>
+          <p>{t.legalStatusBody}</p>
+          <p className="legal-status-warn">{t.legalStatusWarn}</p>
+        </div>
+      </section>
+
+      <section id="legal-reg" className="legal-section">
+        <h3>{t.legalRegTitle}</h3>
+        <p className="legal-lead">{t.legalRegIntro}</p>
+        <dl className="legal-list">
+          {regulatory.map(([term, body]) => (
+            <div key={term}>
+              <dt>{term}</dt>
+              <dd>{body}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <section id="legal-risk" className="legal-section">
+        <h3>{t.legalRiskTitle}</h3>
+        <p className="legal-lead">{t.legalRiskIntro}</p>
+        <dl className="legal-list">
+          {risks.map(([term, body]) => (
+            <div key={term}>
+              <dt>{term}</dt>
+              <dd>{body}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      {/*
+        Verified against the code rather than written from assumption: localStorage holds only
+        zip0-language and zip0-theme, and there is no analytics, telemetry or cookie anywhere.
+      */}
+      <section id="legal-privacy" className="legal-section">
+        <h3>{t.legalPrivacyTitle}</h3>
+        <p className="legal-lead">{t.legalPrivacyBody}</p>
+        <ul className="legal-bullets">
+          <li>{t.legalPrivacy1}</li>
+          <li>{t.legalPrivacy2}</li>
+        </ul>
+        <p className="legal-lead">{t.legalPrivacyWallet}</p>
+      </section>
+
+      <section id="legal-ref" className="legal-section">
+        <h3>{t.legalRefTitle}</h3>
+        <p className="legal-lead">{t.legalRefBody}</p>
+        <dl className="legal-ref">
+          <div>
+            <dt>{t.legalRefVault}</dt>
+            <dd>
+              <a
+                className="legal-hash"
+                href={`${EXPLORER}/address/${VAULT}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {VAULT}
+                <ArrowUpRight size={14} />
+              </a>
+            </dd>
+          </div>
+          <div>
+            <dt>{t.legalRefNetwork}</dt>
+            <dd className="legal-hash">HashKey Chain Testnet · 133</dd>
+          </div>
+        </dl>
+      </section>
+
+      <p className="legal-footer">{t.legalFooter}</p>
+      </div>
+    </div>
+  );
+}
+
+/**
  * Route comparison.
  *
  * The result, shown rather than described. Two lanes between the same two points: one hops
@@ -340,10 +472,56 @@ function App() {
               <div>
                 <strong>{t.landingPrototype}</strong>
                 <p>{t.landingPrototypeBody}</p>
+                {/* The disclosure is reachable from the pitch, not buried in a footer. */}
+                <button className="text-button" onClick={() => go("legal")}>
+                  {t.landingLegal}
+                  <ArrowRight size={15} />
+                </button>
               </div>
             </aside>
           </div>
         </main>
+
+        {/*
+          Marketing footer. The landing shell had none — every landing has one, and it is the
+          conventional place a visitor looks for legal and source links before trusting anything.
+        */}
+        <footer className="landing-footer">
+          <div className="landing-footer-brand">
+            <Mark />
+            <div>
+              <strong>ZIP·0</strong>
+              <p>{t.footTagline}</p>
+            </div>
+          </div>
+
+          <nav className="landing-footer-links" aria-label={t.navigation}>
+            <div>
+              <h3>{t.footProduct}</h3>
+              <Link to={PATHS.overview}>{t.footOpenApp}</Link>
+            </div>
+            <div>
+              <h3>{t.footLegalCol}</h3>
+              <Link to={PATHS.legal}>{t.footDisclosure}</Link>
+            </div>
+            <div>
+              <h3>{t.footCompany}</h3>
+              <a
+                href="https://github.com/Zer0-Knowledge-Hack/ZIP-0"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t.footRepo}
+              </a>
+            </div>
+          </nav>
+
+          <div className="landing-footer-base">
+            <span>{t.footRights}</span>
+            <span className="landing-footer-status">{t.footStatus}</span>
+          </div>
+        </footer>
+
       </div>
     );
   }
@@ -992,6 +1170,22 @@ function App() {
                   <ArrowRight size={16} />
                 </Link>
               </section>
+              {/*
+                Legal lives here in the product shell rather than in a footer. Profile is where
+                users look for account, terms and privacy — following that convention beats
+                inventing a new location.
+              */}
+              <section className="profile-section" aria-labelledby="profile-legal">
+                <div className="profile-section-head">
+                  <ShieldCheck size={18} aria-hidden="true" />
+                  <h2 id="profile-legal">{t.profileLegalTitle}</h2>
+                </div>
+                <p>{t.profileLegalBody}</p>
+                <button className="text-button" onClick={() => go("legal")}>
+                  {t.profileLegalCta}
+                  <ArrowRight size={16} />
+                </button>
+              </section>
             </div>
           )}
           {page === "help" && (
@@ -1015,6 +1209,8 @@ function App() {
               ))}
             </section>
           )}
+
+          {page === "legal" && <LegalPage t={t} />}
           <section className="trust">
             <ShieldCheck size={22} />
             <div>
@@ -1022,10 +1218,18 @@ function App() {
               <p>{t.trustBody}</p>
             </div>
           </section>
+          {/*
+            Global footer, so the disclosure is reachable from every page rather than only from
+            the landing. Someone about to send a payment should not have to go back to the
+            marketing shell to find out this is an unlicensed prototype.
+          */}
           <footer>
             <span>
               ZIP-0 <span>·</span> {t.footer}
             </span>
+            <button className="footer-legal" onClick={() => go("legal")}>
+              {t.legal}
+            </button>
             <span className="preview-tag">{t.beta}</span>
           </footer>
         </main>
