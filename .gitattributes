@@ -1,0 +1,5 @@
+# Cloudflare Pages parses these line by line. A CRLF commit from a Windows checkout
+# breaks the SPA fallback silently: the deploy succeeds and every deep link 404s.
+apps/web/public/_redirects text eol=lf
+apps/web/public/_headers   text eol=lf
+.node-version              text eol=lf
