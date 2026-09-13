@@ -37,6 +37,24 @@ type Provider = {
 };
 const provider = () => (window as Window & { ethereum?: Provider }).ethereum;
 
+/**
+ * The ZIP-0 mark: a zero crossed by a settlement rail.
+ *
+ * Drawn inline and geometric rather than loaded as a font glyph, so it renders identically
+ * without webfonts and inherits currentColor on any surface. See docs/brand.md.
+ */
+function Mark() {
+  return (
+    <svg className="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+      <g fill="none" stroke="currentColor" strokeWidth="6">
+        <path d="M 32 7 A 25 25 0 0 1 55.4 39.2" />
+        <path d="M 32 57 A 25 25 0 0 1 8.6 24.8" />
+        <path d="M 2 32 H 62" />
+      </g>
+    </svg>
+  );
+}
+
 function App() {
   const [language, setLanguage] = useState(initialLanguage);
   const t = language === "es" ? es : en;
@@ -67,6 +85,14 @@ function App() {
       /* Storage may be disabled. */
     }
   }, [language]);
+  /*
+   * Theme is driven by data-theme on the root element rather than a class, because that is
+   * what tokens.css keys off. Setting it here means an explicit choice wins over the OS
+   * preference in both directions.
+   */
+  useEffect(() => {
+    window.document.documentElement.dataset.theme = dark ? "dark" : "light";
+  }, [dark]);
   useEffect(() => {
     const wallet = provider();
     const changed = (accounts: unknown) =>
@@ -144,9 +170,9 @@ function App() {
               go("overview");
             }}
           >
-            <span className="brand-mark">z</span>
+            <Mark />
             <b>
-              ZIP<span>0</span>
+              ZIP<span>·0</span>
             </b>
           </a>
           <nav className="desktop-nav" aria-label={t.navigation}>
