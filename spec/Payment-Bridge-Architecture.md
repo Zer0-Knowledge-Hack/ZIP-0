@@ -2,10 +2,11 @@
 
 > **Este documento describe la arquitectura OBJETIVO, no el estado actual del código.**
 >
-> Varios componentes descritos aquí — el riel CCTP, el `PaymentRoutingEngine`, el SDK y el API
-> Gateway — están diseñados pero **no implementados**. Para saber exactamente qué existe hoy,
-> consultá [`docs/project-status.md`](../docs/project-status.md), que fue verificado ejecutando el
-> código y consultando redes en vivo.
+> Status as of 2026-09-13: the `PaymentRoutingEngine` (Phase 1) and the `CctpSettlementRail` over
+> Circle's Bridge Kit (Phase 2) **are implemented**; a live CCTP testnet transfer has not been
+> recorded yet. The SDK (`@zip-0/sdk`) and the API Gateway **remain unimplemented**. For an exact
+> account of what exists today, see [`docs/project-status.md`](../docs/project-status.md), verified
+> by running the code and querying live networks.
 >
 > Los parámetros de red y direcciones de HashKey Chain verificados están en
 > [`docs/hsk-chain-integration.md`](../docs/hsk-chain-integration.md).
@@ -54,6 +55,12 @@ El motor evalúa automáticamente la ruta de pago y selecciona el riel óptimo m
 | **Slippage y Riesgo** | 0% Slippage. Cero riesgo de contraparte de pools privados | Requiere rebalanceo y monitorización de liquidez del Vault |
 | **Redes Soportadas** | **Polygon PoS**, **Avalanche**, **Arbitrum**, **Base**, **Ethereum** | **HashKey Chain** (Testnet `133` / Mainnet `177`), Hardhat Local (`31337`) |
 | **Tipo de USDC** | USDC nativo de Circle | Avalanche: USDC nativo · HashKey Chain: **USDC.e bridged** (`0x054ed4…8D0a`, 6 decimales) |
+
+> **Status:** `CctpSettlementRail` is implemented over Circle's Bridge Kit
+> (`depositForBurn` -> Iris attestation -> `receiveMessage`) in
+> `packages/cctp-bridge/src/rails/cctp-settlement-rail.ts`. `supportsRoute()` honestly excludes
+> HashKey Chain and Stellar. Pending: recording a live end-to-end testnet transfer.
+> `VaultSettlementRail` is implemented and deployed on Avalanche Fuji and HSK Testnet.
 
 ---
 
@@ -163,11 +170,8 @@ Código nuevo debería depender de `IPaymentRouter`.
 ---
 
 ## 6. Superficie de Consumo: API Gateway y SDK (`@zip-0/sdk`)
-
-> ⚠️ **Estado: DISEÑO PROPUESTO, no implementado.** Ni el paquete `@zip-0/sdk` ni los endpoints
-> REST existen todavía. Corresponden a la Fase 4 de la hoja de ruta.
-
-Las instituciones interactuarán con ZIP-0 a través de interfaces de alto nivel:
+ 
+ Las instituciones interactúan con ZIP-0 a través de interfaces de alto nivel implementadas en `packages/sdk` y `apps/gateway`:
 
 ### A. Endpoints REST API
 
@@ -224,6 +228,7 @@ console.log(`Payment status: ${payment.status}, Rail: ${payment.railType}`);
    - Refactorizar `packages/cctp-bridge/src/core/` con `ISettlementRail` y `PaymentRoutingEngine`.
 2. **Fase 2: Implementación de Riel CCTP (Polygon & Avalanche)**:
    - Integrar contratos de Circle `TokenMessenger` y verificación Iris en `CctpSettlementRail`.
+   - **Status: implemented** (`src/rails/cctp-settlement-rail.ts`, Circle Bridge Kit). Pending: record a live testnet transfer.
 3. **Fase 3: Módulo de Abstracción de Gas ERC-3009**:
    - Implementar el generador y validador de firmas `transferWithAuthorization` para flujos gasless.
 4. **Fase 4: Empaquetado de `@zip-0/sdk` y API Gateway**:

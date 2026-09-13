@@ -45,9 +45,10 @@ ZIP-0 routes a payment over one of two settlement rails:
 | Rail | Mechanism | Liquidity | Status |
 | :--- | :--- | :--- | :--- |
 | **Vault rail** | Lock USDC in a vault on the source chain, release from the vault on the destination chain via an authorized relayer | Bounded by vault float | **Implemented** |
-| **CCTP rail** | Circle burn-and-mint, 1:1, no pools | Unbounded | **Planned** — no code yet |
+| **CCTP rail** | Circle burn-and-mint, 1:1, no pools | Unbounded | **Implemented** (Circle Bridge Kit; live testnet transfer pending) |
 
-Today every payment settles over the vault rail.
+Vault-rail payments settle today. CCTP corridors between Circle-supported EVM chains are
+implemented and routed automatically; a live testnet transfer has not been recorded yet.
 
 ```text
   EVM chain (HSK / Avalanche)                      Stellar (Pollar)
@@ -67,6 +68,12 @@ Today every payment settles over the vault rail.
 a single transaction without pre-approving the vault. This is verified to work against HashKey
 Chain's bridged USDC, which implements EIP-2612.
 
+`depositWithAuthorization()` accepts an ERC-3009 `transferWithAuthorization` signature instead. The
+token — not the vault — enforces the signature, so no allowance is involved, and authorizations are
+time-bounded (`validAfter` / `validBefore`) with random nonces. That lets several authorizations be
+issued and settle out of order, which sequential `permit` nonces cannot do. Both Circle's native
+USDC (Avalanche) and HashKey's bridged USDC.e expose ERC-3009.
+
 ### Trust model — read this before evaluating
 
 The vault rail is **not trust-minimized**. An address holding `RELAYER_ROLE` can call
@@ -74,8 +81,9 @@ The vault rail is **not trust-minimized**. An address holding `RELAYER_ROLE` can
 balance. There is no on-chain proof of the Stellar-side credit.
 
 In other words, ZIP-0 currently assumes an honest relayer. Making settlement trust-minimized is
-what the planned CCTP rail is for. We state this explicitly rather than implying guarantees the
-code does not provide.
+what the CCTP rail is for: it settles 1:1 through Circle with no trusted operator in the middle.
+We state the vault rail's limits explicitly rather than implying guarantees the code does not
+provide.
 
 ---
 
@@ -85,9 +93,65 @@ code does not provide.
 | :--- | :--- |
 | `packages/contracts-evm` | `ZIP0PaymentVault.sol`, `MockUSDC.sol`, Hardhat config, deploy scripts |
 | `packages/cctp-bridge` | Relayer orchestrator, EVM/Stellar adapters, core types |
+| `packages/sdk` | `@zip-0/sdk` typed client library (`Zip0Client`) |
+| `apps/gateway` | REST API gateway exposing `/v1/payments/*` endpoints |
 | `spec/` | Architecture reference (design intent, includes planned work) |
 | `docs/` | Operational documentation (verified facts, integration guides) |
 | `openspec/` | OpenSpec change tracking |
+
+---
+
+## SDK & REST Gateway
+
+ZIP-0 provides both a typed client SDK (`@zip-0/sdk`) and an HTTP REST gateway (`apps/gateway`) allowing applications to initiate and track payments without managing low-level contract calls directly.
+
+### Running the Gateway
+
+```bash
+pnpm dev
+# Or run gateway directly:
+pnpm --filter @zip-0/gateway dev
+```
+
+The gateway runs by default at `http://localhost:3000` and exposes:
+- `GET /health` — Service health check
+- `POST /v1/payments/quote` — Route evaluation, fee calculation, and rail selection
+- `POST /v1/payments/transfer` — Payment initiation
+- `GET /v1/payments/:id` — Payment status lookup and transaction hashes
+- `POST /v1/webhooks` — Webhook event subscription
+
+### Using `@zip-0/sdk`
+
+```typescript
+import { Zip0Client } from "@zip-0/sdk";
+
+const zip0 = new Zip0Client({
+  baseUrl: "http://localhost:3000",
+  apiKey: process.env.ZIP0_API_KEY,
+});
+
+// 1. Get a quote
+const quote = await zip0.payments.quote({
+  sourceChain: "avalanche",
+  destinationChain: "hashkey",
+  amount: "5000000.00",
+});
+console.log(`Estimated fee: ${quote.estimatedFee} USDC, Rail: ${quote.railType}`);
+
+// 2. Initiate payment
+const payment = await zip0.payments.create({
+  amount: "5000000.00",
+  sourceChain: "avalanche",
+  destinationChain: "hashkey",
+  recipient: "0xRecipientAddress...",
+  reference: "INV-2026-SG-001",
+});
+console.log(`Payment initiated: ${payment.paymentId}, Tx: ${payment.destinationTxHash}`);
+
+// 3. Track settlement status
+const status = await zip0.payments.get(payment.paymentId);
+console.log(`Current status: ${status.status}`);
+```
 
 ---
 
@@ -100,6 +164,7 @@ Built on OpenZeppelin `AccessControl`, `ReentrancyGuard`, and `SafeERC20`.
 | :--- | :--- | :--- |
 | `depositPayment` | public | Lock USDC and emit `PaymentInitiated` |
 | `depositWithPermit` | public | Same, using an EIP-2612 signature (no prior approve) |
+| `depositWithAuthorization` | public | Same, using an ERC-3009 `transferWithAuthorization` signature (no allowance) |
 | `releasePayment` | `RELAYER_ROLE` | Release USDC to a recipient on this chain |
 | `refundPayment` | `RELAYER_ROLE` | Return an initiated or acknowledged payment to its payer |
 | `acknowledgePayment` | `RELAYER_ROLE` | Mark a deposit as picked up before settling it, which blocks `claimRefund` |
@@ -168,7 +233,8 @@ Contracts are tested with Hardhat; TypeScript is tested with Vitest.
 1. Deploy the vault to HashKey Chain mainnet and settle a real payment end to end.
 2. Replace mock-based relayer tests with integration tests against a live chain.
 3. Persist relayer payment state so it survives restarts.
-4. Implement the CCTP rail (Circle `TokenMessenger` + Iris attestation) to remove relayer trust.
+4. Record a live CCTP testnet transfer to prove the burn-and-mint rail end to end. The rail itself
+   is implemented over Circle's Bridge Kit (`depositForBurn` -> Iris attestation -> `receiveMessage`).
 5. Package `@zip-0/sdk` and a REST gateway so institutions integrate without touching chain code.
 
 ---

@@ -8,6 +8,10 @@ import {
   SettlementRailType,
 } from "./types.js";
 
+export type { PaymentStore } from "./payment-store.js";
+export { InMemoryPaymentStore } from "./in-memory-payment-store.js";
+export { FilePaymentStore } from "./file-payment-store.js";
+
 /**
  * A settlement mechanism capable of moving value between two domains.
  *

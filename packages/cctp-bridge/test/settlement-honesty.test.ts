@@ -34,15 +34,15 @@ function intent(overrides: Partial<PaymentIntent> = {}): PaymentIntent {
  */
 describe("settlement honesty", () => {
   describe("CctpSettlementRail", () => {
-    it("refuses to settle instead of returning a fabricated hash", async () => {
+    it("refuses to settle without a configured bridge client instead of fabricating a hash", async () => {
       const rail = new CctpSettlementRail();
 
       await expect(rail.executeSettlement(intent())).rejects.toMatchObject({
-        code: ErrorCode.NOT_IMPLEMENTED,
+        code: ErrorCode.CCTP_NOT_CONFIGURED,
       });
     });
 
-    it("still reports the corridors it would serve once implemented", () => {
+    it("reports the CCTP corridors it serves and excludes non-CCTP chains", () => {
       const rail = new CctpSettlementRail();
 
       expect(rail.supportsRoute(43113, 8453)).toBe(true);

@@ -58,5 +58,7 @@ export type { IRefundableVault } from "./contracts/test/ReentrantRefundToken.sol
 export { IRefundableVault__factory } from "./factories/contracts/test/ReentrantRefundToken.sol/IRefundableVault__factory";
 export type { ReentrantRefundToken } from "./contracts/test/ReentrantRefundToken.sol/ReentrantRefundToken";
 export { ReentrantRefundToken__factory } from "./factories/contracts/test/ReentrantRefundToken.sol/ReentrantRefundToken__factory";
-export type { ZIP0PaymentVault } from "./contracts/ZIP0PaymentVault";
-export { ZIP0PaymentVault__factory } from "./factories/contracts/ZIP0PaymentVault__factory";
+export type { IERC20TransferWithAuthorization } from "./contracts/ZIP0PaymentVault.sol/IERC20TransferWithAuthorization";
+export { IERC20TransferWithAuthorization__factory } from "./factories/contracts/ZIP0PaymentVault.sol/IERC20TransferWithAuthorization__factory";
+export type { ZIP0PaymentVault } from "./contracts/ZIP0PaymentVault.sol/ZIP0PaymentVault";
+export { ZIP0PaymentVault__factory } from "./factories/contracts/ZIP0PaymentVault.sol/ZIP0PaymentVault__factory";
