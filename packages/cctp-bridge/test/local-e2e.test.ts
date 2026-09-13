@@ -18,6 +18,7 @@ describe("Local Node E2E Integration (Vitest)", () => {
         releasedAmount = amount;
         return "0xlocalreleasetxhash" as `0x${string}`;
       },
+      acknowledgePayment: async (_paymentId) => "0xlocalacktxhash" as `0x${string}`,
       getVaultBalance: async () => 10_000n * 1_000_000n, // 10,000 MockUSDC in local vault
       onPaymentInitiated: (_cb) => () => {},
     };

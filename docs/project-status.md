@@ -43,14 +43,18 @@ attempt blocked by a malicious token.
 Payer refund: a payer can call `claimRefund` after `REFUND_TIMEOUT` (24 h) if the relayer never
 acknowledged the deposit. `acknowledgePayment` exists because a deposit never leaves `INITIATED`
 on a successful settlement — without it, a payer could be credited on the destination chain and
-still claim a refund here. **Not yet wired:** the relayer does not call `acknowledgePayment`.
+still claim a refund here. The relayer calls it: `VaultSettlementRail` acknowledges each
+EVM → Stellar deposit and waits for the confirmed transaction before crediting Stellar, and a
+failed acknowledgement stops the settlement (#26). Verified against mocks only, like the rest of
+the relayer.
 
 Deployment evidence:
 - Avalanche Fuji (`43113`): `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa` returns contract bytecode from `eth_getCode` and holds a non-zero USDC balance.
 - HashKey Chain Testnet (`133`): `0x14e59806054773fc341377aEC472C07e500BCc86` (pointing to MockUSDC at `0x46a7BE8Cea2d9EB017D0a0277467E680bcA04f17`), verified on-chain runtime bytecode with 50,000 MockUSDC initial liquidity.
 
 Both deployments predate `acknowledgePayment` and `claimRefund`, so their bytecode no longer
-matches this repository. Redeploy before relying on the refund path.
+matches this repository. Redeploy before relying on the refund path — until then the relayer's
+EVM → Stellar settlement fails against them, because its acknowledgement call reverts.
 
 Bytecode size: 6,782 bytes init / 6,037 bytes deployed — comfortably under the EIP-170 24 KB limit.
 
