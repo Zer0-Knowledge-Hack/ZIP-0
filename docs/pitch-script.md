@@ -10,6 +10,10 @@ tracking is already what gpi promises banks, so leading with it says we match th
 marked pauses and the switch to the live app consume the rest, and a pitch that fills its slot with
 words has no room to land. Do not add more text to reach 3:00.
 
+Slides: [`assets/zip0-pitch.pptx`](assets/zip0-pitch.pptx). Regenerate with
+`node scripts/build-pitch-deck.mjs` after changing this script — the deck follows it, not the
+other way round. Speaker cues are in the PowerPoint notes pane.
+
 ---
 
 ## The script
