@@ -121,57 +121,53 @@ function HeroMark() {
 }
 
 /**
- * Trade flow.
+ * Route comparison.
  *
- * The payment is not the point — what it unlocks is. A banana exporter in Cochabamba pays
- * freight and duties, and the cargo moves. Showing the operation rather than the transaction
- * is what separates settlement infrastructure from a wallet.
+ * The result, shown rather than described. Two lanes between the same two points: one hops
+ * through a chain of correspondent banks, the other goes straight through the mark's aperture.
+ * The difference is visible before anything is read — only the two durations are words.
  *
- * Each step opens with the mark: the aperture is what lets the operation through.
- *
- * The footnote matters. Paying duties through ZIP-0 would require an integration with each
- * customs authority that does not exist, and implying otherwise would claim regulatory
- * endorsement we do not have.
+ * This replaced a written list of steps. Text explaining a difference is weaker than a picture
+ * of it.
  */
-function TradeFlow({ t }: { t: typeof es }) {
-  const steps: Array<[string, string]> = [
-    [t.flowStep1, t.flowStep1Detail],
-    [t.flowStep2, t.flowStep2Detail],
-    [t.flowStep3, t.flowStep3Detail],
-  ];
-
+function RouteCompare({ t }: { t: typeof es }) {
   return (
-    <section className="flow" aria-label={t.flowKicker}>
-      <p className="flow-kicker">{t.flowKicker}</p>
-
-      <div className="flow-origin">
-        <strong>{t.flowPayer}</strong>
-        <span>{t.flowPayerPlace}</span>
+    <figure className="cmp" aria-label={`${t.cmpOld}: ${t.cmpOldTime}. ${t.cmpNew}: ${t.cmpNewTime}.`}>
+      <div className="cmp-lane cmp-lane--old">
+        <span className="cmp-label">{t.cmpOld}</span>
+        <svg viewBox="0 0 260 34" aria-hidden="true">
+          <line x1="8" y1="17" x2="252" y2="17" className="cmp-track" />
+          {[8, 69, 130, 191, 252].map((x) => (
+            <circle key={x} cx={x} cy="17" r="5" className="cmp-hop" />
+          ))}
+        </svg>
+        <span className="cmp-time">{t.cmpOldTime}</span>
       </div>
 
-      <ol className="flow-steps">
-        {steps.map(([label, detail], i) => (
-          <li key={label} style={{ animationDelay: `${0.9 + i * 0.45}s` }}>
-            <span className="flow-node" aria-hidden="true">
-              <Mark />
-            </span>
-            <div>
-              <strong>{label}</strong>
-              <span>{detail}</span>
-            </div>
-          </li>
-        ))}
-      </ol>
+      <div className="cmp-lane cmp-lane--new">
+        <span className="cmp-label">{t.cmpNew}</span>
+        <svg viewBox="0 0 260 34" aria-hidden="true">
+          <line x1="8" y1="17" x2="252" y2="17" className="cmp-track cmp-track--direct" />
+          <circle cx="8" cy="17" r="5" className="cmp-hop cmp-hop--end" />
+          <circle cx="252" cy="17" r="5" className="cmp-hop cmp-hop--end" />
+          {/* the aperture at the midpoint, and value passing through it */}
+          <g className="cmp-aperture">
+            <path d="M130 5 A 12 12 0 0 1 141.4 20.6" />
+            <path d="M130 29 A 12 12 0 0 1 118.6 13.4" />
+          </g>
+          <circle cy="17" r="4" className="cmp-value" />
+        </svg>
+        <span className="cmp-time cmp-time--fast">{t.cmpNewTime}</span>
+      </div>
 
-      <p className="flow-unlocked">
-        <Check size={15} />
-        {t.flowUnlocked}
-      </p>
-
-      <p className="flow-footnote">{t.flowFootnote}</p>
-    </section>
+      <figcaption className="cmp-ends">
+        <span>{t.cmpOrigin}</span>
+        <span>{t.cmpDest}</span>
+      </figcaption>
+    </figure>
   );
 }
+
 
 /**
  * Settlement receipt.
@@ -547,7 +543,7 @@ function App() {
                 </div>
                 <div className="landing-hero-visual">
                   <Receipt t={t} />
-                  <TradeFlow t={t} />
+                  <RouteCompare t={t} />
                 </div>
               </section>
 

@@ -166,5 +166,13 @@ export const es = {
   receiptFromValue: "Cochabamba, BO",
   receiptToValue: "Transportista, AR",
   receiptRefValue: "FLETE-2026-0914",
+
+  // --- Comparison ---
+  cmpOld: "Banca corresponsal",
+  cmpOldTime: "3–5 días",
+  cmpNew: "ZIP·0",
+  cmpNewTime: "segundos",
+  cmpOrigin: "Cochabamba",
+  cmpDest: "Buenos Aires",
 };
 export type Messages = Record<keyof typeof es, string>;

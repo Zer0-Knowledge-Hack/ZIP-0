@@ -2473,156 +2473,129 @@ a.landing-hash:hover {
 }
 
 /* ============================================================
-   Trade flow
+   Route comparison
    ============================================================
-   What the payment unlocks. The receipt shows the transaction; this shows the operation it
-   sets in motion — which is the difference between settlement infrastructure and a wallet.
+   The result, drawn. Two lanes between the same two points — one hops through a chain of
+   correspondent banks, the other crosses a single aperture. Only the durations are words.
    ============================================================ */
 
-.landing-hero-visual {
-  display: flex;
-  flex-direction: column;
-  gap: var(--zip-space-4);
-  flex: 0 1 24rem;
-}
-
-.flow {
-  padding: var(--zip-space-4) var(--zip-space-4) var(--zip-space-3);
+.cmp {
+  margin: 0;
+  padding: var(--zip-space-4);
   border: var(--zip-rail);
   border-radius: var(--zip-radius-lg);
   background: var(--zip-surface);
 }
 
-.flow-kicker {
-  font-size: var(--zip-text-xs);
-  font-weight: var(--zip-weight-semibold);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--zip-ink-faint);
-  margin-bottom: var(--zip-space-3);
-}
-
-.flow-origin {
-  padding-bottom: var(--zip-space-3);
-  border-bottom: var(--zip-rail);
-}
-
-.flow-origin strong {
-  display: block;
-  font-size: var(--zip-text-sm);
-  color: var(--zip-ink);
-}
-
-.flow-origin span {
-  font-size: var(--zip-text-xs);
-  color: var(--zip-ink-muted);
-}
-
-/* ---------- Steps ---------- */
-
-.flow-steps {
-  list-style: none;
-  margin: var(--zip-space-3) 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--zip-space-3);
-  position: relative;
-}
-
-/* The rail runs down the column, joining each step — the corridor seen vertically. */
-.flow-steps::before {
-  content: "";
-  position: absolute;
-  left: 11px;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  background: var(--zip-border);
-}
-
-.flow-steps li {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--zip-space-3);
-  position: relative;
-  animation: flow-step-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes flow-step-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* Each step opens with the mark: the aperture is what lets the operation through. */
-.flow-node {
+.cmp-lane {
   display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--zip-surface);
-  color: var(--zip-signal);
-  flex-shrink: 0;
-  position: relative;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--zip-space-1) var(--zip-space-3);
 }
 
-.flow-node .brand-mark {
-  width: 18px;
-  height: 18px;
+.cmp-lane + .cmp-lane {
+  margin-top: var(--zip-space-4);
+  padding-top: var(--zip-space-4);
+  border-top: var(--zip-rail);
 }
 
-.flow-steps strong {
-  display: block;
-  font-size: var(--zip-text-sm);
-  color: var(--zip-ink);
+.cmp-lane svg {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: auto;
+  overflow: visible;
 }
 
-.flow-steps span {
+.cmp-label {
   font-size: var(--zip-text-xs);
+  font-weight: var(--zip-weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--zip-ink-muted);
 }
 
-/* ---------- Outcome ---------- */
-
-.flow-unlocked {
-  display: flex;
-  align-items: center;
-  gap: var(--zip-space-2);
-  margin-top: var(--zip-space-4);
-  padding-top: var(--zip-space-3);
-  border-top: var(--zip-rail);
+.cmp-time {
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums;
   font-size: var(--zip-text-sm);
-  font-weight: var(--zip-weight-medium);
-  color: var(--zip-settled);
+  color: var(--zip-ink-muted);
+  text-align: right;
 }
 
-/*
- * Not a disclaimer in the legal sense — a statement of what is scenario and what is built.
- * Claiming a customs integration we do not have would assert regulatory endorsement.
- */
-.flow-footnote {
+.cmp-time--fast {
+  color: var(--zip-settled);
+  font-weight: var(--zip-weight-medium);
+}
+
+/* ---------- The slow lane ---------- */
+
+.cmp-track {
+  stroke: var(--zip-border-strong);
+  stroke-width: 2;
+  stroke-dasharray: 5 4;
+}
+
+.cmp-hop {
+  fill: var(--zip-surface);
+  stroke: var(--zip-border-strong);
+  stroke-width: 2;
+}
+
+/* ---------- The direct lane ---------- */
+
+.cmp-track--direct {
+  stroke: var(--zip-signal);
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+
+.cmp-hop--end {
+  fill: var(--zip-surface);
+  stroke: var(--zip-signal);
+}
+
+/* The mark's aperture sits at the midpoint: the only thing the value passes through. */
+.cmp-aperture path {
+  fill: none;
+  stroke: var(--zip-signal);
+  stroke-width: 2.5;
+}
+
+.cmp-value {
+  fill: var(--zip-signal);
+  animation: cmp-cross 2.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes cmp-cross {
+  0% {
+    cx: 8px;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    cx: 252px;
+    opacity: 0;
+  }
+}
+
+.cmp-ends {
+  display: flex;
+  justify-content: space-between;
   margin-top: var(--zip-space-3);
+  padding-top: var(--zip-space-2);
   font-size: var(--zip-text-xs);
-  line-height: 1.5;
   color: var(--zip-ink-faint);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .flow-steps li {
+  .cmp-value {
     animation: none;
-  }
-}
-
-@media (max-width: 48rem) {
-  .landing-hero-visual {
-    flex-basis: auto;
-    width: 100%;
+    cx: 130px;
   }
 }

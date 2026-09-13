@@ -165,4 +165,12 @@ export const en: Messages = {
   receiptFromValue: "Cochabamba, BO",
   receiptToValue: "Carrier, AR",
   receiptRefValue: "FLETE-2026-0914",
+
+  // --- Comparison ---
+  cmpOld: "Correspondent banking",
+  cmpOldTime: "3–5 days",
+  cmpNew: "ZIP·0",
+  cmpNewTime: "seconds",
+  cmpOrigin: "Cochabamba",
+  cmpDest: "Buenos Aires",
 };
