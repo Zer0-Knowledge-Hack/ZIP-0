@@ -9,11 +9,15 @@ export const PATHS = {
   activity: "/app/activity",
   help: "/app/help",
   profile: "/app/profile",
+  legal: "/legal",
 } as const;
 
 export type AppPage = keyof typeof PATHS;
 
 export function pageFromPath(pathname: string): AppPage {
+  if (pathname === PATHS.legal || pathname.startsWith(`${PATHS.legal}/`)) {
+    return "legal";
+  }
   if (pathname === PATHS.profile || pathname.startsWith(`${PATHS.profile}/`)) {
     return "profile";
   }
