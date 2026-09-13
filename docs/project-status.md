@@ -15,7 +15,7 @@ the design document.
 | :--- | :--- |
 | `ZIP0PaymentVault.sol` | ✅ Built, tested, deployed on Avalanche Fuji & HSK Testnet |
 | EIP-2612 gasless deposit | ✅ Built and tested |
-| Relayer orchestration (EVM ↔ Stellar) | ⚠️ Built, tested against mocks only |
+| Relayer orchestration (EVM ↔ Stellar) | ✅ Built; local Hardhat integration proven |
 | Pollar / Stellar adapter | ⚠️ Built, no live-network test |
 | Ports & Adapters core (ISettlementRail / PaymentRoutingEngine) | ✅ Built and tested |
 | CCTP settlement rail | ❌ Not started |
@@ -108,17 +108,17 @@ Implemented under Phase 4 of the architectural roadmap:
 
 ### Relayer orchestration
 
-`packages/cctp-bridge/src/relayer/orchestrator.ts` — 126 lines implementing both directions
-(EVM → Stellar, Stellar → EVM), liquidity checks, and status transitions.
+`packages/cctp-bridge/src/relayer/orchestrator.ts` is a facade over `PaymentRoutingEngine` +
+`VaultSettlementRail`. Unit tests still use in-memory adapters (`test/bridge.test.ts`).
 
-Test evidence: `pnpm --filter @zip-0/cctp-bridge test` → **5 passing**.
+Local-chain evidence: `test/local-e2e.test.ts` starts a Hardhat node, deploys `MockUSDC` and
+`ZIP0PaymentVault`, and drives a payment through the real `EvmAdapter`. It asserts on-chain
+`PaymentInitiated` / `PaymentReleased` logs, a real vault USDC delta (deposit then release),
+and a non-synthetic transaction hash. Stellar remains mocked (`IStellarAdapter.creditPayment`).
 
-**The gap:** `test/local-e2e.test.ts` is named "E2E" but constructs in-memory mock adapters. Its
-own comment reads *"In-memory simulation of local Hardhat node contract."* It runs in ~7 ms and
-never contacts a chain. `test/bridge.test.ts` is likewise mock-driven.
+`pnpm --filter @zip-0/cctp-bridge test` is the command that runs this suite.
 
-There is currently **no evidence that the relayer works against a real chain.** Closing this gap
-is roadmap item 2 and the highest-value next step.
+This is not a live testnet proof. Pollar / Horizon is still unproven.
 
 ### State durability
 
