@@ -1818,3 +1818,259 @@ a.landing-hash:hover {
   line-height: 1.55;
   max-width: 68ch;
 }
+
+/* ============================================================
+   Settlement receipt
+   ============================================================
+   The landing's main graphic. It borrows the structure of a block explorer transaction view —
+   same fields, same monospaced figures — so it reads as a record rather than a marketing card.
+   Verifiability is the product's claim; this is what that claim looks like.
+   ============================================================ */
+
+.receipt {
+  margin: 0;
+  width: min(23rem, 100%);
+  flex-shrink: 0;
+}
+
+.receipt-body {
+  background: var(--zip-ink);
+  color: var(--zip-on-dark);
+  border-radius: var(--zip-radius-lg) var(--zip-radius-lg) 0 0;
+  padding: var(--zip-space-6);
+}
+
+.receipt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--zip-space-4);
+  border-bottom: 1px solid var(--zip-on-dark-muted);
+}
+
+.receipt-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zip-space-2);
+  font-family: var(--zip-font-display);
+  font-weight: var(--zip-weight-semibold);
+  font-size: var(--zip-text-base);
+  letter-spacing: 0.04em;
+}
+
+.receipt-brand .brand-mark {
+  width: 20px;
+  height: 20px;
+  color: var(--zip-on-dark);
+}
+
+.receipt-sample {
+  font-family: var(--zip-font-mono);
+  font-size: var(--zip-text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--zip-on-dark-muted);
+  border: 1px solid var(--zip-on-dark-muted);
+  border-radius: 999px;
+  padding: 2px var(--zip-space-2);
+}
+
+.receipt-label {
+  font-family: var(--zip-font-mono);
+  font-size: var(--zip-text-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--zip-on-dark-muted);
+  margin: var(--zip-space-4) 0 var(--zip-space-1);
+}
+
+.receipt-amount {
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1, "zero" 1;
+  font-size: 1.75rem;
+  font-weight: var(--zip-weight-medium);
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--zip-space-4);
+}
+
+.receipt-amount span {
+  font-size: var(--zip-text-sm);
+  color: var(--zip-on-dark-muted);
+  margin-left: var(--zip-space-2);
+  letter-spacing: 0.06em;
+}
+
+.receipt-rows {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--zip-space-2);
+}
+
+.receipt-rows > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--zip-space-3);
+  font-size: var(--zip-text-sm);
+}
+
+.receipt-rows dt {
+  color: var(--zip-on-dark-muted);
+}
+
+.receipt-rows dd {
+  margin: 0;
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status carries a word, never colour alone. */
+.receipt-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zip-space-2);
+  margin-top: var(--zip-space-4);
+  font-family: var(--zip-font-mono);
+  font-size: var(--zip-text-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--zip-on-dark-settled);
+}
+
+.receipt-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--zip-on-dark-settled);
+  animation: receipt-pulse 2.4s ease-in-out infinite;
+}
+
+.receipt-hash {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--zip-space-3);
+  margin-top: var(--zip-space-4);
+  padding-top: var(--zip-space-3);
+  border-top: 1px solid var(--zip-on-dark-muted);
+  font-size: var(--zip-text-xs);
+  color: var(--zip-on-dark-muted);
+}
+
+.receipt-hash code {
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "zero" 1;
+  color: var(--zip-on-dark);
+}
+
+/*
+ * Torn edge. A repeating conic gradient cut into triangles — no image, no extra request, and
+ * it is the detail that makes the object read as a receipt rather than a panel.
+ */
+.receipt-tear {
+  height: 12px;
+  background: var(--zip-ink);
+  -webkit-mask-image: conic-gradient(from -45deg at bottom, transparent 0 90deg, #000 0);
+  mask-image: conic-gradient(from -45deg at bottom, transparent 0 90deg, #000 0);
+  -webkit-mask-size: 16px 12px;
+  mask-size: 16px 12px;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+}
+
+.receipt-foot {
+  margin-top: var(--zip-space-3);
+  font-size: var(--zip-text-xs);
+  line-height: 1.5;
+  color: var(--zip-ink-faint);
+  max-width: 34ch;
+}
+
+@keyframes receipt-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* Motion is decorative here; honour the preference. */
+@media (prefers-reduced-motion: reduce) {
+  .receipt-status-dot {
+    animation: none;
+  }
+}
+
+/* ---------- Hero layout with the receipt alongside ---------- */
+
+.landing-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(var(--zip-space-6), 5vw, var(--zip-space-8));
+}
+
+.landing-hero-copy {
+  flex: 1 1 22rem;
+}
+
+@media (max-width: 48rem) {
+  .receipt {
+    width: 100%;
+  }
+}
+
+/* ---------- Corridor diagram ---------- */
+
+.corridor {
+  width: 100%;
+  max-width: 26rem;
+  height: auto;
+  color: var(--zip-border-strong);
+  margin: 0 auto;
+  display: block;
+}
+
+.corridor-node {
+  fill: var(--zip-surface);
+  stroke: var(--zip-ink);
+  stroke-width: 2;
+}
+
+.corridor-pulse {
+  fill: var(--zip-signal);
+  animation: corridor-travel 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes corridor-travel {
+  0% {
+    cx: 52px;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    cx: 368px;
+    opacity: 0;
+  }
+}
+
+/*
+ * Motion here is decorative. Without it the diagram still says the same thing: two endpoints,
+ * one direct connection.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .corridor-pulse {
+    animation: none;
+    cx: 210px;
+  }
+}

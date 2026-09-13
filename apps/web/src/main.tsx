@@ -58,6 +58,103 @@ function Mark() {
   );
 }
 
+/**
+ * Corridor diagram.
+ *
+ * Two endpoints joined by a rail, with value travelling across it. It carries the product's
+ * claim — money moves directly, without the chain of intermediaries in between — faster than
+ * a paragraph can.
+ *
+ * Inline SVG with a CSS animation: no library, no extra request, and it degrades to a static
+ * diagram when reduced motion is requested.
+ */
+function Corridor() {
+  return (
+    <svg
+      className="corridor"
+      viewBox="0 0 420 80"
+      role="img"
+      aria-label="Direct corridor between two endpoints"
+    >
+      <line
+        className="corridor-rail"
+        x1="52"
+        y1="40"
+        x2="368"
+        y2="40"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <circle className="corridor-node" cx="40" cy="40" r="11" />
+      <circle className="corridor-node" cx="380" cy="40" r="11" />
+      <circle className="corridor-pulse" cy="40" r="5" />
+    </svg>
+  );
+}
+
+/**
+ * Settlement receipt.
+ *
+ * Mirrors the structure a block explorer shows for a transaction — same fields, same
+ * monospaced treatment — so the artefact reads as a record rather than a marketing card.
+ * That is the point: the product's claim is verifiability, and the receipt is what
+ * verifiability looks like.
+ *
+ * Marked as a sample. The data is illustrative and the label says so, because a receipt that
+ * looks real while being invented is the same failure as a fabricated transaction hash.
+ */
+function Receipt({ t }: { t: typeof es }) {
+  const rows: Array<[string, string, string?]> = [
+    [t.receiptFrom, "HashKey Chain", "zip-mono"],
+    [t.receiptTo, "Stellar", "zip-mono"],
+    [t.receiptRef, "INV-2026-0914", "zip-mono"],
+    [t.receiptTime, "4.2 s", "zip-mono"],
+  ];
+
+  return (
+    <figure className="receipt" aria-label={t.receiptTitle}>
+      <div className="receipt-body">
+        <header className="receipt-head">
+          <span className="receipt-brand">
+            <Mark />
+            ZIP·0
+          </span>
+          <span className="receipt-sample">{t.receiptSample}</span>
+        </header>
+
+        <p className="receipt-label">{t.receiptAmount}</p>
+        <p className="receipt-amount">
+          250,000.00 <span>USDC</span>
+        </p>
+
+        <dl className="receipt-rows">
+          {rows.map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <div className="receipt-status">
+          <span className="receipt-status-dot" />
+          {t.receiptSettled}
+        </div>
+
+        <div className="receipt-hash">
+          <span>{t.receiptHash}</span>
+          <code>0x8f2a…41c7</code>
+        </div>
+      </div>
+
+      {/* Torn edge. Pure CSS, no image — it is what makes the object read as a receipt. */}
+      <div className="receipt-tear" aria-hidden="true" />
+
+      <figcaption className="receipt-foot">{t.receiptFoot}</figcaption>
+    </figure>
+  );
+}
+
 function App() {
   const [language, setLanguage] = useState(initialLanguage);
   const t = language === "es" ? es : en;
@@ -337,20 +434,25 @@ function App() {
           {page === "landing" && (
             <div className="landing">
               <section className="landing-hero">
-                <h2>{t.landingTitle}</h2>
-                <p className="landing-lead">{t.landingLead}</p>
-                <div className="landing-actions">
-                  <button className="primary" onClick={() => go("overview")}>
-                    {t.landingCta}
-                    <ArrowRight size={17} />
-                  </button>
+                <div className="landing-hero-copy">
+                  <h2>{t.landingTitle}</h2>
+                  <p className="landing-lead">{t.landingLead}</p>
+                  <div className="landing-actions">
+                    <button className="primary" onClick={() => go("overview")}>
+                      {t.landingCta}
+                      <ArrowRight size={17} />
+                    </button>
+                  </div>
                 </div>
+                <Receipt t={t} />
               </section>
 
               {/*
                 No section headings. A landing shows the product and lets the reader draw the
                 conclusion; naming the problem is telling rather than showing.
               */}
+              <Corridor />
+
               <section className="landing-qualities">
                 {[
                   [t.q1Title, t.q1Body],

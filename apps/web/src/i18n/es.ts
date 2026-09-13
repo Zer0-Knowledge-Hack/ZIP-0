@@ -121,5 +121,20 @@ export const es = {
   landingPrototype: "Prototipo en red de prueba",
   landingPrototypeBody: "ZIP-0 no tiene licencia, no custodia fondos y no procesa valor real. Los contratos no están auditados.",
   landingLegal: "Ver divulgación completa",
+
+  // --- Receipt ---
+  receiptTitle: "Comprobante de operación",
+  receiptSample: "Ejemplo",
+  receiptAmount: "Importe",
+  receiptFrom: "Origen",
+  receiptTo: "Destino",
+  receiptRef: "Referencia",
+  receiptNetwork: "Red",
+  receiptStatus: "Estado",
+  receiptSettled: "Confirmado",
+  receiptTime: "Tiempo",
+  receiptHash: "Identificador",
+  receiptVerify: "Comprobar en el registro público",
+  receiptFoot: "Ejemplo con datos ilustrativos. No corresponde a una operación real.",
 };
 export type Messages = Record<keyof typeof es, string>;

@@ -120,4 +120,19 @@ export const en: Messages = {
   landingPrototype: "Test-network prototype",
   landingPrototypeBody: "ZIP-0 holds no licence, custodies no funds and processes no real value. Contracts are unaudited.",
   landingLegal: "See full disclosure",
+
+  // --- Receipt ---
+  receiptTitle: "Settlement receipt",
+  receiptSample: "Sample",
+  receiptAmount: "Amount",
+  receiptFrom: "From",
+  receiptTo: "To",
+  receiptRef: "Reference",
+  receiptNetwork: "Network",
+  receiptStatus: "Status",
+  receiptSettled: "Confirmed",
+  receiptTime: "Time",
+  receiptHash: "Identifier",
+  receiptVerify: "Check the public record",
+  receiptFoot: "Sample with illustrative data. Does not correspond to a real operation.",
 };
