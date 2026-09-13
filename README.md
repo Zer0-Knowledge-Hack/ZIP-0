@@ -208,8 +208,8 @@ restart.
 
 | Contract | Address |
 | :--- | :--- |
-| `ZIP0PaymentVault` | [`0x14e59806054773fc341377aEC472C07e500BCc86`](https://testnet-explorer.hsk.xyz/address/0x14e59806054773fc341377aEC472C07e500BCc86) |
-| `MockUSDC` | [`0x46a7BE8Cea2d9EB017D0a0277467E680bcA04f17`](https://testnet-explorer.hsk.xyz/address/0x46a7BE8Cea2d9EB017D0a0277467E680bcA04f17) |
+| `ZIP0PaymentVault` | [`0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07`](https://testnet-explorer.hsk.xyz/address/0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07) |
+| `MockUSDC` | [`0x1f65E72EE31F709969Dfc75f98f5867EaE332CD9`](https://testnet-explorer.hsk.xyz/address/0x1f65E72EE31F709969Dfc75f98f5867EaE332CD9) |
 
 ---
 
