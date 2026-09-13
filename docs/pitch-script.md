@@ -6,7 +6,7 @@ Positioning follows [`market.md`](market.md): we are **not** an alternative to S
 alternative to correspondent banking. The lead is reconciliation, not speed and not verifiability —
 tracking is already what gpi promises banks, so leading with it says we match the incumbent.
 
-**344 spoken words — about 2:40 at a deliberate pace.** That is under three minutes on purpose. The
+**372 spoken words — about 2:50 at a deliberate pace.** That is under three minutes on purpose. The
 marked pauses and the switch to the live app consume the rest, and a pitch that fills its slot with
 words has no room to land. Do not add more text to reach 3:00.
 
@@ -54,6 +54,11 @@ A settlement contract holds the funds. The payment locks on one side and release
 One rail. No intermediaries taking a cut mid-flight, and no pre-funded account in every corridor.
 
 The exporter receives the amount on the invoice. Not the amount minus whatever the chain decided.
+
+> **[Same slide. This is the moment the objection forms — answer it before it is asked.]**
+
+You might ask why she does not just accept digital dollars directly. She has no wallet, and her
+bank will not take them. That is precisely the customer.
 
 > **[1:50 — Slide 5: live product. Switch to the deployed app.]**
 
@@ -103,8 +108,18 @@ because every other team will be claiming more than they built. This project rem
 fabricated transaction hashes from its own codebase; that standard is the differentiator, so hold
 it on stage.
 
+**The alternatives line is doing real work.** "Why not just send digital dollars?" is the most
+predictable objection in a payments pitch, and it forms in the listener's head the instant you
+describe the solution. A judge who is arguing with you internally is not listening. Answering it
+unprompted, in one sentence, costs ten seconds and buys back the rest of the pitch.
+
+Everything else about competitors — Binance Pay, suppliers who already accept crypto, and how we
+make money — stays out of the spoken script on purpose. Three minutes cannot carry the problem,
+the demo, the limits and a competitive analysis, and a revenue model that is not yet decided is
+weaker said aloud than answered when asked. It is all in [`pitch-qa.md`](pitch-qa.md).
+
 **If you are running long**, cut the sentence beginning "Now someone on her team" — it is the most
-expendable line. Do not cut the pause.
+expendable line. Do not cut the pause, and do not cut the alternatives line.
 
 **If a judge asks about regulation** — point at the disclosures page. It states which obligations
 apply and which we do not yet meet, by jurisdiction. Do not improvise on this.
