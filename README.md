@@ -91,9 +91,65 @@ code does not provide.
 | :--- | :--- |
 | `packages/contracts-evm` | `ZIP0PaymentVault.sol`, `MockUSDC.sol`, Hardhat config, deploy scripts |
 | `packages/cctp-bridge` | Relayer orchestrator, EVM/Stellar adapters, core types |
+| `packages/sdk` | `@zip-0/sdk` typed client library (`Zip0Client`) |
+| `apps/gateway` | REST API gateway exposing `/v1/payments/*` endpoints |
 | `spec/` | Architecture reference (design intent, includes planned work) |
 | `docs/` | Operational documentation (verified facts, integration guides) |
 | `openspec/` | OpenSpec change tracking |
+
+---
+
+## SDK & REST Gateway
+
+ZIP-0 provides both a typed client SDK (`@zip-0/sdk`) and an HTTP REST gateway (`apps/gateway`) allowing applications to initiate and track payments without managing low-level contract calls directly.
+
+### Running the Gateway
+
+```bash
+pnpm dev
+# Or run gateway directly:
+pnpm --filter @zip-0/gateway dev
+```
+
+The gateway runs by default at `http://localhost:3000` and exposes:
+- `GET /health` — Service health check
+- `POST /v1/payments/quote` — Route evaluation, fee calculation, and rail selection
+- `POST /v1/payments/transfer` — Payment initiation
+- `GET /v1/payments/:id` — Payment status lookup and transaction hashes
+- `POST /v1/webhooks` — Webhook event subscription
+
+### Using `@zip-0/sdk`
+
+```typescript
+import { Zip0Client } from "@zip-0/sdk";
+
+const zip0 = new Zip0Client({
+  baseUrl: "http://localhost:3000",
+  apiKey: process.env.ZIP0_API_KEY,
+});
+
+// 1. Get a quote
+const quote = await zip0.payments.quote({
+  sourceChain: "avalanche",
+  destinationChain: "hashkey",
+  amount: "5000000.00",
+});
+console.log(`Estimated fee: ${quote.estimatedFee} USDC, Rail: ${quote.railType}`);
+
+// 2. Initiate payment
+const payment = await zip0.payments.create({
+  amount: "5000000.00",
+  sourceChain: "avalanche",
+  destinationChain: "hashkey",
+  recipient: "0xRecipientAddress...",
+  reference: "INV-2026-SG-001",
+});
+console.log(`Payment initiated: ${payment.paymentId}, Tx: ${payment.destinationTxHash}`);
+
+// 3. Track settlement status
+const status = await zip0.payments.get(payment.paymentId);
+console.log(`Current status: ${status.status}`);
+```
 
 ---
 

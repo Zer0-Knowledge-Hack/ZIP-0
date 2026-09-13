@@ -20,8 +20,8 @@ the design document.
 | Ports & Adapters core (ISettlementRail / PaymentRoutingEngine) | ✅ Built and tested |
 | CCTP settlement rail | ❌ Not started |
 | ERC-3009 `transferWithAuthorization` | ✅ Vault deposit + EIP-712 signing/validation; standalone relayer broadcast not implemented |
-| `@zip-0/sdk` package | ❌ Not started |
-| REST API gateway | ❌ Not started |
+| `@zip-0/sdk` package | ✅ Built and tested (`packages/sdk`) |
+| REST API gateway | ✅ Built and tested (`apps/gateway`) |
 | Persistent payment state | ❌ Not started |
 
 ---
@@ -93,6 +93,13 @@ unchanged and still passing.
 **Not implemented:** the standalone `Erc3009Relayer.relayAuthorization()` still refuses to broadcast
 (it verifies the signature, then throws `NotImplementedError`). The vault entry point performs the
 on-chain transfer directly; the separate relayer broadcast remains future work.
+
+### Typed SDK (`@zip-0/sdk`) and REST Gateway (`apps/gateway`)
+
+Implemented under Phase 4 of the architectural roadmap:
+- `packages/sdk`: typed `Zip0Client` exposing `payments.quote()`, `payments.create()`, `payments.get()`, and `webhooks.subscribe()`.
+- `apps/gateway`: Express REST API running on `http://localhost:3000` (or `PORT`) exposing `POST /v1/payments/quote`, `POST /v1/payments/transfer`, `GET /v1/payments/:id`, `POST /v1/webhooks`, and `GET /health`.
+- Test evidence: 5 Vitest unit tests in `packages/sdk` and 10 Vitest integration/e2e tests in `apps/gateway` verifying route estimation, payment transfer creation, status lookup, and webhook subscriptions.
 
 ---
 

@@ -163,11 +163,8 @@ Código nuevo debería depender de `IPaymentRouter`.
 ---
 
 ## 6. Superficie de Consumo: API Gateway y SDK (`@zip-0/sdk`)
-
-> ⚠️ **Estado: DISEÑO PROPUESTO, no implementado.** Ni el paquete `@zip-0/sdk` ni los endpoints
-> REST existen todavía. Corresponden a la Fase 4 de la hoja de ruta.
-
-Las instituciones interactuarán con ZIP-0 a través de interfaces de alto nivel:
+ 
+ Las instituciones interactúan con ZIP-0 a través de interfaces de alto nivel implementadas en `packages/sdk` y `apps/gateway`:
 
 ### A. Endpoints REST API
 
