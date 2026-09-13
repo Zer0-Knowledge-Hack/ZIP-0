@@ -25,6 +25,8 @@
   --zip-signal: #1f5fe0;
   --zip-signal-hover: #1a51c0;
   --zip-signal-faint: #e8f0ff;
+  /* Text on Signal CTAs — fixed white; never reuse --zip-surface (flips in dark). */
+  --zip-on-signal: #ffffff;
 
   /*
    * On-dark tokens.
@@ -80,6 +82,7 @@
   --zip-space-2: 0.5rem;
   --zip-space-3: 0.75rem;
   --zip-space-4: 1rem;
+  --zip-space-5: 1.25rem;
   --zip-space-6: 1.5rem;
   --zip-space-8: 2rem;
 
