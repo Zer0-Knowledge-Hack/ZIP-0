@@ -176,9 +176,12 @@ Roles: `DEFAULT_ADMIN_ROLE`, `TREASURY_ROLE` (granted to admin at construction),
 Amounts use 6 decimals, matching USDC on every supported network.
 
 **Known limitations.** Once the relayer acknowledges a deposit, only the relayer can refund it.
-The relayer does not call `acknowledgePayment` yet, and the vault deployed on Avalanche Fuji
-predates `acknowledgePayment` and `claimRefund`. Relayer payment state lives in an in-memory `Map`
-and does not survive a process restart.
+The relayer acknowledges every EVM → Stellar deposit before crediting Stellar, so relayer downtime
+beyond `REFUND_TIMEOUT` lets payers reclaim unacknowledged deposits — see [SECURITY.md](SECURITY.md).
+The vaults deployed on Avalanche Fuji and HSK Testnet predate `acknowledgePayment` and
+`claimRefund`: the relayer's EVM → Stellar settlement fails against them until they are
+redeployed. Relayer payment state lives in an in-memory `Map` and does not survive a process
+restart.
 
 ---
 

@@ -137,6 +137,7 @@ describe("VaultSettlementRail recipient validation", () => {
   const adapter = (): IEvmAdapter => ({
     depositPayment: vi.fn(),
     releasePayment: vi.fn().mockResolvedValue("0xrealreleasehash" as `0x${string}`),
+    acknowledgePayment: vi.fn(),
     getVaultBalance: vi.fn().mockResolvedValue(1_000n * 1_000_000n),
     onPaymentInitiated: vi.fn(),
   });

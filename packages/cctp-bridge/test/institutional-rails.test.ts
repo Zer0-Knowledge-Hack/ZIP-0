@@ -17,6 +17,7 @@ describe("Institutional Payment Infrastructure & Dual-Rail Routing (Vitest)", ()
   const mockVault: IEvmAdapter = {
     depositPayment: async () => "0xmockdeposittx" as `0x${string}`,
     releasePayment: async (_id, _rec, _amt) => "0xmockreleasetx" as `0x${string}`,
+    acknowledgePayment: async (_id) => "0xmockacktx" as `0x${string}`,
     getVaultBalance: async () => 1_000_000n * 1_000_000n, // $1,000,000 USDC in vault
     onPaymentInitiated: () => () => {},
   };
