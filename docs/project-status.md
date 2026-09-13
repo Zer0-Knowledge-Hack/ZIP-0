@@ -120,20 +120,37 @@ of every in-flight payment. Acceptable for a demo; not acceptable for settlement
 ---
 
 
+### CCTP settlement rail
+
+`packages/cctp-bridge/src/rails/cctp-settlement-rail.ts` implements `CctpSettlementRail` over
+Circle's official Bridge Kit. `CircleBridgeKitClient` performs the full burn-and-mint:
+approve USDC, `depositForBurn` on the source chain, poll Circle's Iris attestation (the kit owns
+retry/backoff), then `receiveMessage` on the destination. `supportsRoute` returns true only where
+**both** chains have CCTP — HashKey Chain and Stellar are deliberately excluded, so the router
+falls back to the vault rail for them.
+
+The rail returns the destination `mint` transaction hash from the Bridge Kit result. If the bridge
+does not reach `success`, or no mint hash exists, it throws `CCTP_SETTLEMENT_FAILED` rather than
+reporting a settlement that did not happen.
+
+Test evidence: unit tests inject a fake `CctpBridgeClient` and cover route support, zero-fee
+quoting, the returned mint hash, unconfigured refusal, recipient/amount validation, and error
+propagation. **Not yet proven:** a live testnet burn-and-mint with real hashes (requires a funded
+source-chain key).
+
 ### Settlement broadcast vs. verification
 
-Three components implement correct cryptography and routing but do **not** broadcast a
-transaction. They refuse rather than return a hash, so no payment is ever marked settled without
-a real transaction behind it.
+Two components implement correct cryptography but do **not** broadcast a transaction. They refuse
+rather than return a hash, so no payment is ever marked settled without a real transaction behind
+it.
 
 | Component | Implemented | Not implemented |
 | :--- | :--- | :--- |
-| `CctpSettlementRail` | Circle domain map, route support, fee quote | `depositForBurn`, Iris attestation, `receiveMessage` |
 | `Erc3009Relayer` | EIP-712 recovery, signer validation, nonce replay protection | `transferWithAuthorization` broadcast |
 | `PollarPolygonAdapter` | Account/config surface | Sponsored transfer submission |
 
-All three throw `NotImplementedError`. A test in `test/settlement-honesty.test.ts` scans `src/`
-and fails if synthetic transaction-hash construction reappears.
+Both throw `NotImplementedError`. A test in `test/settlement-honesty.test.ts` scans `src/` and
+fails if synthetic transaction-hash construction reappears.
 
 This distinction matters: signature verification being real is a genuine milestone, and it is not
 the same milestone as settlement working.
@@ -146,7 +163,6 @@ A repository-wide search for each term returns zero matches outside the design d
 
 | Described | Reality |
 | :--- | :--- |
-| `CctpSettlementRail`, Circle `TokenMessenger`, Iris attestation | No CCTP code exists anywhere in the repository |
 | `@zip-0/sdk` | Package does not exist |
 | REST API gateway (`/v1/payments/*`) | No `apps/` directory exists |
 
@@ -157,9 +173,9 @@ exists, so `pnpm dev` cannot currently run.
 
 ## Naming note
 
-The package `@zip-0/cctp-bridge` and the branch `feat/cctp` both reference CCTP, but no CCTP
-integration is implemented. The name reflects intended direction, not current capability. Renaming
-is deferred to avoid churn during the hackathon.
+The package `@zip-0/cctp-bridge` now carries a real CCTP rail (`src/rails/cctp-settlement-rail.ts`),
+so the name is accurate for EVM-to-EVM CCTP corridors. It also carries the vault rail and the
+Stellar adapter, so the package is broader than CCTP alone.
 
 ---
 
