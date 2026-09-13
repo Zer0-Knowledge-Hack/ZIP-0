@@ -1,0 +1,106 @@
+# Pitch Script — 3 minutes
+
+Spoken script for the ZIP·0 pitch. English, international audience.
+
+Positioning follows [`market.md`](market.md): we are **not** an alternative to SWIFT, we are an
+alternative to correspondent banking. The lead is reconciliation, not speed and not verifiability —
+tracking is already what gpi promises banks, so leading with it says we match the incumbent.
+
+**337 spoken words — about 2:30 at a deliberate pace.** That is under three minutes on purpose. The
+marked pauses and the switch to the live app consume the rest, and a pitch that fills its slot with
+words has no room to land. Do not add more text to reach 3:00.
+
+---
+
+## The script
+
+> **[0:00 — Open. Slide 1: wordmark on near-black.]**
+
+My name is Julio Severiche, and this is ZIP·0.
+
+> **[0:10 — Slide 2: the invoice. One number, large.]**
+
+A banana exporter in Cochabamba ships to a buyer in Brazil and invoices fifty thousand dollars.
+
+Eleven days later, forty-eight thousand six hundred arrives.
+
+> **[Pause. Let the gap sit.]**
+
+Nobody stole anything. Three correspondent banks each took a fee in flight.
+
+Now someone on her team spends Thursday matching a short payment against the original invoice,
+chasing the difference, and explaining it to a supplier who also got paid less than agreed.
+
+> **[0:45 — Slide 3: messaging layer vs settlement layer.]**
+
+People call this a SWIFT problem. It isn't.
+
+SWIFT is messaging. It carries the instruction — it never holds the money. The money moves through
+correspondent banking, one bank holding an account for another. That is where the deduction
+happens, and that is the layer nobody has replaced.
+
+It is also where the capital goes to die. More than twenty-seven trillion dollars sits idle in
+these accounts right now, pre-funded so the corridors can exist at all.
+
+> **[1:20 — Slide 4: the product. Mark centred, rail passing through.]**
+
+ZIP·0 replaces the settlement layer, not the messaging.
+
+A settlement contract holds the funds. The payment locks on one side and releases on the other.
+One rail. No intermediaries taking a cut mid-flight, and no pre-funded account in every corridor.
+
+The exporter receives the amount on the invoice. Not the amount minus whatever the chain decided.
+
+> **[1:50 — Slide 5: live product. Switch to the deployed app.]**
+
+This is running now, on HashKey Chain.
+
+The settlement contract is deployed and its source is verified on the block explorer. You do not
+have to believe me — you can read it.
+
+And the available funds on this screen are not a mockup. The app reads them from the chain every
+fifteen seconds.
+
+> **[2:20 — Slide 6: what is real. Stay honest, do not soften.]**
+
+Let me be precise about what this is. A testnet prototype. Unaudited. A trusted operator.
+
+The submit button is disabled, and that is deliberate. Every figure in this interface came from a
+real chain read — or it says unavailable. Nothing here is decoration.
+
+> **[2:45 — Slide 7: close. Wordmark and one line.]**
+
+The contract is live and verified. What we need next is an audit and one pilot corridor:
+Bolivia to Brazil.
+
+ZIP·0. The amount you send is the amount that arrives.
+
+---
+
+## Delivery notes
+
+**The one thing to get right.** The pause after "forty-eight thousand six hundred arrives" is the
+whole pitch. That gap is where the audience does the subtraction themselves. If you fill it, they
+hear a statistic instead of a loss.
+
+**Say the numbers slowly.** "Twenty-seven trillion" lands only if it is given room. Everything else
+can move at pace.
+
+**Do not say "blockchain" until slide 5, and only once.** The audience is institutional. Naming the
+technology early reframes the pitch as a crypto project rather than a settlement product — and it
+invites the objection before the problem has landed.
+
+**Do not oversell on slide 6.** Stating the limits plainly is the strongest moment in the pitch,
+because every other team will be claiming more than they built. This project removed three
+fabricated transaction hashes from its own codebase; that standard is the differentiator, so hold
+it on stage.
+
+**If you are running long**, cut the sentence beginning "Now someone on her team" — it is the most
+expendable line. Do not cut the pause.
+
+**If a judge asks "why not just use stablecoins directly?"** — because the exporter has no wallet,
+no custody policy and no way to reconcile it against an invoice. The rail is the product; the token
+is an implementation detail.
+
+**If a judge asks about regulation** — point at the disclosures page. It states which obligations
+apply and which we do not yet meet, by jurisdiction. Do not improvise on this.
