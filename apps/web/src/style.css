@@ -1430,7 +1430,7 @@ footer {
   gap: 24px;
 }
 .topbar .brand {
-  color: var(--zip-surface);
+  color: var(--zip-ink);
   text-decoration: none;
   flex-shrink: 0;
   margin: 0;
@@ -1662,10 +1662,10 @@ code {
 /* ============================================================
    Landing
    ============================================================
-   The first thing a visitor sees. It has to answer what this is, what problem it solves,
-   how it works and why it can be trusted — without assuming prior crypto knowledge.
+   Shows the product and lets the reader reach the conclusion. No section headings naming a
+   problem: an institution scanning this for thirty seconds needs claims, not an essay.
 
-   All colour comes from tokens. Nothing here introduces a literal value.
+   All colour comes from tokens.
    ============================================================ */
 
 .landing {
@@ -1673,73 +1673,45 @@ code {
   flex-direction: column;
   gap: var(--zip-space-8);
   padding-bottom: var(--zip-space-8);
+  max-width: 58rem;
 }
 
 .landing-hero {
-  padding: var(--zip-space-8) 0 var(--zip-space-4);
-  border-bottom: var(--zip-rail);
-  max-width: 44rem;
-}
-
-.landing-eyebrow {
-  display: block;
-  font-size: var(--zip-text-xs);
-  font-weight: var(--zip-weight-semibold);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--zip-ink-muted);
-  margin-bottom: var(--zip-space-3);
+  padding: clamp(2rem, 8vh, 5rem) 0 var(--zip-space-6);
 }
 
 .landing-hero h2 {
-  font-size: var(--zip-text-2xl);
+  font-size: clamp(2rem, 5vw, var(--zip-text-2xl));
   font-weight: var(--zip-weight-bold);
   color: var(--zip-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  max-width: 18ch;
   margin-bottom: var(--zip-space-4);
-  max-width: 20ch;
 }
 
 .landing-lead {
   font-size: var(--zip-text-lg);
-  line-height: 1.55;
+  line-height: 1.5;
   color: var(--zip-ink-muted);
-  max-width: 52ch;
+  max-width: 42ch;
 }
 
 .landing-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--zip-space-4);
   margin-top: var(--zip-space-6);
 }
 
-.landing-problem h3,
-.landing-rails h3,
-.landing-proof h3 {
-  font-size: var(--zip-text-xl);
-  font-weight: var(--zip-weight-semibold);
-  color: var(--zip-ink);
-  margin-bottom: var(--zip-space-3);
-}
+/* ---------- Qualities ---------- */
 
-.landing-problem p,
-.landing-proof p {
-  color: var(--zip-ink-muted);
-  max-width: 62ch;
-  line-height: 1.6;
-}
-
-/* ---------- Rails ---------- */
-
-.landing-rail-grid {
+.landing-qualities {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
-  gap: var(--zip-space-4);
-  margin-top: var(--zip-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--zip-space-6);
+  padding-top: var(--zip-space-6);
+  border-top: var(--zip-rail);
 }
 
-.landing-rail h4 {
+.landing-qualities h3 {
   font-family: var(--zip-font-display);
   font-size: var(--zip-text-lg);
   font-weight: var(--zip-weight-semibold);
@@ -1747,91 +1719,74 @@ code {
   margin-bottom: var(--zip-space-2);
 }
 
-.landing-rail p {
-  color: var(--zip-ink-muted);
+.landing-qualities p {
   font-size: var(--zip-text-sm);
   line-height: 1.6;
-  margin-bottom: var(--zip-space-4);
+  color: var(--zip-ink-muted);
+  max-width: 34ch;
 }
+
+/* ---------- Public record ---------- */
 
 /*
- * Rail status. Never colour alone — each state carries an icon and its word, so the
- * distinction survives a projector and colour vision deficiency.
+ * Presented without a heading. The addresses speak for themselves, and a judge who clicks
+ * through has verified the claim without being told to.
  */
-.landing-status {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--zip-space-2);
-  font-family: var(--zip-font-mono);
-  font-size: var(--zip-text-xs);
-  font-weight: var(--zip-weight-medium);
-  letter-spacing: 0.06em;
-  padding: var(--zip-space-1) var(--zip-space-3);
-  border-radius: var(--zip-radius);
-}
-
-.landing-status--live {
-  color: var(--zip-settled);
-  background: var(--zip-settled-faint);
-}
-
-.landing-status--planned {
-  color: var(--zip-ink-muted);
-  background: var(--zip-surface-raised);
-  border: var(--zip-rail);
-}
-
-/* ---------- Proof ---------- */
-
-.landing-proof-list {
-  margin: var(--zip-space-4) 0 0;
+.landing-proof dl {
+  margin: 0;
+  padding-top: var(--zip-space-6);
+  border-top: var(--zip-rail);
   display: flex;
   flex-direction: column;
   gap: var(--zip-space-3);
 }
 
-.landing-proof-list > div {
+.landing-proof dl > div {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--zip-space-3);
-  padding-bottom: var(--zip-space-3);
-  border-bottom: var(--zip-rail);
 }
 
-.landing-proof-list > div:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.landing-proof-list dt {
+.landing-proof dt {
   font-size: var(--zip-text-xs);
   font-weight: var(--zip-weight-medium);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--zip-ink-muted);
+  color: var(--zip-ink-faint);
 }
 
-.landing-proof-list dd {
+.landing-proof dd {
   margin: 0;
 }
 
 .landing-hash {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zip-space-2);
   font-family: var(--zip-font-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1, "zero" 1;
   font-size: var(--zip-text-sm);
-  color: var(--zip-signal);
+  color: var(--zip-ink-muted);
   overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+a.landing-hash {
+  color: var(--zip-signal);
+}
+
+a.landing-hash:hover {
+  text-decoration: underline;
 }
 
 /* ---------- Prototype disclosure ---------- */
 
 /*
- * Shown on the landing, not buried in a footer. The product claims to be institutional
- * settlement infrastructure; stating plainly that it is a testnet prototype is what makes the
- * rest of the claims credible rather than the opposite.
+ * Kept on the landing rather than in a footer. Stating plainly that this is a test-network
+ * prototype is what makes the institutional claims credible instead of hollow.
  */
 .landing-notice {
   display: flex;
@@ -1861,14 +1816,5 @@ code {
   font-size: var(--zip-text-sm);
   color: var(--zip-ink-muted);
   line-height: 1.55;
-  max-width: 70ch;
-}
-
-@media (max-width: 40rem) {
-  .landing-hero h2 {
-    font-size: var(--zip-text-xl);
-  }
-  .landing-lead {
-    font-size: var(--zip-text-base);
-  }
+  max-width: 68ch;
 }

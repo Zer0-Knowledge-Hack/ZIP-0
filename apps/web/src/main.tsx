@@ -337,7 +337,6 @@ function App() {
           {page === "landing" && (
             <div className="landing">
               <section className="landing-hero">
-                <span className="landing-eyebrow">{t.landingEyebrow}</span>
                 <h2>{t.landingTitle}</h2>
                 <p className="landing-lead">{t.landingLead}</p>
                 <div className="landing-actions">
@@ -345,54 +344,28 @@ function App() {
                     {t.landingCta}
                     <ArrowRight size={17} />
                   </button>
-                  <a
-                    className="text-button"
-                    href={`${EXPLORER}/address/${VAULT}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {t.landingCtaSecondary}
-                    <ArrowUpRight size={16} />
-                  </a>
                 </div>
               </section>
 
-              <section className="panel landing-problem">
-                <h3>{t.landingProblemTitle}</h3>
-                <p>{t.landingProblemBody}</p>
+              {/*
+                No section headings. A landing shows the product and lets the reader draw the
+                conclusion; naming the problem is telling rather than showing.
+              */}
+              <section className="landing-qualities">
+                {[
+                  [t.q1Title, t.q1Body],
+                  [t.q2Title, t.q2Body],
+                  [t.q3Title, t.q3Body],
+                ].map(([title, body]) => (
+                  <article key={title}>
+                    <h3>{title}</h3>
+                    <p>{body}</p>
+                  </article>
+                ))}
               </section>
 
-              <section className="landing-rails">
-                <h3>{t.landingHowTitle}</h3>
-                <div className="landing-rail-grid">
-                  {/*
-                    Both rails are shown, with their real state. The CCTP half is not
-                    implemented (#21) and is labelled as designed — describing it as working
-                    would be the same lie as a fabricated transaction hash.
-                  */}
-                  <article className="panel landing-rail">
-                    <h4>{t.landingRail2}</h4>
-                    <p>{t.landingRail2Body}</p>
-                    <span className="landing-status landing-status--live">
-                      <Check size={14} />
-                      {t.landingRail2Status}
-                    </span>
-                  </article>
-                  <article className="panel landing-rail">
-                    <h4>{t.landingRail1}</h4>
-                    <p>{t.landingRail1Body}</p>
-                    <span className="landing-status landing-status--planned">
-                      <Clock3 size={14} />
-                      {t.landingRail1Status}
-                    </span>
-                  </article>
-                </div>
-              </section>
-
-              <section className="panel landing-proof">
-                <h3>{t.landingProofTitle}</h3>
-                <p>{t.landingProofBody}</p>
-                <dl className="landing-proof-list">
+              <section className="landing-proof">
+                <dl>
                   <div>
                     <dt>{t.landingProofVault}</dt>
                     <dd>
@@ -403,12 +376,13 @@ function App() {
                         rel="noreferrer"
                       >
                         {VAULT}
+                        <ArrowUpRight size={14} />
                       </a>
                     </dd>
                   </div>
                   <div>
                     <dt>{t.landingProofNetwork}</dt>
-                    <dd className="landing-hash">HashKey Chain Testnet · 133</dd>
+                    <dd className="landing-hash">HashKey Chain Testnet</dd>
                   </div>
                 </dl>
               </section>
@@ -422,6 +396,7 @@ function App() {
               </aside>
             </div>
           )}
+
 
           {page === "overview" && (
             <>

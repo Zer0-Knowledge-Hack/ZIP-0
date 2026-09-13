@@ -106,36 +106,20 @@ export const es = {
 
   // --- Landing ---
   landing: "Inicio",
-  landingEyebrow: "Infraestructura de liquidación cross-border",
-  landingTitle: "Pagos internacionales en USDC, liquidados en segundos",
-  landingLead:
-    "ZIP-0 mueve valor entre cadenas y corredores sin banca corresponsal. La liquidación ocurre on-chain y es verificable por cualquiera.",
+  landingTitle: "El dinero cruza fronteras en segundos, no en días.",
+  landingLead: "La alternativa a la banca corresponsal para empresas e instituciones.",
   landingCta: "Abrir la aplicación",
-  landingCtaSecondary: "Ver el contrato",
-
-  landingProblemTitle: "El problema",
-  landingProblemBody:
-    "SWIFT transporta mensajes, no dinero. La liquidación real depende de una cadena de bancos corresponsales: tarda días, cobra comisiones en cada salto y nadie ve dónde está el pago mientras viaja.",
-
-  landingHowTitle: "Cómo funciona",
-  landingRail1: "Riel CCTP",
-  landingRail1Body:
-    "Quema en origen y acuñación en destino, 1:1, sin pool de liquidez ni slippage. Para corredores donde Circle tiene CCTP desplegado.",
-  landingRail1Status: "Diseñado, no implementado",
-  landingRail2: "Riel de vault",
-  landingRail2Body:
-    "Bloqueo en el vault de origen y liberación desde el float en destino. Cubre corredores sin CCTP, como HashKey Chain y Stellar.",
-  landingRail2Status: "Operativo",
-
-  landingProofTitle: "Verificable, no prometido",
-  landingProofBody:
-    "El vault está desplegado y su estado se puede consultar sin pedirnos permiso. Estas son las direcciones reales:",
-  landingProofVault: "Vault de pagos",
+  landingCtaSecondary: "Ver el registro público",
+  q1Title: "Llega hoy",
+  q1Body: "El pago está disponible mientras una transferencia tradicional todavía viaja entre bancos.",
+  q2Title: "Un solo costo",
+  q2Body: "Lo conocés antes de enviar. Sin cargos que aparecen en cada intermediario.",
+  q3Title: "Nada oculto",
+  q3Body: "Cada operación queda registrada públicamente. Podés comprobarla vos, sin pedirnos nada.",
+  landingProofVault: "Registro de operaciones",
   landingProofNetwork: "Red",
-
   landingPrototype: "Prototipo en red de prueba",
-  landingPrototypeBody:
-    "ZIP-0 no tiene licencia, no custodia fondos de clientes y no procesa valor real. Los contratos no están auditados y la liquidación depende hoy de un relayer confiable.",
+  landingPrototypeBody: "ZIP-0 no tiene licencia, no custodia fondos y no procesa valor real. Los contratos no están auditados.",
   landingLegal: "Ver divulgación completa",
 };
 export type Messages = Record<keyof typeof es, string>;
