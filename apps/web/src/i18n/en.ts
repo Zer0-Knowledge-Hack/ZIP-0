@@ -251,4 +251,18 @@ export const en: Messages = {
   legalRefNetwork: "Network",
   legalRefExplorer: "View on the explorer",
   legalFooter: "This document is not legal advice and does not constitute binding terms and conditions. A production service would require both, drafted by a professional and backed by an incorporated legal entity.",
+
+  // --- Footer + profile legal ---
+  footTagline: "Cross-border payments between companies, without intermediary banks.",
+  footProduct: "Product",
+  footOpenApp: "Open the app",
+  footCompany: "Project",
+  footRepo: "Source code",
+  footLegalCol: "Legal",
+  footDisclosure: "Disclosures",
+  footRights: "Released under the MIT licence.",
+  footStatus: "Test-network prototype",
+  profileLegalTitle: "Legal information",
+  profileLegalBody: "Product status, regulatory posture, system risks and privacy.",
+  profileLegalCta: "View disclosures",
 };

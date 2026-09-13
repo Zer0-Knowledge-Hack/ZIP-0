@@ -468,6 +468,47 @@ function App() {
             </aside>
           </div>
         </main>
+
+        {/*
+          Marketing footer. The landing shell had none — every landing has one, and it is the
+          conventional place a visitor looks for legal and source links before trusting anything.
+        */}
+        <footer className="landing-footer">
+          <div className="landing-footer-brand">
+            <Mark />
+            <div>
+              <strong>ZIP·0</strong>
+              <p>{t.footTagline}</p>
+            </div>
+          </div>
+
+          <nav className="landing-footer-links" aria-label={t.navigation}>
+            <div>
+              <h3>{t.footProduct}</h3>
+              <Link to={PATHS.overview}>{t.footOpenApp}</Link>
+            </div>
+            <div>
+              <h3>{t.footLegalCol}</h3>
+              <Link to={PATHS.legal}>{t.footDisclosure}</Link>
+            </div>
+            <div>
+              <h3>{t.footCompany}</h3>
+              <a
+                href="https://github.com/Zer0-Knowledge-Hack/ZIP-0"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {t.footRepo}
+              </a>
+            </div>
+          </nav>
+
+          <div className="landing-footer-base">
+            <span>{t.footRights}</span>
+            <span className="landing-footer-status">{t.footStatus}</span>
+          </div>
+        </footer>
+
       </div>
     );
   }
@@ -1115,6 +1156,22 @@ function App() {
                   {t.profileHelpCta}
                   <ArrowRight size={16} />
                 </Link>
+              </section>
+              {/*
+                Legal lives here in the product shell rather than in a footer. Profile is where
+                users look for account, terms and privacy — following that convention beats
+                inventing a new location.
+              */}
+              <section className="profile-section" aria-labelledby="profile-legal">
+                <div className="profile-section-head">
+                  <ShieldCheck size={18} aria-hidden="true" />
+                  <h2 id="profile-legal">{t.profileLegalTitle}</h2>
+                </div>
+                <p>{t.profileLegalBody}</p>
+                <button className="text-button" onClick={() => go("legal")}>
+                  {t.profileLegalCta}
+                  <ArrowRight size={16} />
+                </button>
               </section>
             </div>
           )}

@@ -3414,3 +3414,112 @@ footer {
   outline-offset: 3px;
   border-radius: 2px;
 }
+
+/* ============================================================
+   Landing footer
+   ============================================================
+   The marketing shell had none. Every landing has a footer, and it is the conventional place a
+   visitor looks for legal and source links before deciding whether to trust the thing.
+   ============================================================ */
+
+.landing-footer {
+  display: grid;
+  gap: var(--zip-space-6);
+  margin-top: var(--zip-space-8);
+  padding: var(--zip-space-8) 0 var(--zip-space-6);
+  border-top: var(--zip-rail-strong);
+}
+
+@media (min-width: 42rem) {
+  .landing-footer {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.6fr);
+    align-items: start;
+  }
+}
+
+.landing-footer-brand {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--zip-space-3);
+}
+
+.landing-footer-brand .brand-mark {
+  width: 26px;
+  height: 26px;
+  color: var(--zip-ink);
+  flex-shrink: 0;
+}
+
+.landing-footer-brand strong {
+  display: block;
+  font-family: var(--zip-font-display);
+  font-size: var(--zip-text-base);
+  font-weight: var(--zip-weight-semibold);
+  letter-spacing: 0.04em;
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-1);
+}
+
+.landing-footer-brand p {
+  font-size: var(--zip-text-sm);
+  line-height: 1.55;
+  color: var(--zip-ink-muted);
+  max-width: 34ch;
+}
+
+/* ---------- Link columns ---------- */
+
+.landing-footer-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--zip-space-6);
+}
+
+.landing-footer-links h3 {
+  font-size: var(--zip-text-xs);
+  font-weight: var(--zip-weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--zip-ink-faint);
+  margin-bottom: var(--zip-space-3);
+}
+
+.landing-footer-links a {
+  display: inline-block;
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink-muted);
+  text-decoration: none;
+  padding: 2px 0;
+}
+
+.landing-footer-links a:hover {
+  color: var(--zip-signal);
+}
+
+.landing-footer-links a:focus-visible {
+  outline: 2px solid var(--zip-signal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ---------- Base line ---------- */
+
+.landing-footer-base {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zip-space-3);
+  padding-top: var(--zip-space-4);
+  border-top: var(--zip-rail);
+  font-size: var(--zip-text-xs);
+  color: var(--zip-ink-faint);
+}
+
+/* Status is stated in the footer too — it should not take a click to learn this is a prototype. */
+.landing-footer-status {
+  font-family: var(--zip-font-mono);
+  letter-spacing: 0.06em;
+  color: var(--zip-pending);
+}

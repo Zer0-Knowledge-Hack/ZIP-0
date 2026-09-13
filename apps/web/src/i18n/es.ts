@@ -252,5 +252,19 @@ export const es = {
   legalRefNetwork: "Red",
   legalRefExplorer: "Ver en el explorador",
   legalFooter: "Este documento no constituye asesoramiento legal ni términos y condiciones vinculantes. Un servicio productivo requeriría ambos, redactados por un profesional y respaldados por una entidad legal constituida.",
+
+  // --- Footer + profile legal ---
+  footTagline: "Pagos transfronterizos entre empresas, sin bancos intermediarios.",
+  footProduct: "Producto",
+  footOpenApp: "Abrir la aplicación",
+  footCompany: "Proyecto",
+  footRepo: "Código fuente",
+  footLegalCol: "Legal",
+  footDisclosure: "Divulgaciones",
+  footRights: "Publicado bajo licencia MIT.",
+  footStatus: "Prototipo en red de prueba",
+  profileLegalTitle: "Información legal",
+  profileLegalBody: "Estado del producto, postura regulatoria, riesgos del sistema y privacidad.",
+  profileLegalCta: "Ver divulgaciones",
 };
 export type Messages = Record<keyof typeof es, string>;
