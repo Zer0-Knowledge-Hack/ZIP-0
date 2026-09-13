@@ -19,7 +19,7 @@
   /* Text */
   --zip-ink: #0a0e14;
   --zip-ink-muted: #5a6879;
-  --zip-ink-faint: #8a97a8;
+  --zip-ink-faint: #697380;
 
   /* The single accent. One accent only — restraint is the point. */
   --zip-signal: #1f5fe0;
@@ -35,9 +35,29 @@
   --zip-failed-faint: #fce9e7;
 
   /* Type */
-  --zip-font-display: "Inter Tight", "Inter", system-ui, -apple-system, sans-serif;
+  --zip-font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
   --zip-font-text: "Inter", system-ui, -apple-system, sans-serif;
   --zip-font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, monospace;
+
+  /*
+   * Type scale. A fixed set of steps, so hierarchy comes from choosing a step rather than
+   * inventing a size. The prototype used twenty different values mixing px and rem, which is
+   * why the hierarchy read as flat.
+   */
+  --zip-text-xs: 0.75rem;    /* 12px — labels, captions */
+  --zip-text-sm: 0.875rem;   /* 14px — secondary text */
+  --zip-text-base: 1rem;     /* 16px — body */
+  --zip-text-lg: 1.25rem;    /* 20px — card titles */
+  --zip-text-xl: 1.75rem;    /* 28px — section headings */
+  --zip-text-2xl: 2.5rem;    /* 40px — page headings */
+  --zip-text-display: 3.5rem;/* 56px — the headline amount */
+
+  /* Weights that are actually loaded. Requesting 700 or 900 with font-synthesis: none
+     silently renders at the nearest available weight, flattening the hierarchy. */
+  --zip-weight-regular: 400;
+  --zip-weight-medium: 500;
+  --zip-weight-semibold: 600;
+  --zip-weight-bold: 700;
 
   /* Rhythm — a 4px base keeps numeric tables aligned */
   --zip-space-1: 0.25rem;
@@ -65,7 +85,7 @@
 
     --zip-ink: #e6eaf0;
     --zip-ink-muted: #96a3b5;
-    --zip-ink-faint: #64748b;
+    --zip-ink-faint: #71839d;
 
     --zip-signal: #4b86ff;
     --zip-signal-hover: #6b9dff;
@@ -89,7 +109,7 @@
 
   --zip-ink: #e6eaf0;
   --zip-ink-muted: #96a3b5;
-  --zip-ink-faint: #64748b;
+  --zip-ink-faint: #71839d;
 
   --zip-signal: #4b86ff;
   --zip-signal-hover: #6b9dff;

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "./tokens.css";
 :root {
   font-family: var(--zip-font-text);
@@ -52,6 +52,14 @@ p {
 }
 button svg {
   flex-shrink: 0;
+}
+h1,
+h2,
+h3 {
+  font-family: var(--zip-font-display);
+  font-weight: var(--zip-weight-semibold);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
 }
 .app {
   --bg: var(--zip-paper);
@@ -1615,4 +1623,21 @@ main {
   .hero {
     gap: 20px;
   }
+}
+
+/*
+ * Numerals.
+ *
+ * Tabular lining figures are a correctness requirement here, not a preference: the app shows
+ * amounts, addresses and hashes, and proportional digits let a misplaced decimal hide in a
+ * column. The slashed zero matters when someone compares a hash against an explorer.
+ */
+.amount-input input,
+.review-amount,
+.payment-preview-amount,
+.wallet-button span,
+code {
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1, "zero" 1;
 }
