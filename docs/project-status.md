@@ -52,10 +52,11 @@ the relayer.
 Deployment evidence:
 - Avalanche Fuji (`43113`): `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa` returns contract bytecode from `eth_getCode` and holds a non-zero USDC balance.
 - HashKey Chain Testnet (`133`): `0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07` (pointing to MockUSDC at `0x1f65E72EE31F709969Dfc75f98f5867EaE332CD9`), verified on-chain runtime bytecode (6,673 bytes) with 50,000 MockUSDC initial liquidity. Deployed from current `main` bytecode with full support for `claimRefund`, `acknowledgePayment`, and `depositWithAuthorization`.
+- HashKey Chain Testnet (legacy #3): `0x14e59806054773fc341377aEC472C07e500BCc86` predates those functions. Keep it as a historical artifact; do not use it for the live runner.
 
-Both deployments predate `acknowledgePayment` and `claimRefund`, so their bytecode no longer
-matches this repository. Redeploy before relying on the refund path — until then the relayer's
-EVM → Stellar settlement fails against them, because its acknowledgement call reverts.
+Avalanche Fuji (`0xF1ca…`) still predates `acknowledgePayment` and `claimRefund`. The current HSK
+Testnet vault (`0x3028…`) does not: Flow 2 can acknowledge there. Pointing the relayer at Fuji or
+at `0x14e5…` makes EVM → Stellar settlement revert on `acknowledgePayment`.
 
 Bytecode size: 6,782 bytes init / 6,037 bytes deployed — comfortably under the EIP-170 24 KB limit.
 
@@ -122,7 +123,15 @@ and a non-synthetic transaction hash. Stellar remains mocked (`IStellarAdapter.c
 
 `pnpm --filter @zip-0/cctp-bridge test` is the command that runs this suite.
 
-This is not a live testnet proof. Pollar / Horizon is still unproven.
+Live runner: `pnpm --filter @zip-0/cctp-bridge test:payment` defaults to HSK Testnet (`133`),
+vault `0x3028…`, MockUSDC `0x1f65…`, and `https://testnet.hsk.xyz`. It prints explorer URLs for
+`releasePayment`, `approve`, and `depositPayment`. Flow 2 then calls `acknowledgePayment` on that
+vault before Pollar. This change does **not** record a live hash — that still needs funded
+`RELAYER_PRIVATE_KEY` / `ALICE_PRIVATE_KEY` and a successful run.
+
+This is not yet a live testnet proof. Pollar / Horizon can still return a fabricated
+`stellar-tx-…` hash when Friendbot is rate-limited; the runner now flags that instead of
+presenting it as a ledger transaction.
 
 ### State durability
 

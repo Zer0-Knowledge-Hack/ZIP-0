@@ -178,10 +178,10 @@ Amounts use 6 decimals, matching USDC on every supported network.
 **Known limitations.** Once the relayer acknowledges a deposit, only the relayer can refund it.
 The relayer acknowledges every EVM → Stellar deposit before crediting Stellar, so relayer downtime
 beyond `REFUND_TIMEOUT` lets payers reclaim unacknowledged deposits — see [SECURITY.md](SECURITY.md).
-The vaults deployed on Avalanche Fuji and HSK Testnet predate `acknowledgePayment` and
-`claimRefund`: the relayer's EVM → Stellar settlement fails against them until they are
-redeployed. Relayer payment state lives in an in-memory `Map` and does not survive a process
-restart.
+The Avalanche Fuji vault (`0xF1ca…`) and the original HSK Testnet vault from #3 (`0x14e5…`)
+predate `acknowledgePayment` and `claimRefund`: Flow 2 (EVM → Stellar) reverts against them.
+The current HSK Testnet vault (`0x3028…`, redeployed in #35 / PR #45) matches this repository.
+Relayer payment state lives in an in-memory `Map` and does not survive a process restart.
 
 ---
 
@@ -210,6 +210,27 @@ restart.
 | :--- | :--- |
 | `ZIP0PaymentVault` | [`0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07`](https://testnet-explorer.hsk.xyz/address/0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07) |
 | `MockUSDC` | [`0x1f65E72EE31F709969Dfc75f98f5867EaE332CD9`](https://testnet-explorer.hsk.xyz/address/0x1f65E72EE31F709969Dfc75f98f5867EaE332CD9) |
+
+The #3 submission vault [`0x14e59806054773fc341377aEC472C07e500BCc86`](https://testnet-explorer.hsk.xyz/address/0x14e59806054773fc341377aEC472C07e500BCc86) is still on-chain. It does not implement `acknowledgePayment`. Do not point the live runner at it.
+
+### Live HSK testnet demo
+
+`packages/cctp-bridge/scripts/test-payment-cli.ts` defaults to HashKey Chain Testnet (`133`) and the
+`0x3028…` vault. Flow 1 calls `releasePayment`; Flow 2 calls `depositPayment` then the relayer's
+`acknowledgePayment` before crediting Stellar.
+
+```bash
+# packages/cctp-bridge/.env  — keys only; network defaults to HSK testnet
+RELAYER_PRIVATE_KEY=0x...   # must hold RELAYER_ROLE on 0x3028…
+ALICE_PRIVATE_KEY=0x...     # must hold MockUSDC and a little HSK for gas
+```
+
+```bash
+pnpm --filter @zip-0/cctp-bridge test:payment
+```
+
+Explorer links print as `https://testnet-explorer.hsk.xyz/tx/<hash>`. To force Avalanche Fuji
+instead, set `EVM_CHAIN_ID=43113` (Flow 2 will fail there until that vault is redeployed).
 
 ---
 
