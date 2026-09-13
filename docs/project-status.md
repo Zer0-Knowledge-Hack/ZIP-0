@@ -18,7 +18,7 @@ the design document.
 | Relayer orchestration (EVM ↔ Stellar) | ✅ Built; local Hardhat integration proven |
 | Pollar / Stellar adapter | ⚠️ Built, no live-network test |
 | Ports & Adapters core (ISettlementRail / PaymentRoutingEngine) | ✅ Built and tested |
-| CCTP settlement rail | ❌ Not started |
+| CCTP settlement rail | ✅ Built; proven on testnet (Fuji → Arbitrum Sepolia) |
 | ERC-3009 `transferWithAuthorization` | ✅ Vault deposit + EIP-712 signing/validation; standalone relayer broadcast not implemented |
 | ZK privacy model (KYC-gated deposits) | 📝 Designed, not built — see [`zk-privacy-model.md`](zk-privacy-model.md) |
 | `@zip-0/sdk` package | ✅ Built and tested (`packages/sdk`) |
@@ -160,8 +160,20 @@ reporting a settlement that did not happen.
 
 Test evidence: unit tests inject a fake `CctpBridgeClient` and cover route support, zero-fee
 quoting, the returned mint hash, unconfigured refusal, recipient/amount validation, and error
-propagation. **Not yet proven:** a live testnet burn-and-mint with real hashes (requires a funded
-source-chain key).
+propagation.
+
+Live testnet evidence (2026-09-13, Circle CCTPv2, 1.00 USDC, Avalanche domain 1 → Arbitrum domain 3):
+
+| Step | Chain | Transaction |
+| :--- | :--- | :--- |
+| Approve USDC | Avalanche Fuji `43113` | [`0xc2664c4b…e7048`](https://subnets-test.avax.network/c-chain/tx/0xc2664c4be7b5482dbb1aca51aa9be1f04347c9d951261f802c870422e4ea7048) |
+| `depositForBurn` | Avalanche Fuji `43113` | [`0x126b42a7…a51a7`](https://subnets-test.avax.network/c-chain/tx/0x126b42a7aff87856273b885bfaba02c5b6a8ec8b153edab6f10d52c0004a51a7) |
+| Attestation (`fetchAttestation`) | Circle Iris | status `complete`, CCTPv2 |
+| `receiveMessage` (mint) | Arbitrum Sepolia `421614` | [`0xf6b7acb4…ab83d`](https://sepolia.arbiscan.io/tx/0xf6b7acb4b332e788d2712c4d26cc7c00e258b933681afecedda8c3a9a6eab83d) |
+
+Result: Fuji USDC balance `20.0 → 19.0`, Arbitrum Sepolia USDC `0.0 → 1.0`; both receipts return
+status `0x1`. Note: the kit executes the burn through its `bridgeWithPreapproval` entry point, which
+performs the ERC-20 approval and the `TokenMessenger.depositForBurn` call.
 
 ### Settlement broadcast vs. verification
 
