@@ -30,6 +30,17 @@ export const en: Messages = {
   currency: "USDC",
   noWallet: "Network reads not connected yet",
   noData: "No data retrieved",
+  overviewConnectHint:
+    "Connect your wallet to check balances and payment status on this network.",
+  overviewConnectedHint:
+    "Balance and liquidity reads will connect in a later stage.",
+  sendSoon: "Send (coming soon)",
+  fieldAmount: "Enter a positive amount with up to 6 decimals.",
+  fieldRecipient: "Enter a valid Stellar address (G…, 56 characters).",
+  fieldReference: "Complete the invoice or ID reference.",
+  documentAttached: "Document",
+  stepPrepare: "Prepare",
+  stepConfirm: "Review",
   quick: "Preparing a payment",
   quickBody: "You need the recipient address and the payment reference.",
   step1: "Prepare",
@@ -82,6 +93,23 @@ export const en: Messages = {
   hash: "Document fingerprint",
   local: "Hardhat local",
   theme: "Change appearance",
+  themeLight: "Light",
+  themeDark: "Dark",
+  profile: "Profile",
+  profileTitle: "Your profile",
+  profileBody: "Account, appearance and language for the app.",
+  profileAccount: "Account",
+  profileAccountBody:
+    "The wallet only shares your public address. You can disconnect it anytime.",
+  profileAccountEmpty: "No wallet connected yet.",
+  profileAppearance: "Appearance",
+  profileAppearanceBody:
+    "Choose the app theme. The public landing always stays on light paper.",
+  profileLanguage: "Language",
+  profileLanguageBody: "App copy is shown in the language you pick.",
+  profileHelp: "Help",
+  profileHelpBody: "How payment, wallet and test networks work.",
+  profileHelpCta: "Open the guide",
   beta: "Preview",
   previewNote:
     "Application preview. You can prepare a draft; payments cannot be sent yet.",
@@ -102,6 +130,8 @@ export const en: Messages = {
   hsPlaceholder: "E.g. 3102.10",
   network: "Network",
   clear: "Remove document",
+  skipToContent: "Skip to content",
+  backToLanding: "Back to home",
 
   // --- Landing ---
   landing: "Home",
@@ -175,4 +205,6 @@ export const en: Messages = {
   cmpDest: "Buenos Aires",
   cmpSent: "Sent",
   cmpArrived: "Received",
+  cmpCaption:
+    "With correspondent banking, 18,400 sent arrives as 18,127 after deductions along the way. With ZIP·0, 18,400 sent arrives as 18,400.",
 };

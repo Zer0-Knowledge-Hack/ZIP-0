@@ -30,6 +30,17 @@ export const es = {
   currency: "USDC",
   noWallet: "Consulta de red pendiente de integrar",
   noData: "Sin datos consultados",
+  overviewConnectHint:
+    "Conectá tu wallet para consultar saldos y el estado de tus pagos en esta red.",
+  overviewConnectedHint:
+    "La consulta de saldos y liquidez se conectará en la siguiente etapa.",
+  sendSoon: "Enviar (próximamente)",
+  fieldAmount: "Ingresá un monto positivo con hasta 6 decimales.",
+  fieldRecipient: "Ingresá una dirección Stellar válida (G…, 56 caracteres).",
+  fieldReference: "Completá la referencia de factura o DUI.",
+  documentAttached: "Documento",
+  stepPrepare: "Preparar",
+  stepConfirm: "Revisar",
   quick: "Cómo preparar tu pago",
   quickBody:
     "Necesitas la dirección del destinatario y la referencia de la operación.",
@@ -83,6 +94,23 @@ export const es = {
   hash: "Huella digital del documento",
   local: "Hardhat local",
   theme: "Cambiar apariencia",
+  themeLight: "Claro",
+  themeDark: "Oscuro",
+  profile: "Perfil",
+  profileTitle: "Tu perfil",
+  profileBody: "Cuenta, apariencia e idioma de la aplicación.",
+  profileAccount: "Cuenta",
+  profileAccountBody:
+    "La wallet solo comparte tu dirección pública. Podés desconectarla cuando quieras.",
+  profileAccountEmpty: "Todavía no hay una wallet conectada.",
+  profileAppearance: "Apariencia",
+  profileAppearanceBody:
+    "Elegí el tema de la aplicación. La landing pública siempre se muestra en claro.",
+  profileLanguage: "Idioma",
+  profileLanguageBody: "Los textos de la aplicación se muestran en el idioma elegido.",
+  profileHelp: "Ayuda",
+  profileHelpBody: "Cómo funciona el pago, la wallet y las redes de prueba.",
+  profileHelpCta: "Abrir la guía",
   beta: "Vista previa",
   previewNote:
     "Vista previa de la aplicación. Puedes preparar un borrador; todavía no se envían pagos.",
@@ -103,6 +131,8 @@ export const es = {
   hsPlaceholder: "Ej. 3102.10",
   network: "Red",
   clear: "Quitar documento",
+  skipToContent: "Saltar al contenido",
+  backToLanding: "Volver al inicio",
 
   // --- Landing ---
   landing: "Inicio",
@@ -176,5 +206,7 @@ export const es = {
   cmpDest: "Buenos Aires",
   cmpSent: "Enviado",
   cmpArrived: "Recibido",
+  cmpCaption:
+    "En banca corresponsal, 18.400 enviados llegan como 18.127 tras descuentos en el camino. Con ZIP·0, 18.400 enviados llegan como 18.400.",
 };
 export type Messages = Record<keyof typeof es, string>;
