@@ -53,15 +53,37 @@ export class VaultSettlementRail implements ISettlementRail {
       : this.settleToEvm(intent);
   }
 
-  /** EVM -> Stellar: funds are already locked in the vault; credit the Stellar recipient. */
+  /**
+   * EVM -> Stellar: funds are already locked in the vault; credit the Stellar recipient.
+   *
+   * Acknowledge first, credit second. Acknowledging moves the deposit out of INITIATED, so the
+   * payer can no longer `claimRefund` it. If the credit then fails, the deposit stays
+   * ACKNOWLEDGED and the relayer can still return it with `refundPayment`. The reverse order
+   * leaves a window — a crash between credit and acknowledgement — in which the payer is
+   * credited on Stellar and can still reclaim the deposit once REFUND_TIMEOUT passes.
+   */
   private async settleToStellar(intent: PaymentIntent): Promise<string> {
     const recipient = this.resolveStellarAddress(intent.destinationRecipient);
+
+    try {
+      await this.evmAdapter.acknowledgePayment(intent.paymentId);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new RelayerExecutionError(
+        `Failed acknowledging deposit in the EVM vault; Stellar was not credited: ${message}`,
+        err
+      );
+    }
 
     try {
       return await this.stellarAdapter.creditPayment(recipient, intent.amount, intent.paymentId);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      throw new RelayerExecutionError(`Failed crediting Stellar recipient: ${message}`, err);
+      throw new RelayerExecutionError(
+        `Failed crediting Stellar recipient; deposit ${intent.paymentId} is ACKNOWLEDGED and ` +
+          `must be returned with refundPayment: ${message}`,
+        err
+      );
     }
   }
 

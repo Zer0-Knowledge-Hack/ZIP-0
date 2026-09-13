@@ -15,7 +15,7 @@ the design document.
 | :--- | :--- |
 | `ZIP0PaymentVault.sol` | ✅ Built, tested, deployed on Avalanche Fuji & HSK Testnet |
 | EIP-2612 gasless deposit | ✅ Built and tested |
-| Relayer orchestration (EVM ↔ Stellar) | ⚠️ Built, tested against mocks only |
+| Relayer orchestration (EVM ↔ Stellar) | ✅ Built; local Hardhat integration proven |
 | Pollar / Stellar adapter | ⚠️ Built, no live-network test |
 | Ports & Adapters core (ISettlementRail / PaymentRoutingEngine) | ✅ Built and tested |
 | CCTP settlement rail | ❌ Not started |
@@ -44,13 +44,20 @@ attempt blocked by a malicious token.
 Payer refund: a payer can call `claimRefund` after `REFUND_TIMEOUT` (24 h) if the relayer never
 acknowledged the deposit. `acknowledgePayment` exists because a deposit never leaves `INITIATED`
 on a successful settlement — without it, a payer could be credited on the destination chain and
-still claim a refund here. **Not yet wired:** the relayer does not call `acknowledgePayment`.
+still claim a refund here. The relayer calls it: `VaultSettlementRail` acknowledges each
+EVM → Stellar deposit and waits for the confirmed transaction before crediting Stellar, and a
+failed acknowledgement stops the settlement (#26). Verified against mocks only, like the rest of
+the relayer.
 
 Deployment evidence:
 - Avalanche Fuji (`43113`): `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa` returns contract bytecode from `eth_getCode` and holds a non-zero USDC balance.
 - HashKey Chain Testnet (`133`): `0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07` (pointing to MockUSDC at `0x1f65E72EE31F709969Dfc75f98f5867EaE332CD9`), verified on-chain runtime bytecode (6,673 bytes) with 50,000 MockUSDC initial liquidity. Deployed from current `main` bytecode with full support for `claimRefund`, `acknowledgePayment`, and `depositWithAuthorization`.
 
-Bytecode size: 6,782 bytes init / 6,673 bytes deployed — comfortably under the EIP-170 24 KB limit.
+Both deployments predate `acknowledgePayment` and `claimRefund`, so their bytecode no longer
+matches this repository. Redeploy before relying on the refund path — until then the relayer's
+EVM → Stellar settlement fails against them, because its acknowledgement call reverts.
+
+Bytecode size: 6,782 bytes init / 6,037 bytes deployed — comfortably under the EIP-170 24 KB limit.
 
 
 ### Settlement rail abstraction
@@ -105,17 +112,17 @@ Implemented under Phase 4 of the architectural roadmap:
 
 ### Relayer orchestration
 
-`packages/cctp-bridge/src/relayer/orchestrator.ts` — 126 lines implementing both directions
-(EVM → Stellar, Stellar → EVM), liquidity checks, and status transitions.
+`packages/cctp-bridge/src/relayer/orchestrator.ts` is a facade over `PaymentRoutingEngine` +
+`VaultSettlementRail`. Unit tests still use in-memory adapters (`test/bridge.test.ts`).
 
-Test evidence: `pnpm --filter @zip-0/cctp-bridge test` → **5 passing**.
+Local-chain evidence: `test/local-e2e.test.ts` starts a Hardhat node, deploys `MockUSDC` and
+`ZIP0PaymentVault`, and drives a payment through the real `EvmAdapter`. It asserts on-chain
+`PaymentInitiated` / `PaymentReleased` logs, a real vault USDC delta (deposit then release),
+and a non-synthetic transaction hash. Stellar remains mocked (`IStellarAdapter.creditPayment`).
 
-**The gap:** `test/local-e2e.test.ts` is named "E2E" but constructs in-memory mock adapters. Its
-own comment reads *"In-memory simulation of local Hardhat node contract."* It runs in ~7 ms and
-never contacts a chain. `test/bridge.test.ts` is likewise mock-driven.
+`pnpm --filter @zip-0/cctp-bridge test` is the command that runs this suite.
 
-There is currently **no evidence that the relayer works against a real chain.** Closing this gap
-is roadmap item 2 and the highest-value next step.
+This is not a live testnet proof. Pollar / Horizon is still unproven.
 
 ### State durability
 
