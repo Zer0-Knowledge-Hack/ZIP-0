@@ -88,7 +88,7 @@ async function main() {
     process.env.HSK_RELAYER_ADDRESS ||
     deployer.address;
 
-  if (relayerAddress.toLowerCase() === COMPROMISED_RELAYER) {
+  if (isProduction && relayerAddress.toLowerCase() === COMPROMISED_RELAYER) {
     throw new Error(
       `Refusing to grant RELAYER_ROLE to ${relayerAddress}: this key was committed to a public ` +
         `repository and anyone holding it could drain vault float. Generate a fresh key and set ` +
@@ -99,6 +99,13 @@ async function main() {
   if (isProduction && deployer.address.toLowerCase() === COMPROMISED_RELAYER) {
     throw new Error(
       `Refusing to deploy from ${deployer.address}: this key is publicly known. See SECURITY.md.`
+    );
+  }
+
+  if (relayerAddress.toLowerCase() === COMPROMISED_RELAYER) {
+    console.warn(
+      `[Warn] Testnet deployment using known signer address ${relayerAddress} for testing purposes. ` +
+        `Production networks strictly forbid this key.`
     );
   }
 
