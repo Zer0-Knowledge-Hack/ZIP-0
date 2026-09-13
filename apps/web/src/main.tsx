@@ -48,8 +48,12 @@ type Provider = {
  * Deployment references. Deliberately not surfaced in the landing or the four main tabs:
  * an institution evaluating the product does not need a contract address to decide, and the
  * chain detail belongs with the disclosures. These are consumed by the legal section (#48).
+ *
+ * Verified source: hardhat verify against the post-redirect Blockscout host (see
+ * docs/hsk-chain-integration.md). The legacy #3 vault predates acknowledgePayment and
+ * claimRefund, so it must not be referenced here.
  */
-export const VAULT = "0x14e59806054773fc341377aEC472C07e500BCc86";
+export const VAULT = "0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07";
 export const EXPLORER = "https://testnet-explorer.hsk.xyz";
 
 const provider = () => (window as Window & { ethereum?: Provider }).ethereum;
