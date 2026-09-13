@@ -11,6 +11,10 @@ between chains, a REST gateway, a typed SDK, and the web app an institution uses
 height are read from the deployed HashKey Chain Testnet vault. Payment submission is deliberately
 disabled; [Web app](#web-app) states exactly which surfaces are live.
 
+**Demo: [The amount you send is the amount that arrives](https://youtu.be/yX7G3O1c4tg)** — a
+three-minute walkthrough of the problem, the settlement rail, and the deployed contract. The
+spoken script is in [docs/pitch-script.md](docs/pitch-script.md).
+
 > **Status: hackathon-stage prototype.** The settlement vault is implemented, tested, and deployed
 > on a live testnet. The relayer orchestration is implemented and unit-tested against mocks.
 > Several components described in the architecture document are still planned, not built —
