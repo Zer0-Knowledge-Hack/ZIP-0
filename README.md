@@ -271,8 +271,8 @@ ALICE_PRIVATE_KEY=0x...     # must hold MockUSDC and a little HSK for gas
 pnpm --filter @zip-0/cctp-bridge test:payment
 ```
 
-Explorer links print as `https://testnet-explorer.hsk.xyz/tx/<hash>`. To force Avalanche Fuji
-instead, set `EVM_CHAIN_ID=43113` (Flow 2 will fail there until that vault is redeployed).
+Explorer links print as `https://testnet-explorer.hsk.xyz/tx/<hash>` or `https://testnet.snowtrace.io/tx/<hash>`.
+To run against Avalanche Fuji, set `EVM_CHAIN_ID=43113` in `packages/cctp-bridge/.env`.
 
 ### Recorded run — 2026-09-13
 
@@ -298,6 +298,18 @@ Merchant balance moved 0.25 → 0.50 MockUSDC.
 
 Flow 2 exercises `acknowledgePayment` before crediting Stellar, which is the ordering that keeps
 `claimRefund` from being reachable on a payment that already settled.
+
+**Avalanche Fuji Testnet ⇄ Stellar Testnet** (executed against verified vault `0x9B9D…`)
+
+- **Flow 1 — Stellar → Avalanche Fuji** (relayer releases 0.25 Circle USDC to the merchant)
+  - Stellar registration: [`d58eb8d7…4246`](https://stellar.expert/explorer/testnet/tx/d58eb8d7b1b76a55b0ed407848c290e39b84c407cf550cb69f3f2352175b4246)
+  - `releasePayment` on Fuji: [`0x8fe87064…390f`](https://testnet.snowtrace.io/tx/0x8fe870641157cca6abc62b928f4fece27b8022c78da872783114e21d4a02390f)
+  - Merchant balance moved 4.75 → 5.00 Circle USDC.
+
+- **Flow 2 — Avalanche Fuji → Stellar** (payer deposits 0.10 Circle USDC, relayer acknowledges, then credits Stellar)
+  - `approve`: [`0xee382894…4905`](https://testnet.snowtrace.io/tx/0xee3828947c13f72d7516773b8a57cbd8f0b3cc2ed4f54efc6796050b31454905)
+  - `depositPayment`: [`0x2066d08d…e0a2`](https://testnet.snowtrace.io/tx/0x2066d08da97ef309317fc457e207cdcb4e9b2856e5f7deb78e251850cd38e0a2)
+  - Stellar credit: [`5c34d8dc…e0cd`](https://stellar.expert/explorer/testnet/tx/5c34d8dcf059f3321a8464c506eff6b79bdb8b2281c7a87ae4935a74a970e0cd)
 
 > **Known issue.** The script sends `approve` and `depositPayment` without waiting for the
 > approve receipt, so a first run against a fresh payer reverts with
