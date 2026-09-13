@@ -1,6 +1,7 @@
 {
   "name": "zip-0",
   "private": true,
+  "packageManager": "pnpm@9.0.0",
   "license": "MIT",
   "scripts": {
     "dev": "pnpm --parallel --filter @zip-0/web --filter @zip-0/gateway dev",
