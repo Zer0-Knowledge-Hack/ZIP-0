@@ -1,0 +1,260 @@
+/*
+ * Layout for the ZIP-0 web app. Colour, type and spacing all come from tokens.css —
+ * nothing here should introduce a literal hex value.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--zip-paper);
+  color: var(--zip-ink);
+  font-family: var(--zip-font-text);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: var(--zip-space-8) var(--zip-space-4);
+}
+
+/* ---------- Header ---------- */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--zip-space-4);
+  padding-bottom: var(--zip-space-4);
+  border-bottom: var(--zip-rail-strong);
+}
+
+.lockup {
+  display: flex;
+  align-items: center;
+  gap: var(--zip-space-3);
+}
+
+.lockup__mark {
+  width: 28px;
+  height: 28px;
+  color: var(--zip-ink);
+  flex: none;
+}
+
+.lockup__word {
+  font-family: var(--zip-font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.lockup__tagline {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--zip-ink-faint);
+  margin-top: 2px;
+}
+
+/* ---------- Network badge ---------- */
+
+.network {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zip-space-2);
+  font-size: 0.8rem;
+  color: var(--zip-ink-muted);
+  white-space: nowrap;
+}
+
+.network__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--zip-ink-faint);
+  flex: none;
+}
+
+.network__dot--live {
+  background: var(--zip-settled);
+}
+
+/* ---------- Panels ---------- */
+
+.panel {
+  background: var(--zip-surface);
+  border: var(--zip-rail);
+  border-radius: var(--zip-radius-lg);
+  padding: var(--zip-space-6);
+  margin-top: var(--zip-space-6);
+}
+
+.panel__title {
+  font-family: var(--zip-font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--zip-ink-faint);
+  margin: 0 0 var(--zip-space-4);
+}
+
+/* ---------- Field rows ---------- */
+
+.field {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--zip-space-4);
+  padding: var(--zip-space-3) 0;
+  border-bottom: var(--zip-rail);
+}
+
+.field:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.field__label {
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--zip-ink-faint);
+}
+
+.field__value {
+  text-align: right;
+}
+
+/* The headline amount. Tabular figures are why this is readable at a glance. */
+.amount {
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1, "zero" 1;
+  font-size: 2rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.amount__unit {
+  font-size: 0.9rem;
+  color: var(--zip-ink-muted);
+  margin-left: var(--zip-space-2);
+  letter-spacing: 0.06em;
+}
+
+/* ---------- Status ---------- */
+
+/*
+ * Status is never communicated by colour alone: the dot carries hue, the label carries the
+ * word. A judge on a projector, or anyone with a colour vision deficiency, reads the word.
+ */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zip-space-2);
+  font-family: var(--zip-font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  padding: var(--zip-space-1) var(--zip-space-3);
+  border-radius: var(--zip-radius);
+}
+
+.status__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.status--settled {
+  color: var(--zip-settled);
+  background: var(--zip-settled-faint);
+}
+.status--settled .status__dot {
+  background: var(--zip-settled);
+}
+
+.status--pending {
+  color: var(--zip-pending);
+  background: var(--zip-pending-faint);
+}
+.status--pending .status__dot {
+  background: var(--zip-pending);
+}
+
+.status--failed {
+  color: var(--zip-failed);
+  background: var(--zip-failed-faint);
+}
+.status--failed .status__dot {
+  background: var(--zip-failed);
+}
+
+.status--unavailable {
+  color: var(--zip-ink-muted);
+  background: var(--zip-surface-raised);
+}
+.status--unavailable .status__dot {
+  background: var(--zip-ink-faint);
+}
+
+/* ---------- Links ---------- */
+
+.link {
+  color: var(--zip-signal);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+.link:hover {
+  border-bottom-color: var(--zip-signal);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--zip-signal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---------- Placeholder ---------- */
+
+.placeholder {
+  color: var(--zip-ink-muted);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.footnote {
+  margin-top: var(--zip-space-8);
+  padding-top: var(--zip-space-4);
+  border-top: var(--zip-rail);
+  font-size: 0.8rem;
+  color: var(--zip-ink-faint);
+}
+
+@media (max-width: 32rem) {
+  .field {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--zip-space-1);
+  }
+
+  .field__value {
+    text-align: left;
+  }
+}
