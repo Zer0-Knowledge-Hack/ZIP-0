@@ -27,8 +27,11 @@ export interface ZIP0PaymentVaultInterface extends Interface {
   getFunction(
     nameOrSignature:
       | "DEFAULT_ADMIN_ROLE"
+      | "REFUND_TIMEOUT"
       | "RELAYER_ROLE"
       | "TREASURY_ROLE"
+      | "acknowledgePayment"
+      | "claimRefund"
       | "depositPayment"
       | "depositWithPermit"
       | "getRoleAdmin"
@@ -46,6 +49,7 @@ export interface ZIP0PaymentVaultInterface extends Interface {
 
   getEvent(
     nameOrSignatureOrTopic:
+      | "PaymentAcknowledged"
       | "PaymentInitiated"
       | "PaymentRefunded"
       | "PaymentReleased"
@@ -60,12 +64,24 @@ export interface ZIP0PaymentVaultInterface extends Interface {
     values?: undefined
   ): string;
   encodeFunctionData(
+    functionFragment: "REFUND_TIMEOUT",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "RELAYER_ROLE",
     values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "TREASURY_ROLE",
     values?: undefined
+  ): string;
+  encodeFunctionData(
+    functionFragment: "acknowledgePayment",
+    values: [BytesLike]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "claimRefund",
+    values: [BytesLike]
   ): string;
   encodeFunctionData(
     functionFragment: "depositPayment",
@@ -129,11 +145,23 @@ export interface ZIP0PaymentVaultInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(
+    functionFragment: "REFUND_TIMEOUT",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "RELAYER_ROLE",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
     functionFragment: "TREASURY_ROLE",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "acknowledgePayment",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "claimRefund",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -173,6 +201,19 @@ export interface ZIP0PaymentVaultInterface extends Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "usdcToken", data: BytesLike): Result;
+}
+
+export namespace PaymentAcknowledgedEvent {
+  export type InputTuple = [paymentId: BytesLike, relayer: AddressLike];
+  export type OutputTuple = [paymentId: string, relayer: string];
+  export interface OutputObject {
+    paymentId: string;
+    relayer: string;
+  }
+  export type Event = TypedContractEvent<InputTuple, OutputTuple, OutputObject>;
+  export type Filter = TypedDeferredTopicFilter<Event>;
+  export type Log = TypedEventLog<Event>;
+  export type LogDescription = TypedLogDescription<Event>;
 }
 
 export namespace PaymentInitiatedEvent {
@@ -374,9 +415,23 @@ export interface ZIP0PaymentVault extends BaseContract {
 
   DEFAULT_ADMIN_ROLE: TypedContractMethod<[], [string], "view">;
 
+  REFUND_TIMEOUT: TypedContractMethod<[], [bigint], "view">;
+
   RELAYER_ROLE: TypedContractMethod<[], [string], "view">;
 
   TREASURY_ROLE: TypedContractMethod<[], [string], "view">;
+
+  acknowledgePayment: TypedContractMethod<
+    [paymentId: BytesLike],
+    [void],
+    "nonpayable"
+  >;
+
+  claimRefund: TypedContractMethod<
+    [paymentId: BytesLike],
+    [void],
+    "nonpayable"
+  >;
 
   depositPayment: TypedContractMethod<
     [
@@ -483,11 +538,20 @@ export interface ZIP0PaymentVault extends BaseContract {
     nameOrSignature: "DEFAULT_ADMIN_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
+    nameOrSignature: "REFUND_TIMEOUT"
+  ): TypedContractMethod<[], [bigint], "view">;
+  getFunction(
     nameOrSignature: "RELAYER_ROLE"
   ): TypedContractMethod<[], [string], "view">;
   getFunction(
     nameOrSignature: "TREASURY_ROLE"
   ): TypedContractMethod<[], [string], "view">;
+  getFunction(
+    nameOrSignature: "acknowledgePayment"
+  ): TypedContractMethod<[paymentId: BytesLike], [void], "nonpayable">;
+  getFunction(
+    nameOrSignature: "claimRefund"
+  ): TypedContractMethod<[paymentId: BytesLike], [void], "nonpayable">;
   getFunction(
     nameOrSignature: "depositPayment"
   ): TypedContractMethod<
@@ -592,6 +656,13 @@ export interface ZIP0PaymentVault extends BaseContract {
   ): TypedContractMethod<[], [string], "view">;
 
   getEvent(
+    key: "PaymentAcknowledged"
+  ): TypedContractEvent<
+    PaymentAcknowledgedEvent.InputTuple,
+    PaymentAcknowledgedEvent.OutputTuple,
+    PaymentAcknowledgedEvent.OutputObject
+  >;
+  getEvent(
     key: "PaymentInitiated"
   ): TypedContractEvent<
     PaymentInitiatedEvent.InputTuple,
@@ -642,6 +713,17 @@ export interface ZIP0PaymentVault extends BaseContract {
   >;
 
   filters: {
+    "PaymentAcknowledged(bytes32,address)": TypedContractEvent<
+      PaymentAcknowledgedEvent.InputTuple,
+      PaymentAcknowledgedEvent.OutputTuple,
+      PaymentAcknowledgedEvent.OutputObject
+    >;
+    PaymentAcknowledged: TypedContractEvent<
+      PaymentAcknowledgedEvent.InputTuple,
+      PaymentAcknowledgedEvent.OutputTuple,
+      PaymentAcknowledgedEvent.OutputObject
+    >;
+
     "PaymentInitiated(bytes32,address,uint256,uint32,bytes32,bytes)": TypedContractEvent<
       PaymentInitiatedEvent.InputTuple,
       PaymentInitiatedEvent.OutputTuple,
