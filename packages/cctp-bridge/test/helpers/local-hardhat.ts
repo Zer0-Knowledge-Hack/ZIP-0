@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { createServer } from "node:net";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -240,7 +240,16 @@ export async function approveUsdc(
 }
 
 function readTypechainBytecode(relativeFactory: string): Hex {
-  const factoryPath = path.join(REPO_ROOT, "packages/contracts-evm", relativeFactory);
+  let factoryPath = path.join(REPO_ROOT, "packages/contracts-evm", relativeFactory);
+  if (!existsSync(factoryPath)) {
+    const dirname = path.dirname(relativeFactory);
+    const basename = path.basename(relativeFactory);
+    const solName = basename.replace(/__factory\.ts$/, ".sol");
+    const altPath = path.join(REPO_ROOT, "packages/contracts-evm", dirname, solName, basename);
+    if (existsSync(altPath)) {
+      factoryPath = altPath;
+    }
+  }
   const source = readFileSync(factoryPath, "utf8");
   const match = source.match(/const _bytecode\s*=\s*"(0x[0-9a-fA-F]+)"/);
 

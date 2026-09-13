@@ -75,3 +75,10 @@ one at `https://multisig.hashkeychain.net`.
 This policy covers the contracts in `packages/contracts-evm` and the relayer in
 `packages/cctp-bridge`. This is hackathon-stage software and has not been audited. Do not deploy
 it with funds you are unwilling to lose.
+
+## Known Dependency Advisories
+
+- **`elliptic <= 6.6.1` (CVE-2025-14505 / GHSA-848j-6mx2-7j84)**:
+  - **Status**: Low severity. Deep transitive dependency pulled by `@circle-fin/adapter-viem-v2` through `@ethersproject/signing-key`.
+  - **Upstream Mitigation**: As of September 2026, version 6.6.1 is the latest release published by upstream `indutny/elliptic` with no patched version available yet (`first_patched_version: null`). ZIP-0 relies primarily on native Viem cryptographic primitives and RPC nodes for transaction signing rather than legacy elliptic curves directly.
+

@@ -145,6 +145,7 @@ describe("FilePaymentStore durability", () => {
     const mockEvm: IEvmAdapter = {
       depositPayment: vi.fn(),
       releasePayment: vi.fn(),
+      acknowledgePayment: vi.fn().mockResolvedValue("0xack"),
       getVaultBalance: vi.fn().mockResolvedValue(1_000n * 1_000_000n),
       onPaymentInitiated: vi.fn(),
     };

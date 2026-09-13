@@ -18,5 +18,25 @@
     "@typescript-eslint/parser": "^8.70.0",
     "eslint": "^10.10.0",
     "typescript": "^5.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "vitest": "^4.1.11",
+      "vite": "^6.4.3",
+      "esbuild": "^0.25.0",
+      "undici": "^6.28.1",
+      "ws": "^8.21.3",
+      "serialize-javascript": "^7.1.1",
+      "lodash": "^4.18.1",
+      "toml": "^4.2.0",
+      "tmp": "^0.2.7",
+      "adm-zip": "^0.6.1",
+      "qs": "^6.16.0",
+      "stream-json": "^3.6.0",
+      "uuid": "^11.1.1",
+      "diff": "^8.0.3",
+      "cookie": "^0.7.2",
+      "bn.js": "^4.12.3"
+    }
   }
 }
