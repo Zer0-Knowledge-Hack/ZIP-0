@@ -3,6 +3,11 @@ import { ethers } from "hardhat";
 import { ZIP0PaymentVault, MockUSDC } from "../typechain-types";
 import { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
+async function increaseTime(seconds: number) {
+  await ethers.provider.send("evm_increaseTime", [seconds]);
+  await ethers.provider.send("evm_mine", []);
+}
+
 describe("ZIP0PaymentVault", function () {
   let vault: ZIP0PaymentVault;
   let usdc: MockUSDC;
@@ -183,6 +188,196 @@ describe("ZIP0PaymentVault", function () {
     });
   });
 
+  describe("depositWithAuthorization (ERC-3009)", function () {
+    const TYPES = {
+      TransferWithAuthorization: [
+        { name: "from", type: "address" },
+        { name: "to", type: "address" },
+        { name: "value", type: "uint256" },
+        { name: "validAfter", type: "uint256" },
+        { name: "validBefore", type: "uint256" },
+        { name: "nonce", type: "bytes32" },
+      ],
+    };
+
+    async function signAuthorization(
+      signer: HardhatEthersSigner,
+      value: bigint,
+      validAfter: number,
+      validBefore: number,
+      nonce: string
+    ) {
+      const network = await ethers.provider.getNetwork();
+      const signature = await signer.signTypedData(
+        {
+          name: "USD Coin",
+          version: "2",
+          chainId: network.chainId,
+          verifyingContract: await usdc.getAddress(),
+        },
+        TYPES,
+        {
+          from: signer.address,
+          to: await vault.getAddress(),
+          value,
+          validAfter,
+          validBefore,
+          nonce,
+        }
+      );
+      return ethers.Signature.from(signature);
+    }
+
+    it("accepts a valid authorization and needs no prior approval", async function () {
+      const amount = ethers.parseUnits("25", 6);
+      const paymentId = ethers.keccak256(ethers.toUtf8Bytes("auth-payment-001"));
+      const nonce = ethers.hexlify(ethers.randomBytes(32));
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const validAfter = now - 1;
+      const validBefore = now + 3600;
+
+      const sig = await signAuthorization(user, amount, validAfter, validBefore, nonce);
+      const vaultAddress = await vault.getAddress();
+
+      expect(await usdc.allowance(user.address, vaultAddress)).to.equal(0n);
+
+      await expect(
+        vault
+          .connect(user)
+          .depositWithAuthorization(
+            paymentId,
+            amount,
+            STELLAR_DOMAIN,
+            MOCK_RECIPIENT_BYTES,
+            "0x",
+            validAfter,
+            validBefore,
+            nonce,
+            sig.v,
+            sig.r,
+            sig.s
+          )
+      )
+        .to.emit(vault, "PaymentInitiated")
+        .withArgs(
+          paymentId,
+          user.address,
+          amount,
+          STELLAR_DOMAIN,
+          MOCK_RECIPIENT_BYTES,
+          "0x"
+        );
+
+      expect(await usdc.balanceOf(vaultAddress)).to.equal(amount);
+      expect(await usdc.authorizationState(user.address, nonce)).to.equal(true);
+
+      const payment = await vault.payments(paymentId);
+      expect(payment.status).to.equal(1); // INITIATED
+    });
+
+    it("rejects an expired authorization", async function () {
+      const amount = ethers.parseUnits("25", 6);
+      const paymentId = ethers.keccak256(ethers.toUtf8Bytes("auth-expired"));
+      const nonce = ethers.hexlify(ethers.randomBytes(32));
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const validAfter = now - 7200;
+      const validBefore = now - 1;
+
+      const sig = await signAuthorization(user, amount, validAfter, validBefore, nonce);
+
+      await expect(
+        vault
+          .connect(user)
+          .depositWithAuthorization(
+            paymentId,
+            amount,
+            STELLAR_DOMAIN,
+            MOCK_RECIPIENT_BYTES,
+            "0x",
+            validAfter,
+            validBefore,
+            nonce,
+            sig.v,
+            sig.r,
+            sig.s
+          )
+      ).to.be.revertedWith("Authorization expired");
+    });
+
+    it("rejects an authorization that is not yet valid", async function () {
+      const amount = ethers.parseUnits("25", 6);
+      const paymentId = ethers.keccak256(ethers.toUtf8Bytes("auth-future"));
+      const nonce = ethers.hexlify(ethers.randomBytes(32));
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const validAfter = now + 3600;
+      const validBefore = now + 7200;
+
+      const sig = await signAuthorization(user, amount, validAfter, validBefore, nonce);
+
+      await expect(
+        vault
+          .connect(user)
+          .depositWithAuthorization(
+            paymentId,
+            amount,
+            STELLAR_DOMAIN,
+            MOCK_RECIPIENT_BYTES,
+            "0x",
+            validAfter,
+            validBefore,
+            nonce,
+            sig.v,
+            sig.r,
+            sig.s
+          )
+      ).to.be.revertedWith("Authorization not yet valid");
+    });
+
+    it("rejects a replayed nonce", async function () {
+      const amount = ethers.parseUnits("25", 6);
+      const nonce = ethers.hexlify(ethers.randomBytes(32));
+      const now = (await ethers.provider.getBlock("latest"))!.timestamp;
+      const validAfter = now - 1;
+      const validBefore = now + 3600;
+
+      const sig = await signAuthorization(user, amount, validAfter, validBefore, nonce);
+
+      await vault
+        .connect(user)
+        .depositWithAuthorization(
+          ethers.keccak256(ethers.toUtf8Bytes("auth-replay-1")),
+          amount,
+          STELLAR_DOMAIN,
+          MOCK_RECIPIENT_BYTES,
+          "0x",
+          validAfter,
+          validBefore,
+          nonce,
+          sig.v,
+          sig.r,
+          sig.s
+        );
+
+      await expect(
+        vault
+          .connect(user)
+          .depositWithAuthorization(
+            ethers.keccak256(ethers.toUtf8Bytes("auth-replay-2")),
+            amount,
+            STELLAR_DOMAIN,
+            MOCK_RECIPIENT_BYTES,
+            "0x",
+            validAfter,
+            validBefore,
+            nonce,
+            sig.v,
+            sig.r,
+            sig.s
+          )
+      ).to.be.revertedWith("Authorization already used");
+    });
+  });
+
   describe("releasePayment", function () {
     beforeEach(async function () {
       // Seed vault with initial 500 USDC
@@ -241,6 +436,144 @@ describe("ZIP0PaymentVault", function () {
       await expect(vault.connect(admin).rebalanceVault(admin.address, amount))
         .to.emit(vault, "VaultRebalanced")
         .withArgs(admin.address, amount, admin.address);
+    });
+  });
+
+  describe("refund after timeout", function () {
+    const amount = ethers.parseUnits("40", 6);
+    const paymentId = ethers.keccak256(ethers.toUtf8Bytes("refund-001"));
+    let refundTimeout: number;
+
+    beforeEach(async function () {
+      refundTimeout = Number(await vault.REFUND_TIMEOUT());
+
+      await usdc.connect(user).approve(await vault.getAddress(), amount);
+      await vault
+        .connect(user)
+        .depositPayment(paymentId, amount, STELLAR_DOMAIN, MOCK_RECIPIENT_BYTES, "0x");
+    });
+
+    describe("acknowledgePayment", function () {
+      it("should let the relayer acknowledge an initiated payment", async function () {
+        await expect(vault.connect(relayer).acknowledgePayment(paymentId))
+          .to.emit(vault, "PaymentAcknowledged")
+          .withArgs(paymentId, relayer.address);
+
+        const payment = await vault.payments(paymentId);
+        expect(payment.status).to.equal(4); // ACKNOWLEDGED
+      });
+
+      it("should revert if called by non-relayer", async function () {
+        await expect(
+          vault.connect(user).acknowledgePayment(paymentId)
+        ).to.be.revertedWithCustomError(vault, "AccessControlUnauthorizedAccount");
+      });
+
+      it("should revert for a payment that is not initiated", async function () {
+        await vault.connect(relayer).acknowledgePayment(paymentId);
+
+        await expect(
+          vault.connect(relayer).acknowledgePayment(paymentId)
+        ).to.be.revertedWith("Payment not acknowledgeable");
+
+        const unknownId = ethers.keccak256(ethers.toUtf8Bytes("unknown"));
+        await expect(
+          vault.connect(relayer).acknowledgePayment(unknownId)
+        ).to.be.revertedWith("Payment not acknowledgeable");
+      });
+
+      it("should let the relayer refund an acknowledged payment", async function () {
+        await vault.connect(relayer).acknowledgePayment(paymentId);
+        const balanceBefore = await usdc.balanceOf(user.address);
+
+        await expect(vault.connect(relayer).refundPayment(paymentId))
+          .to.emit(vault, "PaymentRefunded")
+          .withArgs(paymentId, user.address, amount);
+
+        expect((await usdc.balanceOf(user.address)) - balanceBefore).to.equal(amount);
+      });
+    });
+
+    describe("claimRefund", function () {
+      it("should let the payer refund after the timeout", async function () {
+        await increaseTime(refundTimeout);
+        const balanceBefore = await usdc.balanceOf(user.address);
+
+        await expect(vault.connect(user).claimRefund(paymentId))
+          .to.emit(vault, "PaymentRefunded")
+          .withArgs(paymentId, user.address, amount);
+
+        expect((await usdc.balanceOf(user.address)) - balanceBefore).to.equal(amount);
+        const payment = await vault.payments(paymentId);
+        expect(payment.status).to.equal(3); // REFUNDED
+      });
+
+      it("should revert before the timeout elapses", async function () {
+        await increaseTime(refundTimeout - 60);
+
+        await expect(vault.connect(user).claimRefund(paymentId)).to.be.revertedWith(
+          "Refund timeout not elapsed"
+        );
+      });
+
+      it("should revert when called by someone other than the payer", async function () {
+        await increaseTime(refundTimeout);
+
+        await expect(vault.connect(merchant).claimRefund(paymentId)).to.be.revertedWith(
+          "Not the payer"
+        );
+      });
+
+      it("should not refund a payment the relayer acknowledged", async function () {
+        await vault.connect(relayer).acknowledgePayment(paymentId);
+        await increaseTime(refundTimeout);
+
+        await expect(vault.connect(user).claimRefund(paymentId)).to.be.revertedWith(
+          "Payment not refundable"
+        );
+      });
+
+      it("should not refund a released payment", async function () {
+        const releaseId = ethers.keccak256(ethers.toUtf8Bytes("released-001"));
+        await vault.connect(relayer).releasePayment(releaseId, merchant.address, amount);
+        await increaseTime(refundTimeout);
+
+        await expect(vault.connect(merchant).claimRefund(releaseId)).to.be.revertedWith(
+          "Payment not refundable"
+        );
+      });
+
+      it("should prevent a double refund", async function () {
+        await increaseTime(refundTimeout);
+        await vault.connect(user).claimRefund(paymentId);
+
+        await expect(vault.connect(user).claimRefund(paymentId)).to.be.revertedWith(
+          "Payment not refundable"
+        );
+      });
+
+      it("should block reentrancy during the refund transfer", async function () {
+        const TokenFactory = await ethers.getContractFactory("ReentrantRefundToken");
+        const token = await TokenFactory.deploy();
+        await token.waitForDeployment();
+
+        const VaultFactory = await ethers.getContractFactory("ZIP0PaymentVault");
+        const tokenVault = await VaultFactory.deploy(
+          await token.getAddress(),
+          admin.address,
+          relayer.address
+        );
+        await tokenVault.waitForDeployment();
+
+        const reentrantId = ethers.keccak256(ethers.toUtf8Bytes("reentrant-001"));
+        await token.depositInto(await tokenVault.getAddress(), reentrantId, amount);
+        await increaseTime(refundTimeout);
+
+        await expect(token.claim()).to.be.revertedWithCustomError(
+          tokenVault,
+          "ReentrancyGuardReentrantCall"
+        );
+      });
     });
   });
 });

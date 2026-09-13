@@ -8,6 +8,29 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
+ * @dev Minimal ERC-3009 surface used by `depositWithAuthorization`.
+ *
+ * Both Circle's native USDC and HashKey's bridged USDC.e implement `transferWithAuthorization`
+ * with time-bounded validity and non-sequential nonces, so a payer can authorize a deposit
+ * off-chain and let the relayer (or the payer) submit it without a prior allowance.
+ */
+interface IERC20TransferWithAuthorization {
+    function transferWithAuthorization(
+        address from,
+        address to,
+        uint256 value,
+        uint256 validAfter,
+        uint256 validBefore,
+        bytes32 nonce,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external;
+
+    function authorizationState(address authorizer, bytes32 nonce) external view returns (bool);
+}
+
+/**
  * @title ZIP0PaymentVault
  * @notice Vault contract for locking payments in HSK Chain (or any EVM) and releasing USDC
  *         upon cross-chain settlement from Stellar (Pollar) or CCTP.
@@ -20,11 +43,16 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
 
     IERC20 public immutable usdcToken;
 
+    /// @notice Time after deposit during which only the relayer can act on a payment.
+    uint256 public constant REFUND_TIMEOUT = 24 hours;
+
+    /// @dev ACKNOWLEDGED is appended so the existing status values stay unchanged.
     enum PaymentStatus {
         NONE,
         INITIATED,
         RELEASED,
-        REFUNDED
+        REFUNDED,
+        ACKNOWLEDGED
     }
 
     struct Payment {
@@ -68,6 +96,11 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
         address treasury
     );
 
+    event PaymentAcknowledged(
+        bytes32 indexed paymentId,
+        address relayer
+    );
+
     constructor(address _usdcToken, address admin, address initialRelayer) {
         require(_usdcToken != address(0), "Invalid token address");
         require(admin != address(0), "Invalid admin");
@@ -96,7 +129,17 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
         bytes32 destinationRecipient,
         bytes calldata metadata
     ) external nonReentrant {
-        _depositPayment(paymentId, amount, destinationDomain, destinationRecipient, metadata);
+        _createPayment(paymentId, amount, destinationDomain, destinationRecipient);
+        usdcToken.safeTransferFrom(msg.sender, address(this), amount);
+
+        emit PaymentInitiated(
+            paymentId,
+            msg.sender,
+            amount,
+            destinationDomain,
+            destinationRecipient,
+            metadata
+        );
     }
 
     /**
@@ -123,8 +166,12 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
             s
         );
 
-        _depositPayment(
+        _createPayment(paymentId, amount, destinationDomain, destinationRecipient);
+        usdcToken.safeTransferFrom(msg.sender, address(this), amount);
+
+        emit PaymentInitiated(
             paymentId,
+            msg.sender,
             amount,
             destinationDomain,
             destinationRecipient,
@@ -132,12 +179,64 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
         );
     }
 
-    function _depositPayment(
+    /**
+     * @notice Gasless deposit using an ERC-3009 `transferWithAuthorization` signature.
+     *
+     * Unlike EIP-2612 `permit`, this authorizes the transfer directly, with a time-bounded
+     * validity window and a random nonce rather than a sequential one. That lets an institution
+     * issue several authorizations that may settle out of order. The token — not the vault —
+     * enforces the signature, window, and nonce, so no allowance is needed.
+     *
+     * @param validAfter Unix timestamp after which the authorization becomes valid.
+     * @param validBefore Unix timestamp before which the authorization must be used.
+     * @param nonce Random 32-byte nonce, unique per (payer, authorization).
+     */
+    function depositWithAuthorization(
         bytes32 paymentId,
         uint256 amount,
         uint32 destinationDomain,
         bytes32 destinationRecipient,
-        bytes calldata metadata
+        bytes calldata metadata,
+        uint256 validAfter,
+        uint256 validBefore,
+        bytes32 nonce,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external nonReentrant {
+        _createPayment(paymentId, amount, destinationDomain, destinationRecipient);
+
+        IERC20TransferWithAuthorization(address(usdcToken)).transferWithAuthorization(
+            msg.sender,
+            address(this),
+            amount,
+            validAfter,
+            validBefore,
+            nonce,
+            v,
+            r,
+            s
+        );
+
+        emit PaymentInitiated(
+            paymentId,
+            msg.sender,
+            amount,
+            destinationDomain,
+            destinationRecipient,
+            metadata
+        );
+    }
+
+    /**
+     * @dev Records an INITIATED payment. Token movement is the caller's responsibility so each
+     * deposit entry point can move funds with its own mechanism exactly once.
+     */
+    function _createPayment(
+        bytes32 paymentId,
+        uint256 amount,
+        uint32 destinationDomain,
+        bytes32 destinationRecipient
     ) internal {
         require(payments[paymentId].status == PaymentStatus.NONE, "Payment already exists");
         require(amount > 0, "Amount must be > 0");
@@ -152,17 +251,6 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
             status: PaymentStatus.INITIATED,
             timestamp: block.timestamp
         });
-
-        usdcToken.safeTransferFrom(msg.sender, address(this), amount);
-
-        emit PaymentInitiated(
-            paymentId,
-            msg.sender,
-            amount,
-            destinationDomain,
-            destinationRecipient,
-            metadata
-        );
     }
 
     /**
@@ -202,7 +290,11 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
      */
     function refundPayment(bytes32 paymentId) external onlyRole(RELAYER_ROLE) nonReentrant {
         Payment storage payment = payments[paymentId];
-        require(payment.status == PaymentStatus.INITIATED, "Payment not refundable");
+        require(
+            payment.status == PaymentStatus.INITIATED ||
+                payment.status == PaymentStatus.ACKNOWLEDGED,
+            "Payment not refundable"
+        );
 
         payment.status = PaymentStatus.REFUNDED;
         usdcToken.safeTransfer(payment.payer, payment.amount);
@@ -222,5 +314,38 @@ contract ZIP0PaymentVault is AccessControl, ReentrancyGuard {
 
         usdcToken.safeTransfer(destination, amount);
         emit VaultRebalanced(destination, amount, msg.sender);
+    }
+
+    // ---------------------------------------------------------------------
+    // Payer-initiated refund after timeout (#11)
+    // ---------------------------------------------------------------------
+
+    /**
+     * @notice Marks a deposit as picked up by the relayer before it settles on the other side.
+     * @dev A deposit never leaves INITIATED on a successful settlement, so without this step a
+     *      payer could be credited on the destination chain and still claim a refund here.
+     */
+    function acknowledgePayment(bytes32 paymentId) external onlyRole(RELAYER_ROLE) {
+        Payment storage payment = payments[paymentId];
+        require(payment.status == PaymentStatus.INITIATED, "Payment not acknowledgeable");
+
+        payment.status = PaymentStatus.ACKNOWLEDGED;
+
+        emit PaymentAcknowledged(paymentId, msg.sender);
+    }
+
+    /**
+     * @notice Lets the payer recover a deposit the relayer never acknowledged.
+     */
+    function claimRefund(bytes32 paymentId) external nonReentrant {
+        Payment storage payment = payments[paymentId];
+        require(payment.status == PaymentStatus.INITIATED, "Payment not refundable");
+        require(msg.sender == payment.payer, "Not the payer");
+        require(block.timestamp >= payment.timestamp + REFUND_TIMEOUT, "Refund timeout not elapsed");
+
+        payment.status = PaymentStatus.REFUNDED;
+        usdcToken.safeTransfer(payment.payer, payment.amount);
+
+        emit PaymentRefunded(paymentId, payment.payer, payment.amount);
     }
 }

@@ -18,8 +18,8 @@ the design document.
 | Relayer orchestration (EVM ↔ Stellar) | ⚠️ Built, tested against mocks only |
 | Pollar / Stellar adapter | ⚠️ Built, no live-network test |
 | Ports & Adapters core (ISettlementRail / PaymentRoutingEngine) | ✅ Built and tested |
-| CCTP settlement rail | ⚠️ Built (Circle Bridge Kit); live testnet transfer not yet recorded |
-| ERC-3009 `transferWithAuthorization` | ❌ Not started |
+| CCTP settlement rail | ❌ Not started |
+| ERC-3009 `transferWithAuthorization` | ✅ Vault deposit + EIP-712 signing/validation; standalone relayer broadcast not implemented |
 | `@zip-0/sdk` package | ❌ Not started |
 | REST API gateway | ❌ Not started |
 | Persistent payment state | ❌ Not started |
@@ -30,18 +30,29 @@ the design document.
 
 ### Settlement vault
 
-`packages/contracts-evm/contracts/ZIP0PaymentVault.sol` — 226 lines. Lock/release vault with
+`packages/contracts-evm/contracts/ZIP0PaymentVault.sol` — 273 lines. Lock/release vault with
 `AccessControl`, `ReentrancyGuard`, and `SafeERC20`.
 
-Test evidence: `pnpm --filter @zip-0/contracts-evm test` → **8 passing**, covering initialization
+Test evidence: `pnpm --filter @zip-0/contracts-evm test` → **19 passing**, covering initialization
 and roles, deposit with event emission, duplicate-`paymentId` rejection, permit-based deposit,
-relayer release, non-relayer rejection, insufficient-liquidity rejection, and treasury rebalance.
+relayer release, non-relayer rejection, insufficient-liquidity rejection, treasury rebalance, and
+the payer refund path: relayer acknowledgement, refund after timeout, early-claim and non-payer
+rejection, no refund of acknowledged or released payments, no double refund, and a reentrancy
+attempt blocked by a malicious token.
+
+Payer refund: a payer can call `claimRefund` after `REFUND_TIMEOUT` (24 h) if the relayer never
+acknowledged the deposit. `acknowledgePayment` exists because a deposit never leaves `INITIATED`
+on a successful settlement — without it, a payer could be credited on the destination chain and
+still claim a refund here. **Not yet wired:** the relayer does not call `acknowledgePayment`.
 
 Deployment evidence:
 - Avalanche Fuji (`43113`): `0xF1ca5572DC03f84aB0f2e5806df336264375e1Fa` returns contract bytecode from `eth_getCode` and holds a non-zero USDC balance.
-- HashKey Chain Testnet (`133`): `0x14e59806054773fc341377aEC472C07e500BCc86` (pointing to MockUSDC at `0x46a7BE8Cea2d9EB017D0a0277467E680bcA04f17`), verified on-chain runtime bytecode (5,228 bytes) with 50,000 MockUSDC initial liquidity.
+- HashKey Chain Testnet (`133`): `0x14e59806054773fc341377aEC472C07e500BCc86` (pointing to MockUSDC at `0x46a7BE8Cea2d9EB017D0a0277467E680bcA04f17`), verified on-chain runtime bytecode with 50,000 MockUSDC initial liquidity.
 
-Bytecode size: 5,966 bytes init / 5,228 bytes deployed — comfortably under the EIP-170 24 KB limit.
+Both deployments predate `acknowledgePayment` and `claimRefund`, so their bytecode no longer
+matches this repository. Redeploy before relying on the refund path.
+
+Bytecode size: 6,782 bytes init / 6,037 bytes deployed — comfortably under the EIP-170 24 KB limit.
 
 
 ### Settlement rail abstraction
@@ -69,8 +80,19 @@ five pre-existing tests pass untouched.
 (`0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9`). The permit path is
 therefore compatible with HSK mainnet.
 
-Note this uses **EIP-2612 permit**, not ERC-3009 `transferWithAuthorization`. The architecture
-document describes the latter; the code implements the former.
+`depositWithAuthorization()` adds the ERC-3009 `transferWithAuthorization` path the architecture
+document describes. Both USDC contracts expose the canonical
+`TRANSFER_WITH_AUTHORIZATION_TYPEHASH` (`0x7c7c6cdb…2267`). The signing/validation helper lives in
+`packages/cctp-bridge/src/core/erc3009Signer.ts` and checks `validAfter` / `validBefore` and the
+token's on-chain `authorizationState()` before submission.
+
+Test evidence (`pnpm --filter @zip-0/contracts-evm test` → **12 passing**) covers a valid
+authorization, an expired window, a not-yet-valid window, and a replayed nonce. The permit path is
+unchanged and still passing.
+
+**Not implemented:** the standalone `Erc3009Relayer.relayAuthorization()` still refuses to broadcast
+(it verifies the signature, then throws `NotImplementedError`). The vault entry point performs the
+on-chain transfer directly; the separate relayer broadcast remains future work.
 
 ---
 
