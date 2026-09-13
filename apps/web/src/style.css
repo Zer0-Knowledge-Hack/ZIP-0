@@ -1658,3 +1658,217 @@ code {
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: "tnum" 1, "lnum" 1, "zero" 1;
 }
+
+/* ============================================================
+   Landing
+   ============================================================
+   The first thing a visitor sees. It has to answer what this is, what problem it solves,
+   how it works and why it can be trusted — without assuming prior crypto knowledge.
+
+   All colour comes from tokens. Nothing here introduces a literal value.
+   ============================================================ */
+
+.landing {
+  display: flex;
+  flex-direction: column;
+  gap: var(--zip-space-8);
+  padding-bottom: var(--zip-space-8);
+}
+
+.landing-hero {
+  padding: var(--zip-space-8) 0 var(--zip-space-4);
+  border-bottom: var(--zip-rail);
+  max-width: 44rem;
+}
+
+.landing-eyebrow {
+  display: block;
+  font-size: var(--zip-text-xs);
+  font-weight: var(--zip-weight-semibold);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--zip-ink-muted);
+  margin-bottom: var(--zip-space-3);
+}
+
+.landing-hero h2 {
+  font-size: var(--zip-text-2xl);
+  font-weight: var(--zip-weight-bold);
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-4);
+  max-width: 20ch;
+}
+
+.landing-lead {
+  font-size: var(--zip-text-lg);
+  line-height: 1.55;
+  color: var(--zip-ink-muted);
+  max-width: 52ch;
+}
+
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--zip-space-4);
+  margin-top: var(--zip-space-6);
+}
+
+.landing-problem h3,
+.landing-rails h3,
+.landing-proof h3 {
+  font-size: var(--zip-text-xl);
+  font-weight: var(--zip-weight-semibold);
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-3);
+}
+
+.landing-problem p,
+.landing-proof p {
+  color: var(--zip-ink-muted);
+  max-width: 62ch;
+  line-height: 1.6;
+}
+
+/* ---------- Rails ---------- */
+
+.landing-rail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: var(--zip-space-4);
+  margin-top: var(--zip-space-4);
+}
+
+.landing-rail h4 {
+  font-family: var(--zip-font-display);
+  font-size: var(--zip-text-lg);
+  font-weight: var(--zip-weight-semibold);
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-2);
+}
+
+.landing-rail p {
+  color: var(--zip-ink-muted);
+  font-size: var(--zip-text-sm);
+  line-height: 1.6;
+  margin-bottom: var(--zip-space-4);
+}
+
+/*
+ * Rail status. Never colour alone — each state carries an icon and its word, so the
+ * distinction survives a projector and colour vision deficiency.
+ */
+.landing-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--zip-space-2);
+  font-family: var(--zip-font-mono);
+  font-size: var(--zip-text-xs);
+  font-weight: var(--zip-weight-medium);
+  letter-spacing: 0.06em;
+  padding: var(--zip-space-1) var(--zip-space-3);
+  border-radius: var(--zip-radius);
+}
+
+.landing-status--live {
+  color: var(--zip-settled);
+  background: var(--zip-settled-faint);
+}
+
+.landing-status--planned {
+  color: var(--zip-ink-muted);
+  background: var(--zip-surface-raised);
+  border: var(--zip-rail);
+}
+
+/* ---------- Proof ---------- */
+
+.landing-proof-list {
+  margin: var(--zip-space-4) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--zip-space-3);
+}
+
+.landing-proof-list > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--zip-space-3);
+  padding-bottom: var(--zip-space-3);
+  border-bottom: var(--zip-rail);
+}
+
+.landing-proof-list > div:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.landing-proof-list dt {
+  font-size: var(--zip-text-xs);
+  font-weight: var(--zip-weight-medium);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--zip-ink-muted);
+}
+
+.landing-proof-list dd {
+  margin: 0;
+}
+
+.landing-hash {
+  font-family: var(--zip-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "zero" 1;
+  font-size: var(--zip-text-sm);
+  color: var(--zip-signal);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Prototype disclosure ---------- */
+
+/*
+ * Shown on the landing, not buried in a footer. The product claims to be institutional
+ * settlement infrastructure; stating plainly that it is a testnet prototype is what makes the
+ * rest of the claims credible rather than the opposite.
+ */
+.landing-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--zip-space-3);
+  padding: var(--zip-space-4);
+  border: var(--zip-rail);
+  border-left: 3px solid var(--zip-pending);
+  border-radius: var(--zip-radius);
+  background: var(--zip-pending-faint);
+}
+
+.landing-notice svg {
+  color: var(--zip-pending);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.landing-notice strong {
+  display: block;
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink);
+  margin-bottom: var(--zip-space-1);
+}
+
+.landing-notice p {
+  font-size: var(--zip-text-sm);
+  color: var(--zip-ink-muted);
+  line-height: 1.55;
+  max-width: 70ch;
+}
+
+@media (max-width: 40rem) {
+  .landing-hero h2 {
+    font-size: var(--zip-text-xl);
+  }
+  .landing-lead {
+    font-size: var(--zip-text-base);
+  }
+}

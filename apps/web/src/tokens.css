@@ -41,7 +41,7 @@
   /* Settlement states. Never rely on colour alone: pair with a label or icon. */
   --zip-settled: #0f7a54;
   --zip-settled-faint: #e3f5ed;
-  --zip-pending: #9a6400;
+  --zip-pending: #986300;
   --zip-pending-faint: #fdf1dc;
   --zip-failed: #b3261e;
   --zip-failed-faint: #fce9e7;

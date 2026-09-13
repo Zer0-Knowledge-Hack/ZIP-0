@@ -26,7 +26,7 @@ import { en } from "./i18n/en";
 import { amountValue, initialLanguage } from "./model";
 import "./style.css";
 
-type Page = "overview" | "newPayment" | "activity" | "help";
+type Page = "landing" | "overview" | "newPayment" | "activity" | "help";
 type Provider = {
   request(args: { method: string }): Promise<unknown>;
   on?: (event: string, callback: (accounts: unknown) => void) => void;
@@ -35,6 +35,9 @@ type Provider = {
     callback: (accounts: unknown) => void
   ) => void;
 };
+const VAULT = "0x14e59806054773fc341377aEC472C07e500BCc86";
+const EXPLORER = "https://testnet-explorer.hsk.xyz";
+
 const provider = () => (window as Window & { ethereum?: Provider }).ethereum;
 
 /**
@@ -58,7 +61,7 @@ function Mark() {
 function App() {
   const [language, setLanguage] = useState(initialLanguage);
   const t = language === "es" ? es : en;
-  const [page, setPage] = useState<Page>("overview");
+  const [page, setPage] = useState<Page>("landing");
   const [menuOpen, setMenuOpen] = useState(false);
   const [dark, setDark] = useState(false);
   const [network, setNetwork] = useState("HSK Testnet");
@@ -135,6 +138,7 @@ function App() {
     setError(null);
   };
   const nav = [
+    { id: "landing", icon: Globe2 },
     { id: "overview", icon: LayoutDashboard },
     { id: "newPayment", icon: Send },
     { id: "activity", icon: Clock3 },
@@ -330,6 +334,95 @@ function App() {
               </button>
             </div>
           )}
+          {page === "landing" && (
+            <div className="landing">
+              <section className="landing-hero">
+                <span className="landing-eyebrow">{t.landingEyebrow}</span>
+                <h2>{t.landingTitle}</h2>
+                <p className="landing-lead">{t.landingLead}</p>
+                <div className="landing-actions">
+                  <button className="primary" onClick={() => go("overview")}>
+                    {t.landingCta}
+                    <ArrowRight size={17} />
+                  </button>
+                  <a
+                    className="text-button"
+                    href={`${EXPLORER}/address/${VAULT}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t.landingCtaSecondary}
+                    <ArrowUpRight size={16} />
+                  </a>
+                </div>
+              </section>
+
+              <section className="panel landing-problem">
+                <h3>{t.landingProblemTitle}</h3>
+                <p>{t.landingProblemBody}</p>
+              </section>
+
+              <section className="landing-rails">
+                <h3>{t.landingHowTitle}</h3>
+                <div className="landing-rail-grid">
+                  {/*
+                    Both rails are shown, with their real state. The CCTP half is not
+                    implemented (#21) and is labelled as designed — describing it as working
+                    would be the same lie as a fabricated transaction hash.
+                  */}
+                  <article className="panel landing-rail">
+                    <h4>{t.landingRail2}</h4>
+                    <p>{t.landingRail2Body}</p>
+                    <span className="landing-status landing-status--live">
+                      <Check size={14} />
+                      {t.landingRail2Status}
+                    </span>
+                  </article>
+                  <article className="panel landing-rail">
+                    <h4>{t.landingRail1}</h4>
+                    <p>{t.landingRail1Body}</p>
+                    <span className="landing-status landing-status--planned">
+                      <Clock3 size={14} />
+                      {t.landingRail1Status}
+                    </span>
+                  </article>
+                </div>
+              </section>
+
+              <section className="panel landing-proof">
+                <h3>{t.landingProofTitle}</h3>
+                <p>{t.landingProofBody}</p>
+                <dl className="landing-proof-list">
+                  <div>
+                    <dt>{t.landingProofVault}</dt>
+                    <dd>
+                      <a
+                        className="landing-hash"
+                        href={`${EXPLORER}/address/${VAULT}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {VAULT}
+                      </a>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>{t.landingProofNetwork}</dt>
+                    <dd className="landing-hash">HashKey Chain Testnet · 133</dd>
+                  </div>
+                </dl>
+              </section>
+
+              <aside className="landing-notice">
+                <ShieldCheck size={18} />
+                <div>
+                  <strong>{t.landingPrototype}</strong>
+                  <p>{t.landingPrototypeBody}</p>
+                </div>
+              </aside>
+            </div>
+          )}
+
           {page === "overview" && (
             <>
               <section className="hero">

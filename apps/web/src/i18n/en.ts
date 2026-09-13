@@ -102,4 +102,38 @@ export const en: Messages = {
   hsPlaceholder: "E.g. 3102.10",
   network: "Network",
   clear: "Remove document",
+
+  // --- Landing ---
+  landing: "Home",
+  landingEyebrow: "Cross-border settlement infrastructure",
+  landingTitle: "International payments in USDC, settled in seconds",
+  landingLead:
+    "ZIP-0 moves value between chains and corridors without correspondent banking. Settlement happens on-chain and anyone can verify it.",
+  landingCta: "Open the app",
+  landingCtaSecondary: "View the contract",
+
+  landingProblemTitle: "The problem",
+  landingProblemBody:
+    "SWIFT carries messages, not money. Actual settlement runs through a chain of correspondent banks: it takes days, charges a fee at every hop, and nobody can see where the payment is while it travels.",
+
+  landingHowTitle: "How it works",
+  landingRail1: "CCTP rail",
+  landingRail1Body:
+    "Burn at source, mint at destination, 1:1, with no liquidity pool and no slippage. For corridors where Circle has deployed CCTP.",
+  landingRail1Status: "Designed, not implemented",
+  landingRail2: "Vault rail",
+  landingRail2Body:
+    "Lock in the source vault, release from float at the destination. Covers corridors without CCTP, such as HashKey Chain and Stellar.",
+  landingRail2Status: "Live",
+
+  landingProofTitle: "Verifiable, not promised",
+  landingProofBody:
+    "The vault is deployed and its state can be read without asking us for anything. These are the real addresses:",
+  landingProofVault: "Payment vault",
+  landingProofNetwork: "Network",
+
+  landingPrototype: "Test-network prototype",
+  landingPrototypeBody:
+    "ZIP-0 holds no licence, custodies no client funds and processes no real value. Contracts are unaudited, and settlement currently depends on a trusted relayer.",
+  landingLegal: "See full disclosure",
 };
