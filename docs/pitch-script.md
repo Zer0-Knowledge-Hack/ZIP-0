@@ -98,9 +98,9 @@ it on stage.
 **If you are running long**, cut the sentence beginning "Now someone on her team" — it is the most
 expendable line. Do not cut the pause.
 
-**If a judge asks "why not just use stablecoins directly?"** — because the exporter has no wallet,
-no custody policy and no way to reconcile it against an invoice. The rail is the product; the token
-is an implementation detail.
-
 **If a judge asks about regulation** — point at the disclosures page. It states which obligations
 apply and which we do not yet meet, by jurisdiction. Do not improvise on this.
+
+**For everything else**, see [`pitch-qa.md`](pitch-qa.md): Binance Pay, suppliers who already accept
+crypto, what we offer over the alternatives, and how ZIP·0 makes money. Read section 0 before going
+on stage — it corrects a factual error that would cost the room.
