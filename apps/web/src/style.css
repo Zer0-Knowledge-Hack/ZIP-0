@@ -1028,14 +1028,6 @@ header .language button[aria-pressed="true"] {
   background: var(--zip-signal-faint);
   color: var(--zip-signal);
 }
-.desktop-nav button {
-  color: var(--zip-ink-muted);
-}
-.desktop-nav button[aria-current="page"] {
-  background: var(--zip-signal-faint);
-  color: var(--zip-signal);
-  font-weight: var(--zip-weight-semibold);
-}
 .wallet-button {
   background: var(--zip-surface);
   color: var(--zip-ink);
@@ -1351,9 +1343,12 @@ footer {
 .stat:first-child {
   padding-left: 0;
 }
+/* In dark mode ink equals the page background, so the card would disappear. Raised surface
+   keeps it distinct while the on-dark tokens stay legible against it. */
+[data-theme="dark"] .payment-preview-card,
 .dark .payment-preview-card {
-  background: var(--zip-signal-hover);
-  border-color: var(--zip-ink-muted);
+  background: var(--zip-surface-raised);
+  border-color: var(--zip-border-strong);
 }
 .primary:hover {
   transform: none;
@@ -1446,7 +1441,7 @@ footer {
   gap: 6px;
 }
 .desktop-nav button {
-  color: var(--zip-signal-faint);
+  color: var(--zip-ink-muted);
   border-radius: 24px;
   padding: 12px 16px;
   font-size: 0.875rem;
@@ -1454,7 +1449,7 @@ footer {
   min-height: 44px;
 }
 .desktop-nav button.selected {
-  background: var(--zip-surface);
+  background: var(--zip-signal-faint);
   color: var(--zip-signal);
   border: 0;
   border-radius: 24px;
