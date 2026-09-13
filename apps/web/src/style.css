@@ -997,27 +997,49 @@ summary {
   }
 }
 
+/*
+ * The navigation bar is a surface, not an accent slab.
+ *
+ * It was painted with --zip-signal-hover, which caps contrast hard: on that blue even pure
+ * white only reaches 5.57:1, leaving a one-point band for the entire hierarchy. Primary,
+ * secondary and tertiary text cannot coexist there, which is why the ES/EN toggle measured
+ * 1.02:1 — effectively invisible.
+ *
+ * As a surface it has ~19:1 of headroom, and it follows the rule in docs/brand.md: one accent,
+ * used sparingly. Signal now marks the active item and nothing else.
+ */
 header {
-  background: var(--zip-signal-hover);
-  color: var(--zip-surface);
+  background: var(--zip-surface);
+  color: var(--zip-ink);
+  border-bottom: var(--zip-rail);
+}
+header .breadcrumb strong {
+  color: var(--zip-ink);
 }
 header .breadcrumb,
-header .breadcrumb strong,
 header .icon-button,
 header .language button {
-  color: var(--zip-surface);
+  color: var(--zip-ink-muted);
 }
 header .language {
-  border-color: var(--zip-ink-muted);
+  border-color: var(--zip-border);
 }
 header .language button[aria-pressed="true"] {
-  background: var(--zip-surface);
+  background: var(--zip-signal-faint);
   color: var(--zip-signal);
 }
+.desktop-nav button {
+  color: var(--zip-ink-muted);
+}
+.desktop-nav button[aria-current="page"] {
+  background: var(--zip-signal-faint);
+  color: var(--zip-signal);
+  font-weight: var(--zip-weight-semibold);
+}
 .wallet-button {
-  background: transparent;
-  color: var(--zip-surface);
-  border-color: var(--zip-ink-faint);
+  background: var(--zip-surface);
+  color: var(--zip-ink);
+  border-color: var(--zip-border-strong);
   border-radius: 28px;
 }
 .brand {
@@ -1232,9 +1254,9 @@ footer {
   transform: rotate(-3deg);
 }
 .payment-preview-card {
-  background: var(--zip-signal);
-  color: var(--zip-surface);
-  border: 1px solid var(--zip-ink-muted);
+  background: var(--zip-ink);
+  color: var(--zip-on-dark);
+  border: 1px solid var(--zip-on-dark-muted);
   border-radius: 18px;
   padding: 25px;
   box-shadow: 0 22px 34px -22px color-mix(in srgb, var(--zip-signal) 50%, transparent), 0 5px 10px color-mix(in srgb, var(--zip-signal) 6%, transparent);
@@ -1256,7 +1278,7 @@ footer {
   font-size: 0.75rem;
 }
 .hero .payment-preview-label {
-  color: var(--zip-border);
+  color: var(--zip-on-dark-muted);
   margin-top: 28px;
   font-size: 0.875rem;
 }
@@ -1267,7 +1289,7 @@ footer {
 }
 .payment-preview-amount > span {
   font-size: 1rem;
-  color: var(--zip-border);
+  color: var(--zip-on-dark-muted);
 }
 .payment-preview-route {
   display: flex;
@@ -1280,7 +1302,7 @@ footer {
   display: block;
 }
 .payment-preview-route small {
-  color: var(--zip-border);
+  color: var(--zip-on-dark-muted);
   font-size: 0.75rem;
   margin-bottom: 7px;
 }
@@ -1289,17 +1311,17 @@ footer {
   font-weight: 400;
 }
 .payment-preview-route svg {
-  color: var(--zip-settled);
+  color: var(--zip-on-dark-settled);
   flex-shrink: 0;
 }
 .payment-preview-bottom {
   display: flex;
   align-items: center;
   gap: 8px;
-  border-top: 1px solid var(--zip-ink-muted);
+  border-top: 1px solid var(--zip-on-dark-muted);
   padding-top: 16px;
   margin-top: 22px;
-  color: var(--zip-border);
+  color: var(--zip-on-dark-muted);
   font-size: 0.75rem;
 }
 .payment-preview figcaption {

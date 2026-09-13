@@ -26,6 +26,18 @@
   --zip-signal-hover: #1a51c0;
   --zip-signal-faint: #e8f0ff;
 
+  /*
+   * On-dark tokens.
+   *
+   * Fixed regardless of theme, for elements that are always a dark surface — the hero card,
+   * overlays. They exist because reusing ink-muted on a dark panel fails in light mode: those
+   * tokens are defined against paper, not against a dark background.
+   */
+  --zip-on-dark: #f7f9fc;
+  --zip-on-dark-muted: #9aa7b8;
+  --zip-on-dark-signal: #4b86ff;
+  --zip-on-dark-settled: #34d399;
+
   /* Settlement states. Never rely on colour alone: pair with a label or icon. */
   --zip-settled: #0f7a54;
   --zip-settled-faint: #e3f5ed;
