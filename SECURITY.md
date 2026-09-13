@@ -38,6 +38,19 @@ credit on the source chain.
 This means a compromised relayer key is equivalent to full control of vault float. Guard it
 accordingly, and keep vault liquidity proportionate to what the deployment actually needs.
 
+### Relayer liveness is a safety property
+
+A payer can call `claimRefund()` on any deposit still `INITIATED` once `REFUND_TIMEOUT` (24 h) has
+passed. The relayer prevents this for deposits it settles by calling `acknowledgePayment()`
+**before** crediting the destination chain.
+
+So relayer downtime is not only an availability problem. If the relayer is down for longer than
+`REFUND_TIMEOUT`, deposits it never acknowledged become refundable to the payer, and a relayer that
+comes back and settles one of them without acknowledging first would pay it twice. The relayer
+always acknowledges before crediting, and a failed acknowledgement stops the settlement. Monitor
+relayer uptime against `REFUND_TIMEOUT`, and never settle a deposit by any path that skips
+`acknowledgePayment()`.
+
 Making settlement trust-minimized is the purpose of the planned CCTP rail. See
 [`docs/project-status.md`](docs/project-status.md).
 
@@ -62,3 +75,10 @@ one at `https://multisig.hashkeychain.net`.
 This policy covers the contracts in `packages/contracts-evm` and the relayer in
 `packages/cctp-bridge`. This is hackathon-stage software and has not been audited. Do not deploy
 it with funds you are unwilling to lose.
+
+## Known Dependency Advisories
+
+- **`elliptic <= 6.6.1` (CVE-2025-14505 / GHSA-848j-6mx2-7j84)**:
+  - **Status**: Low severity. Deep transitive dependency pulled by `@circle-fin/adapter-viem-v2` through `@ethersproject/signing-key`.
+  - **Upstream Mitigation**: As of September 2026, version 6.6.1 is the latest release published by upstream `indutny/elliptic` with no patched version available yet (`first_patched_version: null`). ZIP-0 relies primarily on native Viem cryptographic primitives and RPC nodes for transaction signing rather than legacy elliptic curves directly.
+

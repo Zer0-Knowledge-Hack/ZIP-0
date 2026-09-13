@@ -8,6 +8,10 @@ import {
   SettlementRailType,
 } from "./types.js";
 
+export type { PaymentStore } from "./payment-store.js";
+export { InMemoryPaymentStore } from "./in-memory-payment-store.js";
+export { FilePaymentStore } from "./file-payment-store.js";
+
 /**
  * A settlement mechanism capable of moving value between two domains.
  *
@@ -88,6 +92,11 @@ export interface IEvmAdapter {
     recipient: `0x${string}`,
     amount: bigint
   ): Promise<`0x${string}`>;
+  /**
+   * Marks a vault deposit as picked up by the relayer (`INITIATED` → `ACKNOWLEDGED`), which stops
+   * the payer from reclaiming it through `claimRefund`. Resolves with the confirmed tx hash.
+   */
+  acknowledgePayment(paymentId: `0x${string}`): Promise<`0x${string}`>;
   getVaultBalance(): Promise<bigint>;
   onPaymentInitiated(callback: (intent: PaymentIntent) => Promise<void>): () => void;
 }

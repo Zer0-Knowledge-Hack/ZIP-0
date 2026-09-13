@@ -17,6 +17,7 @@ describe("Institutional Payment Infrastructure & Dual-Rail Routing (Vitest)", ()
   const mockVault: IEvmAdapter = {
     depositPayment: async () => "0xmockdeposittx" as `0x${string}`,
     releasePayment: async (_id, _rec, _amt) => "0xmockreleasetx" as `0x${string}`,
+    acknowledgePayment: async (_id) => "0xmockacktx" as `0x${string}`,
     getVaultBalance: async () => 1_000_000n * 1_000_000n, // $1,000,000 USDC in vault
     onPaymentInitiated: () => () => {},
   };
@@ -31,8 +32,8 @@ describe("Institutional Payment Infrastructure & Dual-Rail Routing (Vitest)", ()
     expect(quote.railType).toBe("CCTP_BURN_MINT");
     expect(quote.estimatedFee).toBe(0n); // 0 slippage, 0 protocol fee
 
-    // Routing and quoting are implemented; the CCTP protocol calls are not (issue #14).
-    // The rail must refuse rather than report a settlement that never happened.
+    // Routing and quoting are implemented. A rail constructed without a bridge client must
+    // refuse rather than report a settlement that never happened.
     const paymentId =
       "0x1111111111111111111111111111111111111111111111111111111111111111" as const;
 
@@ -47,7 +48,7 @@ describe("Institutional Payment Infrastructure & Dual-Rail Routing (Vitest)", ()
         sourcePayer: "0x1234567890123456789012345678901234567890",
         destinationRecipient: "0x0987654321098765432109876543210987654321",
       })
-    ).rejects.toMatchObject({ code: ErrorCode.NOT_IMPLEMENTED });
+    ).rejects.toMatchObject({ code: ErrorCode.CCTP_NOT_CONFIGURED });
 
     const stored = await router.getPaymentStatus(paymentId);
     expect(stored?.status).toBe(BridgePaymentStatus.FAILED);
@@ -152,8 +153,8 @@ describe("Institutional Payment Infrastructure & Dual-Rail Routing (Vitest)", ()
     expect(quote.railType).toBe("CCTP_BURN_MINT");
     expect(quote.estimatedFee).toBe(0n);
 
-    // 2. Transfer — quoting works end to end through the SDK, but a CCTP corridor cannot
-    //    settle yet (issue #14). The SDK must surface that refusal rather than a fake success.
+    // 2. Transfer — quoting works end to end through the SDK, but a CCTP corridor with no
+    //    bridge client must surface that refusal rather than a fake success.
     await expect(
       client.payments.create({
         sourceChainId: 137,
@@ -163,7 +164,7 @@ describe("Institutional Payment Infrastructure & Dual-Rail Routing (Vitest)", ()
         amount: "1000000.00",
         metadata: { invoice: "INV-SINGAPORE-2026-001" },
       })
-    ).rejects.toMatchObject({ code: ErrorCode.NOT_IMPLEMENTED });
+    ).rejects.toMatchObject({ code: ErrorCode.CCTP_NOT_CONFIGURED });
   });
 
   describe("VaultSettlementRail recipient validation", () => {

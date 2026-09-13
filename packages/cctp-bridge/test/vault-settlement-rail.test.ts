@@ -9,6 +9,7 @@ function evmAdapter(overrides: Partial<IEvmAdapter> = {}): IEvmAdapter {
   return {
     depositPayment: vi.fn(),
     releasePayment: vi.fn().mockResolvedValue("0xreleasehash" as `0x${string}`),
+    acknowledgePayment: vi.fn().mockResolvedValue("0xackhash" as `0x${string}`),
     getVaultBalance: vi.fn().mockResolvedValue(1_000n * 1_000_000n),
     onPaymentInitiated: vi.fn(),
     ...overrides,
@@ -101,6 +102,43 @@ describe("VaultSettlementRail", () => {
         expect.anything()
       );
     });
+
+    it("acknowledges the deposit in the vault before crediting Stellar", async () => {
+      const evm = evmAdapter();
+      const stellar = stellarAdapter();
+      const rail = new VaultSettlementRail(evm, stellar);
+      const payment = intent();
+
+      await rail.executeSettlement(payment);
+
+      expect(evm.acknowledgePayment).toHaveBeenCalledWith(payment.paymentId);
+      const ackOrder = vi.mocked(evm.acknowledgePayment).mock.invocationCallOrder[0];
+      const creditOrder = vi.mocked(stellar.creditPayment).mock.invocationCallOrder[0];
+      expect(ackOrder).toBeLessThan(creditOrder);
+    });
+
+    it("does not credit Stellar when the acknowledgement fails", async () => {
+      const evm = evmAdapter({
+        acknowledgePayment: vi.fn().mockRejectedValue(new Error("Payment not acknowledgeable")),
+      });
+      const stellar = stellarAdapter();
+      const rail = new VaultSettlementRail(evm, stellar);
+
+      await expect(rail.executeSettlement(intent())).rejects.toThrow(/Stellar was not credited/);
+      expect(stellar.creditPayment).not.toHaveBeenCalled();
+    });
+
+    it("flags an acknowledged deposit for relayer refund when the Stellar credit fails", async () => {
+      const evm = evmAdapter();
+      const stellar = stellarAdapter({
+        creditPayment: vi.fn().mockRejectedValue(new Error("Horizon unavailable")),
+      });
+      const rail = new VaultSettlementRail(evm, stellar);
+      const payment = intent();
+
+      await expect(rail.executeSettlement(payment)).rejects.toThrow(/ACKNOWLEDGED.*refundPayment/);
+      expect(evm.acknowledgePayment).toHaveBeenCalledWith(payment.paymentId);
+    });
   });
 
   describe("Stellar to EVM", () => {
@@ -124,6 +162,7 @@ describe("VaultSettlementRail", () => {
         payment.destinationRecipient,
         payment.amount
       );
+      expect(evm.acknowledgePayment).not.toHaveBeenCalled();
     });
 
     it("refuses to release more than the vault holds", async () => {

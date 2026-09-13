@@ -77,6 +77,7 @@ function resolveChain(chainId: number, rpcUrl: string) {
 const VAULT_ABI = parseAbi([
   "function depositPayment(bytes32 paymentId, uint256 amount, uint32 destinationDomain, bytes32 destinationRecipient, bytes calldata metadata) external",
   "function releasePayment(bytes32 paymentId, address recipient, uint256 amount) external",
+  "function acknowledgePayment(bytes32 paymentId) external",
   "function usdcToken() view returns (address)",
   "event PaymentInitiated(bytes32 indexed paymentId, address indexed payer, uint256 amount, uint32 destinationDomain, bytes32 destinationRecipient, bytes metadata)",
   "event PaymentReleased(bytes32 indexed paymentId, address indexed recipient, uint256 amount, address relayer)",
@@ -154,6 +155,33 @@ export class EvmAdapter implements IEvmAdapter {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       throw new RelayerExecutionError(`releasePayment failed on EVM (Chain ${this.chain.id}): ${message}`, err);
+    }
+  }
+
+  async acknowledgePayment(paymentId: Hex): Promise<Hex> {
+    if (!this.walletClient || !this.account) {
+      throw new RelayerExecutionError("Relayer wallet client required to acknowledge payments");
+    }
+
+    try {
+      const hash = await this.walletClient.writeContract({
+        address: this.vaultAddress,
+        abi: VAULT_ABI,
+        functionName: "acknowledgePayment",
+        args: [paymentId],
+        account: this.account,
+        chain: this.chain,
+      });
+
+      // Settlement proceeds only on a confirmed acknowledgement, so a reverted tx must throw.
+      const receipt = await this.publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") {
+        throw new Error(`transaction ${hash} reverted`);
+      }
+      return hash;
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      throw new RelayerExecutionError(`acknowledgePayment failed on EVM (Chain ${this.chain.id}): ${message}`, err);
     }
   }
 

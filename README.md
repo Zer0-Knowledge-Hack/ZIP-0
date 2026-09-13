@@ -45,9 +45,10 @@ ZIP-0 routes a payment over one of two settlement rails:
 | Rail | Mechanism | Liquidity | Status |
 | :--- | :--- | :--- | :--- |
 | **Vault rail** | Lock USDC in a vault on the source chain, release from the vault on the destination chain via an authorized relayer | Bounded by vault float | **Implemented** |
-| **CCTP rail** | Circle burn-and-mint, 1:1, no pools | Unbounded | **Planned** — no code yet |
+| **CCTP rail** | Circle burn-and-mint, 1:1, no pools | Unbounded | **Implemented** (Circle Bridge Kit; live testnet transfer pending) |
 
-Today every payment settles over the vault rail.
+Vault-rail payments settle today. CCTP corridors between Circle-supported EVM chains are
+implemented and routed automatically; a live testnet transfer has not been recorded yet.
 
 ```text
   EVM chain (HSK / Avalanche)                      Stellar (Pollar)
@@ -80,8 +81,9 @@ The vault rail is **not trust-minimized**. An address holding `RELAYER_ROLE` can
 balance. There is no on-chain proof of the Stellar-side credit.
 
 In other words, ZIP-0 currently assumes an honest relayer. Making settlement trust-minimized is
-what the planned CCTP rail is for. We state this explicitly rather than implying guarantees the
-code does not provide.
+what the CCTP rail is for: it settles 1:1 through Circle with no trusted operator in the middle.
+We state the vault rail's limits explicitly rather than implying guarantees the code does not
+provide.
 
 ---
 
@@ -91,9 +93,65 @@ code does not provide.
 | :--- | :--- |
 | `packages/contracts-evm` | `ZIP0PaymentVault.sol`, `MockUSDC.sol`, Hardhat config, deploy scripts |
 | `packages/cctp-bridge` | Relayer orchestrator, EVM/Stellar adapters, core types |
+| `packages/sdk` | `@zip-0/sdk` typed client library (`Zip0Client`) |
+| `apps/gateway` | REST API gateway exposing `/v1/payments/*` endpoints |
 | `spec/` | Architecture reference (design intent, includes planned work) |
 | `docs/` | Operational documentation (verified facts, integration guides) |
 | `openspec/` | OpenSpec change tracking |
+
+---
+
+## SDK & REST Gateway
+
+ZIP-0 provides both a typed client SDK (`@zip-0/sdk`) and an HTTP REST gateway (`apps/gateway`) allowing applications to initiate and track payments without managing low-level contract calls directly.
+
+### Running the Gateway
+
+```bash
+pnpm dev
+# Or run gateway directly:
+pnpm --filter @zip-0/gateway dev
+```
+
+The gateway runs by default at `http://localhost:3000` and exposes:
+- `GET /health` — Service health check
+- `POST /v1/payments/quote` — Route evaluation, fee calculation, and rail selection
+- `POST /v1/payments/transfer` — Payment initiation
+- `GET /v1/payments/:id` — Payment status lookup and transaction hashes
+- `POST /v1/webhooks` — Webhook event subscription
+
+### Using `@zip-0/sdk`
+
+```typescript
+import { Zip0Client } from "@zip-0/sdk";
+
+const zip0 = new Zip0Client({
+  baseUrl: "http://localhost:3000",
+  apiKey: process.env.ZIP0_API_KEY,
+});
+
+// 1. Get a quote
+const quote = await zip0.payments.quote({
+  sourceChain: "avalanche",
+  destinationChain: "hashkey",
+  amount: "5000000.00",
+});
+console.log(`Estimated fee: ${quote.estimatedFee} USDC, Rail: ${quote.railType}`);
+
+// 2. Initiate payment
+const payment = await zip0.payments.create({
+  amount: "5000000.00",
+  sourceChain: "avalanche",
+  destinationChain: "hashkey",
+  recipient: "0xRecipientAddress...",
+  reference: "INV-2026-SG-001",
+});
+console.log(`Payment initiated: ${payment.paymentId}, Tx: ${payment.destinationTxHash}`);
+
+// 3. Track settlement status
+const status = await zip0.payments.get(payment.paymentId);
+console.log(`Current status: ${status.status}`);
+```
 
 ---
 
@@ -118,9 +176,12 @@ Roles: `DEFAULT_ADMIN_ROLE`, `TREASURY_ROLE` (granted to admin at construction),
 Amounts use 6 decimals, matching USDC on every supported network.
 
 **Known limitations.** Once the relayer acknowledges a deposit, only the relayer can refund it.
-The relayer does not call `acknowledgePayment` yet, and the vault deployed on Avalanche Fuji
-predates `acknowledgePayment` and `claimRefund`. Relayer payment state lives in an in-memory `Map`
-and does not survive a process restart.
+The relayer acknowledges every EVM → Stellar deposit before crediting Stellar, so relayer downtime
+beyond `REFUND_TIMEOUT` lets payers reclaim unacknowledged deposits — see [SECURITY.md](SECURITY.md).
+The Avalanche Fuji vault (`0xF1ca…`) and the original HSK Testnet vault from #3 (`0x14e5…`)
+predate `acknowledgePayment` and `claimRefund`: Flow 2 (EVM → Stellar) reverts against them.
+The current HSK Testnet vault (`0x3028…`, redeployed in #35 / PR #45) matches this repository.
+Relayer payment state lives in an in-memory `Map` and does not survive a process restart.
 
 ---
 
@@ -147,8 +208,60 @@ and does not survive a process restart.
 
 | Contract | Address |
 | :--- | :--- |
-| `ZIP0PaymentVault` | [`0x14e59806054773fc341377aEC472C07e500BCc86`](https://testnet-explorer.hsk.xyz/address/0x14e59806054773fc341377aEC472C07e500BCc86) |
-| `MockUSDC` | [`0x46a7BE8Cea2d9EB017D0a0277467E680bcA04f17`](https://testnet-explorer.hsk.xyz/address/0x46a7BE8Cea2d9EB017D0a0277467E680bcA04f17) |
+| `ZIP0PaymentVault` | [`0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07`](https://testnet-explorer.hsk.xyz/address/0x3028a9AfCD5E2c3C2E1fD35d984Be65640ca4e07) |
+| `MockUSDC` | [`0x1f65E72EE31F709969Dfc75f98f5867EaE332CD9`](https://testnet-explorer.hsk.xyz/address/0x1f65E72EE31F709969Dfc75f98f5867EaE332CD9) |
+
+The #3 submission vault [`0x14e59806054773fc341377aEC472C07e500BCc86`](https://testnet-explorer.hsk.xyz/address/0x14e59806054773fc341377aEC472C07e500BCc86) is still on-chain. It does not implement `acknowledgePayment`. Do not point the live runner at it.
+
+### Live HSK testnet demo
+
+`packages/cctp-bridge/scripts/test-payment-cli.ts` defaults to HashKey Chain Testnet (`133`) and the
+`0x3028…` vault. Flow 1 calls `releasePayment`; Flow 2 calls `depositPayment` then the relayer's
+`acknowledgePayment` before crediting Stellar.
+
+```bash
+# packages/cctp-bridge/.env  — keys only; network defaults to HSK testnet
+RELAYER_PRIVATE_KEY=0x...   # must hold RELAYER_ROLE on 0x3028…
+ALICE_PRIVATE_KEY=0x...     # must hold MockUSDC and a little HSK for gas
+```
+
+```bash
+pnpm --filter @zip-0/cctp-bridge test:payment
+```
+
+Explorer links print as `https://testnet-explorer.hsk.xyz/tx/<hash>`. To force Avalanche Fuji
+instead, set `EVM_CHAIN_ID=43113` (Flow 2 will fail there until that vault is redeployed).
+
+
+### Recorded run — 2026-09-13
+
+Both flows executed against the live deployment. Every hash below was confirmed on-chain by
+transaction receipt before being written here.
+
+**Flow 1 — Stellar → HashKey Chain** (relayer releases 0.25 MockUSDC to the merchant)
+
+| Step | Transaction |
+| :--- | :--- |
+| Stellar registration | [`d4a121b6…c6fb`](https://stellar.expert/explorer/testnet/tx/d4a121b6acc8654bdc3d5ccfd40b6ed63d2f2b90fb3a5141dbd0e28e9ef1c6fb) — ledger 4 651 194 |
+| `releasePayment` | [`0xcd298ce6…aab1`](https://testnet-explorer.hsk.xyz/tx/0xcd298ce61d6a6e5c89e6aba2254f565f2b36e0071cc2e56d41957e2c4604aab1) — block 33 046 453 |
+
+Merchant balance moved 0.25 → 0.50 MockUSDC.
+
+**Flow 2 — HashKey Chain → Stellar** (payer deposits 0.10 MockUSDC, relayer acknowledges, then credits Stellar)
+
+| Step | Transaction |
+| :--- | :--- |
+| `approve` | [`0x1097ca7e…1464`](https://testnet-explorer.hsk.xyz/tx/0x1097ca7e3b3da2ca23f0c5b499ca90f5387156c1ac5d46865aa0382512ac1464) — block 33 046 455 |
+| `depositPayment` | [`0x80c6cd7e…f9ec`](https://testnet-explorer.hsk.xyz/tx/0x80c6cd7ecb7e3f39ebadb70312ce522b3334b6142ed387eea54f178d7e71f9ec) — block 33 046 456 |
+| Stellar credit | [`7e3a7b77…e7a5`](https://stellar.expert/explorer/testnet/tx/7e3a7b77af4d6dfb18b129b0655afa64b8583bd5450b8a843705345c0bf5e7a5) — ledger 4 651 198 |
+
+Flow 2 exercises `acknowledgePayment` before crediting Stellar, which is the ordering that keeps
+`claimRefund` from being reachable on a payment that already settled.
+
+> **Known issue.** The script sends `approve` and `depositPayment` without waiting for the
+> approve receipt, so a first run against a fresh payer reverts with
+> `ERC20InsufficientAllowance`. The allowance lands regardless, so an immediate re-run succeeds.
+> The fix is to await the approve receipt — tracked separately.
 
 ---
 
@@ -172,7 +285,8 @@ Contracts are tested with Hardhat; TypeScript is tested with Vitest.
 1. Deploy the vault to HashKey Chain mainnet and settle a real payment end to end.
 2. Replace mock-based relayer tests with integration tests against a live chain.
 3. Persist relayer payment state so it survives restarts.
-4. Implement the CCTP rail (Circle `TokenMessenger` + Iris attestation) to remove relayer trust.
+4. Record a live CCTP testnet transfer to prove the burn-and-mint rail end to end. The rail itself
+   is implemented over Circle's Bridge Kit (`depositForBurn` -> Iris attestation -> `receiveMessage`).
 5. Package `@zip-0/sdk` and a REST gateway so institutions integrate without touching chain code.
 
 ---

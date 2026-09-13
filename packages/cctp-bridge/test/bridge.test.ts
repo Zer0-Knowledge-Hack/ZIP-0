@@ -24,6 +24,7 @@ describe("CCTP Bridge Core & Adapters", () => {
       const mockEvm: IEvmAdapter = {
         depositPayment: vi.fn(),
         releasePayment: vi.fn(),
+        acknowledgePayment: vi.fn().mockResolvedValue("0xhskacktxhash" as `0x${string}`),
         getVaultBalance: vi.fn().mockResolvedValue(1000n * 1_000_000n),
         onPaymentInitiated: vi.fn(),
       };
@@ -49,6 +50,7 @@ describe("CCTP Bridge Core & Adapters", () => {
 
       await orchestrator.handleHskToStellar(intent);
 
+      expect(mockEvm.acknowledgePayment).toHaveBeenCalledWith(intent.paymentId);
       expect(mockStellar.creditPayment).toHaveBeenCalledWith(
         intent.destinationRecipient,
         intent.amount,
@@ -64,6 +66,7 @@ describe("CCTP Bridge Core & Adapters", () => {
       const mockEvm: IEvmAdapter = {
         depositPayment: vi.fn(),
         releasePayment: vi.fn().mockResolvedValue("0xhskreleasetxhash" as `0x${string}`),
+        acknowledgePayment: vi.fn(),
         getVaultBalance: vi.fn().mockResolvedValue(1000n * 1_000_000n),
         onPaymentInitiated: vi.fn(),
       };
@@ -94,6 +97,7 @@ describe("CCTP Bridge Core & Adapters", () => {
       const mockEvm: IEvmAdapter = {
         depositPayment: vi.fn(),
         releasePayment: vi.fn(),
+        acknowledgePayment: vi.fn(),
         getVaultBalance: vi.fn().mockResolvedValue(5n * 1_000_000n), // Only 5 USDC available
         onPaymentInitiated: vi.fn(),
       };

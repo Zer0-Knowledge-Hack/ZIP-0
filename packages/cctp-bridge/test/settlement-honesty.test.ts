@@ -34,15 +34,15 @@ function intent(overrides: Partial<PaymentIntent> = {}): PaymentIntent {
  */
 describe("settlement honesty", () => {
   describe("CctpSettlementRail", () => {
-    it("refuses to settle instead of returning a fabricated hash", async () => {
+    it("refuses to settle without a configured bridge client instead of fabricating a hash", async () => {
       const rail = new CctpSettlementRail();
 
       await expect(rail.executeSettlement(intent())).rejects.toMatchObject({
-        code: ErrorCode.NOT_IMPLEMENTED,
+        code: ErrorCode.CCTP_NOT_CONFIGURED,
       });
     });
 
-    it("still reports the corridors it would serve once implemented", () => {
+    it("reports the CCTP corridors it serves and excludes non-CCTP chains", () => {
       const rail = new CctpSettlementRail();
 
       expect(rail.supportsRoute(43113, 8453)).toBe(true);
@@ -137,6 +137,7 @@ describe("VaultSettlementRail recipient validation", () => {
   const adapter = (): IEvmAdapter => ({
     depositPayment: vi.fn(),
     releasePayment: vi.fn().mockResolvedValue("0xrealreleasehash" as `0x${string}`),
+    acknowledgePayment: vi.fn(),
     getVaultBalance: vi.fn().mockResolvedValue(1_000n * 1_000_000n),
     onPaymentInitiated: vi.fn(),
   });
