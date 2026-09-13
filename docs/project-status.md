@@ -91,8 +91,21 @@ is roadmap item 2 and the highest-value next step.
 
 ### State durability
 
-`RelayerOrchestrator` holds payment state in an in-memory `Map`. A process restart loses tracking
-of every in-flight payment. Acceptable for a demo; not acceptable for settlement.
+Payment tracking goes through `PaymentStore` (`get` / `set` / `list` / `findByStatus`).
+`RelayerOrchestrator` receives the store by constructor injection and defaults to
+`InMemoryPaymentStore` so existing unit tests keep an ephemeral `Map`.
+
+Real runs can pass `FilePaymentStore`, a JSON file that reconstructs `bigint` amounts and
+`Date` timestamps. The orchestrator writes `PROCESSING` before settlement and
+`COMPLETED` or `FAILED` after, so a restart sees the last persisted transition.
+
+Test evidence: `test/payment-store.test.ts` writes an intent, discards the store instance,
+opens a new store on the same temp file, and reads the payment back — including a later
+status update and an orchestrator-level COMPLETED recovery.
+
+What this does **not** claim: crash-safe multi-process locking, ACID transactions, or
+recovery of work that never reached `PaymentStore.set`. The router's in-process `Map` is
+unchanged; durable recovery is the orchestrator's `getPaymentStatus` path.
 
 ---
 
