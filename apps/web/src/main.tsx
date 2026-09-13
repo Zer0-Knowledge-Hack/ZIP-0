@@ -59,35 +59,30 @@ function Mark() {
 }
 
 /**
- * Corridor diagram.
+ * Hero mark.
  *
- * Two endpoints joined by a rail, with value travelling across it. It carries the product's
- * claim — money moves directly, without the chain of intermediaries in between — faster than
- * a paragraph can.
+ * The logo, scaled up and put to work. The zero draws itself, the rail runs through the
+ * opening, and value crosses it — so the mark is not decoration beside the message, it is the
+ * message: one opening, one direct crossing, nothing in between.
  *
- * Inline SVG with a CSS animation: no library, no extra request, and it degrades to a static
- * diagram when reduced motion is requested.
+ * Inline SVG with a CSS animation. No library and no video file, so it costs nothing to load
+ * and stays sharp at any size. It settles into the static logo when the animation ends, and
+ * renders as the plain logo when reduced motion is requested.
  */
-function Corridor() {
+function HeroMark() {
   return (
     <svg
-      className="corridor"
-      viewBox="0 0 420 80"
+      className="hero-mark"
+      viewBox="0 0 240 120"
       role="img"
-      aria-label="Direct corridor between two endpoints"
+      aria-label="ZIP-0: a direct crossing with nothing in between"
     >
-      <line
-        className="corridor-rail"
-        x1="52"
-        y1="40"
-        x2="368"
-        y2="40"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <circle className="corridor-node" cx="40" cy="40" r="11" />
-      <circle className="corridor-node" cx="380" cy="40" r="11" />
-      <circle className="corridor-pulse" cy="40" r="5" />
+      <line className="hero-mark-rail" x1="12" y1="60" x2="228" y2="60" />
+      <g className="hero-mark-zero">
+        <path d="M 120 22 A 38 38 0 0 1 155.6 71" />
+        <path d="M 120 98 A 38 38 0 0 1 84.4 49" />
+      </g>
+      <circle className="hero-mark-value" cy="60" r="7" />
     </svg>
   );
 }
@@ -387,6 +382,7 @@ function App() {
             ))}
         </nav>
         <main>
+          {page !== "landing" && (
           <div className="page-heading">
             <div>
               <div className="eyebrow">ZIP-0 / {t.business}</div>
@@ -423,6 +419,7 @@ function App() {
               <ChevronDown size={15} />
             </label>
           </div>
+          )}
           {error && (
             <div className="alert" role="alert">
               {t[error]}
@@ -451,7 +448,7 @@ function App() {
                 No section headings. A landing shows the product and lets the reader draw the
                 conclusion; naming the problem is telling rather than showing.
               */}
-              <Corridor />
+              <HeroMark />
 
               <section className="landing-qualities">
                 {[

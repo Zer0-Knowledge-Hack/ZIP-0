@@ -33,6 +33,10 @@
    * overlays. They exist because reusing ink-muted on a dark panel fails in light mode: those
    * tokens are defined against paper, not against a dark background.
    */
+  /* Fixed dark surface. Does NOT flip with the theme — --zip-ink does, which made a
+     permanently dark card render light-on-light in dark mode. */
+  --zip-dark-surface: #0a0e14;
+  --zip-dark-surface-raised: #1b2330;
   --zip-on-dark: #f7f9fc;
   --zip-on-dark-muted: #9aa7b8;
   --zip-on-dark-signal: #4b86ff;

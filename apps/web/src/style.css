@@ -1246,7 +1246,7 @@ footer {
   transform: rotate(-3deg);
 }
 .payment-preview-card {
-  background: var(--zip-ink);
+  background: var(--zip-dark-surface);
   color: var(--zip-on-dark);
   border: 1px solid var(--zip-on-dark-muted);
   border-radius: 18px;
@@ -1834,7 +1834,7 @@ a.landing-hash:hover {
 }
 
 .receipt-body {
-  background: var(--zip-ink);
+  background: var(--zip-dark-surface);
   color: var(--zip-on-dark);
   border-radius: var(--zip-radius-lg) var(--zip-radius-lg) 0 0;
   padding: var(--zip-space-6);
@@ -1972,7 +1972,7 @@ a.landing-hash:hover {
  */
 .receipt-tear {
   height: 12px;
-  background: var(--zip-ink);
+  background: var(--zip-dark-surface);
   -webkit-mask-image: conic-gradient(from -45deg at bottom, transparent 0 90deg, #000 0);
   mask-image: conic-gradient(from -45deg at bottom, transparent 0 90deg, #000 0);
   -webkit-mask-size: 16px 12px;
@@ -2025,52 +2025,97 @@ a.landing-hash:hover {
   }
 }
 
-/* ---------- Corridor diagram ---------- */
+/* ---------- Hero mark ---------- */
 
-.corridor {
+/*
+ * The logo doing the explaining. The zero draws itself, then value crosses the opening.
+ * Strokes are scaled from the mark in docs/brand.md so the animated and static versions are
+ * the same object, not a lookalike.
+ */
+.hero-mark {
   width: 100%;
-  max-width: 26rem;
+  max-width: 22rem;
   height: auto;
-  color: var(--zip-border-strong);
-  margin: 0 auto;
   display: block;
+  margin: 0 auto;
+  overflow: visible;
 }
 
-.corridor-node {
-  fill: var(--zip-surface);
+.hero-mark-rail,
+.hero-mark-zero path {
+  fill: none;
   stroke: var(--zip-ink);
-  stroke-width: 2;
+  stroke-width: 7;
+  stroke-linecap: butt;
 }
 
-.corridor-pulse {
+.hero-mark-rail {
+  stroke-dasharray: 216;
+  stroke-dashoffset: 216;
+  animation: mark-draw-rail 1s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
+}
+
+.hero-mark-zero path {
+  stroke-dasharray: 130;
+  stroke-dashoffset: 130;
+  animation: mark-draw-zero 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
+}
+
+.hero-mark-value {
   fill: var(--zip-signal);
-  animation: corridor-travel 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  opacity: 0;
+  animation: mark-value 2.8s cubic-bezier(0.4, 0, 0.2, 1) 1.4s infinite;
 }
 
-@keyframes corridor-travel {
+@keyframes mark-draw-rail {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes mark-draw-zero {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Value enters, passes through the aperture, leaves. The pause mid-crossing is the product. */
+@keyframes mark-value {
   0% {
-    cx: 52px;
+    cx: 12px;
     opacity: 0;
   }
-  12% {
+  10% {
     opacity: 1;
   }
-  88% {
+  45% {
+    cx: 120px;
+  }
+  55% {
+    cx: 120px;
+  }
+  90% {
     opacity: 1;
   }
   100% {
-    cx: 368px;
+    cx: 228px;
     opacity: 0;
   }
 }
 
 /*
- * Motion here is decorative. Without it the diagram still says the same thing: two endpoints,
- * one direct connection.
+ * Without motion the mark is simply the logo, fully drawn. Nothing in the message depends on
+ * the animation.
  */
 @media (prefers-reduced-motion: reduce) {
-  .corridor-pulse {
+  .hero-mark-rail,
+  .hero-mark-zero path {
+    stroke-dashoffset: 0;
     animation: none;
-    cx: 210px;
+  }
+  .hero-mark-value {
+    animation: none;
+    opacity: 1;
+    cx: 120px;
   }
 }
