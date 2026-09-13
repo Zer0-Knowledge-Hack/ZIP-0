@@ -35,8 +35,13 @@ type Provider = {
     callback: (accounts: unknown) => void
   ) => void;
 };
-const VAULT = "0x14e59806054773fc341377aEC472C07e500BCc86";
-const EXPLORER = "https://testnet-explorer.hsk.xyz";
+/*
+ * Deployment references. Deliberately not surfaced in the landing or the four main tabs:
+ * an institution evaluating the product does not need a contract address to decide, and the
+ * chain detail belongs with the disclosures. These are consumed by the legal section (#48).
+ */
+export const VAULT = "0x14e59806054773fc341377aEC472C07e500BCc86";
+export const EXPLORER = "https://testnet-explorer.hsk.xyz";
 
 const provider = () => (window as Window & { ethereum?: Provider }).ethereum;
 
@@ -58,38 +63,6 @@ function Mark() {
   );
 }
 
-/**
- * Network marks.
- *
- * Drawn in ZIP-0's own geometry rather than reproducing each project's logo. Two reasons:
- * approximating someone else's trademark from memory usually gets it wrong, and a row of three
- * different brand styles fights the page. If official marks are wanted, they should come from
- * each project's brand assets.
- */
-const NETWORKS = [
-  { name: "HashKey Chain", chainId: "133", shape: "hex" },
-  { name: "Avalanche Fuji", chainId: "43113", shape: "triangle" },
-  { name: "Stellar", chainId: "—", shape: "orbit" },
-] as const;
-
-function NetworkMark({ shape }: { shape: (typeof NETWORKS)[number]["shape"] }) {
-  return (
-    <svg className="network-mark" viewBox="0 0 32 32" aria-hidden="true">
-      {shape === "hex" && (
-        <path d="M16 4 L27 10 L27 22 L16 28 L5 22 L5 10 Z" fill="none" stroke="currentColor" strokeWidth="2.5" />
-      )}
-      {shape === "triangle" && (
-        <path d="M16 5 L28 26 L4 26 Z" fill="none" stroke="currentColor" strokeWidth="2.5" />
-      )}
-      {shape === "orbit" && (
-        <>
-          <circle cx="16" cy="16" r="5" fill="none" stroke="currentColor" strokeWidth="2.5" />
-          <ellipse cx="16" cy="16" rx="12" ry="5" fill="none" stroke="currentColor" strokeWidth="2.5" transform="rotate(-25 16 16)" />
-        </>
-      )}
-    </svg>
-  );
-}
 
 /**
  * Hero mark.
@@ -226,7 +199,7 @@ function Receipt({ t }: { t: typeof es }) {
 
         <p className="receipt-label">{t.receiptAmount}</p>
         <p className="receipt-amount">
-          18,400.00 <span>USDC</span>
+          18,400.00
         </p>
 
         <dl className="receipt-rows">
@@ -598,41 +571,7 @@ function App() {
                 </div>
               </section>
 
-              <section className="landing-networks">
-                <h3 className="landing-section-title">{t.networksTitle}</h3>
-                <ul className="landing-network-list">
-                  {NETWORKS.map((n) => (
-                    <li key={n.name}>
-                      <NetworkMark shape={n.shape} />
-                      <span>{n.name}</span>
-                      <small className="zip-num">{n.chainId}</small>
-                    </li>
-                  ))}
-                </ul>
-              </section>
 
-              <section className="landing-proof">
-                <dl>
-                  <div>
-                    <dt>{t.landingProofVault}</dt>
-                    <dd>
-                      <a
-                        className="landing-hash"
-                        href={`${EXPLORER}/address/${VAULT}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {VAULT}
-                        <ArrowUpRight size={14} />
-                      </a>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>{t.landingProofNetwork}</dt>
-                    <dd className="landing-hash">HashKey Chain Testnet</dd>
-                  </div>
-                </dl>
-              </section>
 
               <aside className="landing-notice">
                 <ShieldCheck size={18} />
